@@ -24,7 +24,11 @@ jobs:
             pkg-config \
             python3-dev \
             python3-openssl
-      - uses: actions/checkout@v3
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -44,8 +48,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
+      - name: Create virtual environment
+        run: |
+          uv venv .venv
+          . .venv/bin/activate
+          python -V
+          which python
+
       - name: Install dependencies
         run: |
+          . .venv/bin/activate
           uv pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
@@ -53,6 +65,7 @@ jobs:
       - name: pytest
         run: |
           # python3.10 -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv atomsci/ddm/test/unit
+          . .venv/bin/activate
           cd atomsci/modac/test/unit && uv run python -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv
           cd ../../../../atomsci/ddm/test/unit && uv run python -m pytest -m "not moe_required" -n 2 --capture=sys --capture=fd --cov=atomsci -vv
         env:
@@ -100,7 +113,11 @@ jobs:
             pkg-config \
             python3-dev \
             python3-openssl
-      - uses: actions/checkout@v3
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -120,8 +137,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
+      - name: Create virtual environment
+        run: |
+          uv venv .venv
+
       - name: Install dependencies
         run: |
+          . .venv/bin/activate
           uv pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
@@ -130,6 +152,7 @@ jobs:
         run: |
           # TODO: Run this test with pytest for paralell testing
           # python3.10 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci -vv atomsci/ddm/test/integrative
+          . .venv/bin/activate
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 0
         env:
           ENV: test
@@ -194,6 +217,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
+      - name: Create virtual environment
+        run: |
+          uv venv .venv
+
       - name: Install dependencies
         run: |
           uv pip install -e .
@@ -203,6 +230,7 @@ jobs:
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
+          . .venv/bin/activate
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 1
           echo 'done'
         env:
@@ -268,8 +296,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
+      - name: Create virtual environment
+        run: |
+          uv venv .venv
+
       - name: Install dependencies
         run: |
+          . .venv/bin/activate
           uv pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
@@ -278,6 +311,7 @@ jobs:
         run: |
           # TODO: Run this test with pytest for paralell testing
           # python3.10 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci -vv atomsci/ddm/test/integrative
+          . .venv/bin/activate
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 2
         env:
           ENV: test
@@ -341,8 +375,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
+      - name: Create virtual environment
+        run: |
+          uv venv .venv
+
       - name: Install dependencies
         run: |
+          . .venv/bin/activate
           uv pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
@@ -351,6 +390,7 @@ jobs:
         run: |
           # TODO: Run this test with pytest for paralell testing
           # python3.10 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci -vv atomsci/ddm/test/integrative
+          . .venv/bin/activate
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 3
         env:
           ENV: test

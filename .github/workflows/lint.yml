@@ -30,8 +30,8 @@ jobs:
 
       - name: Install uv
         run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          python -m pip install --upgrade uv
+          uv --version
 
       - name: Cache uv downloads
         uses: actions/cache@v3
@@ -41,13 +41,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
+      - name: Create venv
+        run: |
+          uv venv .venv
+
       - name: Install dependencies
         run: |
+          . .venv/bin/activate
           if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
           uv pip install ruff
 
       - name: Lint with ruff
         run: |
           # Check all lint rules
+          . .venv/bin/activate
           uv run ruff check atomsci/
 
