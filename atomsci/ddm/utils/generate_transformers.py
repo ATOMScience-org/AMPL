@@ -116,21 +116,24 @@ def load_all_datasets(
 
     return combined_dataset
 
-def filter_datasets(dataset_key_config, featurizer, descriptor_type, threshold=1e10, workers=8):
-    """
-    Filters datasets and looks for compounds with very large descriptor values.
+def filter_outlier_features(dataset_key, id_col, smiles_col, response_cols, featurizer, descriptor_type, threshold=1e10):
+    """Looks for compounds with very large descriptor values.
 
     Args:
         dataset_key_configs (list): List of dataset key configuration dictionaries.
         featurizer (str): The featurizer type (e.g., 'ecfp', 'graphconv', 'computed_descriptors', etc.).
         descriptor_type (str): Descriptor type (e.g., 'moe', 'rdkit_raw', etc.).
         threshold (float): Threshold for filtering large descriptor values.
-        workers (int): Number of workers to use for parallel processing in calculating molecular weights.
-
 
     Returns:
-        list: Filtered list of dataset key configurations.
+        DataFrame with outlier compound_ids, descriptor column names, and descriptor values that exceed the threshold.
     """
+    dataset_key_config = {
+        'dataset_key': dataset_key,
+        'id_col': id_col,
+        'smiles_col': smiles_col,
+        'response_cols': response_cols
+    }
     params_dict = dict()
     params_dict.update(dataset_key_config)
     params_dict['featurizer'] = featurizer
@@ -151,18 +154,31 @@ def filter_datasets(dataset_key_config, featurizer, descriptor_type, threshold=1
    
 
     large_values = np.argwhere(abs_X > threshold)
-    if len(large_values) > 0:
-        print(large_values)
-        print(abs_X[large_values])
-        print(dataset.featrizer.get_feature_columns()[large_values[:,1]])
+    feature_cols = np.array(dataset.featurization.get_feature_columns())
 
+    return dataset.dataset.ids[large_values[:,0]], [feature_cols[i] for i in large_values[:,1]], [abs_X[i,j] for i,j in large_values]
+
+def filter_outlier_MW(dataset_key, smiles_col, threshold=1000, workers=8):
+    """Filters datasets and looks for compounds with very large molecular weights.
+
+    Args:
+        dataset_key (str): Path to the dataset CSV file.
+        smiles_col (str): Name of the column containing SMILES strings.
+        threshold (float): Threshold for filtering large molecular weights.
+        workers (int): Number of workers to use for parallel processing in calculating molecular weights.
+        workers (int): Number of workers to use for parallel processing in calculating molecular weights.
+
+    Returns:
+        List of SMILES with molecular weights that exceed the threshold.
+
+    """
     # molecular weight > 1000
     # calculate molecular weight here.
-    dataset_df = pd.read_csv(params.dataset_key)
-    mol_weights = struct_utils.mol_wt_from_smiles(dataset_df[params.smiles_col].to_list(), workers=workers)
-    mw_large = np.argwhere(np.array(mol_weights) > 1000)
-    print('num compounds with MW > 1000:', len(mw_large))
+    dataset_df = pd.read_csv(dataset_key)
+    mol_weights = struct_utils.mol_wt_from_smiles(dataset_df[smiles_col].to_list(), workers=workers)
+    mw_large = np.argwhere(np.array(mol_weights) > threshold)
 
+    return dataset_df[smiles_col].iloc[mw_large.flatten()].tolist()
 
 def build_and_save_feature_transformers_from_csvs(
     transformer_dataset_key_configs,
