@@ -98,3 +98,4 @@ MolPort-008-351-384,COc1ccc(-c2nn3c(c2C)NC(=O)CC3C(=O)Nc2cccc(Cl)c2)cc1,COc1ccc(
 MolPort-008-351-385,O=C(C[C@@H]1NC(=O)N(Cc2ccc3c(c2)OCO3)C1=O)Nc1cccc(O)c1,O=C(C[C@@H]1NC(=O)N(Cc2ccc3c(c2)OCO3)C1=O)Nc1cccc(O)c1,0
 MolPort-008-351-386,O=C(C[C@@H]1NC(=O)N(Cc2ccc3c(c2)OCO3)C1=O)NCc1ccc(Cl)cc1Cl,O=C(C[C@@H]1NC(=O)N(Cc2ccc3c(c2)OCO3)C1=O)NCc1ccc(Cl)cc1Cl,0
 MolPort-008-351-387,CN1C(=O)C2(CC(=O)Nc3c2sc(C(=O)O)c3-c2ccccc2)c2cc(Cl)ccc21,CN1C(=O)C2(CC(=O)Nc3c2sc(C(=O)O)c3-c2ccccc2)c2cc(Cl)ccc21,0
+MolPort-009-019-503,[Na]S,[Na]S,0

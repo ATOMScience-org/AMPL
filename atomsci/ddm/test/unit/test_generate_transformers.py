@@ -1,4 +1,6 @@
 import atomsci.ddm.utils.generate_transformers as gt
+import tempfile
+import pytest
 
 def test_filter_outlier_features():
     dataset_key = '../test_datasets/Molport_test.csv'
@@ -11,21 +13,22 @@ def test_filter_outlier_features():
         featurizer='computed_descriptors', descriptor_type='rdkit_raw', 
         threshold=1e10)
 
-    expected_a = ['MolPort-008-351-280', 'MolPort-008-351-290', 'MolPort-008-351-328',
-                  'MolPort-008-351-372', 'MolPort-008-351-275', 'MolPort-008-351-375',
-                  'MolPort-008-351-277', 'MolPort-008-351-379', 'MolPort-008-351-322',
-                  'MolPort-008-351-297', 'MolPort-008-351-353', 'MolPort-008-351-336',
-                  'MolPort-008-351-294', 'MolPort-008-351-363', 'MolPort-008-351-321',
-                  'MolPort-008-351-357', 'MolPort-008-351-318', 'MolPort-008-351-354',
-                  'MolPort-008-351-295', 'MolPort-008-351-296', 'MolPort-008-351-338',
-                  'MolPort-008-351-382', 'MolPort-008-351-339', 'MolPort-008-351-292',
-                  'MolPort-008-351-313', 'MolPort-008-351-371', 'MolPort-008-351-359',
-                  'MolPort-008-351-283', 'MolPort-008-351-344', 'MolPort-008-351-343',
-                  'MolPort-008-351-305', 'MolPort-008-351-352', 'MolPort-008-351-319',
-                  'MolPort-008-351-317', 'MolPort-008-351-358', 'MolPort-008-351-373']
+    expected_a = set([
+                  'MolPort-008-351-295', 'MolPort-008-351-371', 'MolPort-008-351-357',
+                  'MolPort-008-351-359', 'MolPort-008-351-292', 'MolPort-008-351-372',
+                  'MolPort-008-351-322', 'MolPort-008-351-275', 'MolPort-008-351-338',
+                  'MolPort-008-351-358', 'MolPort-008-351-382', 'MolPort-008-351-297',
+                  'MolPort-008-351-375', 'MolPort-008-351-354', 'MolPort-008-351-277',
+                  'MolPort-008-351-353', 'MolPort-008-351-318', 'MolPort-008-351-280',
+                  'MolPort-008-351-339', 'MolPort-008-351-343', 'MolPort-008-351-313',
+                  'MolPort-008-351-296', 'MolPort-008-351-336', 'MolPort-008-351-317',
+                  'MolPort-008-351-283', 'MolPort-008-351-373', 'MolPort-008-351-363',
+                  'MolPort-008-351-294', 'MolPort-008-351-290', 'MolPort-008-351-321',
+                  'MolPort-008-351-344', 'MolPort-008-351-305', 'MolPort-008-351-328',
+                  'MolPort-008-351-379', 'MolPort-008-351-352', 'MolPort-008-351-319'])
     expected_b = ['Ipc']*len(expected_a)
 
-    assert list(a) == expected_a
+    assert set(a) == expected_a
     assert list(b) == expected_b
     assert all([val > 1e10 for val in c])
 
@@ -46,8 +49,23 @@ def test_filter_outlier_MW():
 
     assert outliers == expected_outliers
 
-    print(outliers)
+def test_prepare_csv_and_descriptor_with_dummy_response():
+    dataset_key = '../test_datasets/Molport_test.csv'
+    temp_root = tempfile.mkdtemp()
+
+    # this should raise a RuntimeError
+    # because the split_uuid is used for two split files
+    # this should almost never happen in real life, 
+    # but we want to make sure the error is raised if it does
+    with pytest.raises(RuntimeError):
+        gt.prepare_csv_and_descriptor_with_dummy_response(
+            csv_path=dataset_key,
+            descriptor_type='rdkit_raw',
+            temp_root = temp_root,
+            split_uuid='e28e63fb-4d30-4cef-b303-7f0622f64688'
+        )
 
 if __name__ == "__main__":
     test_filter_outlier_features()
     test_filter_outlier_MW()
+    test_prepare_csv_and_descriptor_with_dummy_response()

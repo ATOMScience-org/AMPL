@@ -25,6 +25,7 @@ def prepare_csv_and_descriptor_with_dummy_response(csv_path, descriptor_type, te
         csv_path (str): Path to the original CSV file.
         descriptor_type (str): Descriptor type to look for in the descriptor file name.
         temp_root (str): Root of the temporary directory to copy files into.
+        split_uuid (str): Unique identifier for the split file to look for and copy if it exists.
 
     Returns:
         (str, str): Paths to the new CSV and descriptor files in the temp directory.
