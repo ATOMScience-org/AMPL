@@ -1,18 +1,23 @@
 # Minimal pip requirement list for AMPL with CPU support only. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development.
--i https://download.pytorch.org/whl/cpu
---find-links https://data.dgl.ai/wheels/repo.html
---extra-index-url  https://pypi.python.org/simple
+# -i https://download.pytorch.org/whl/cpu
+# --find-links https://data.dgl.ai/wheels/repo.html
+# --extra-index-url  https://pypi.python.org/simple
 # for LC developers: comment out pypi index url and use t$
 # --extra-index-url https://wci-repo.llnl.gov/repository/$
+-i https://pypi.org/simple
+--extra-index-url https://download.pytorch.org/whl/cpu
+--find-links https://data.dgl.ai/wheels/repo.html
 
 tensorflow-cpu~=2.14.0
 
-torch==2.0.1
+torch==2.1.2
 torch_geometric
 lightning
 
-dgl==1.1.2
+dgl==2.1.0
 dgllife
+scipy>=1.10
+numpy<2
 
 scikit-learn==1.2.2
 hyperopt
