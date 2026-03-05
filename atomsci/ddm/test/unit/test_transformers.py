@@ -1,5 +1,7 @@
 import atomsci.ddm.pipeline.transformations as trans
+import atomsci.ddm.pipeline.parameter_parser as pp
 import numpy as np
+import pandas as pd
 from deepchem.data import NumpyDataset
 import pytest
 
@@ -214,3 +216,87 @@ def test_normalization_transformer_missing_data_transform_X():
     expected_transformed_X = (X - expected_X_means) / expected_X_stds
     np.testing.assert_array_almost_equal(transformed_dataset.X, expected_transformed_X, decimal=6)
 
+def test_create_feature_transformers():
+    """Test the `create_feature_transformers` when params.transformers is None."""
+
+    params = pp.wrapper({})
+    params.transformers = None
+    transformers_x = trans.create_feature_transformers(
+        params,
+        featurization = None,
+        train_dset = None
+    )
+
+    assert transformers_x == []
+
+def test_zero_out_inf_nan_numpy_with_nonfinite_replaces_and_copies():
+    x = np.array([1.0, np.nan, np.inf, -np.inf, 2.5], dtype=float)
+    y = trans.zero_out_inf_nan(x)
+
+    assert isinstance(y, np.ndarray)
+    np.testing.assert_array_equal(y, np.array([1.0, 0.0, 0.0, 0.0, 2.5], dtype=float))
+
+    # Ensure it is a copy and original not mutated
+    assert y is not x
+    np.testing.assert_array_equal(x, np.array([1.0, np.nan, np.inf, -np.inf, 2.5], dtype=float))
+
+
+def test_zero_out_inf_nan_numpy_without_nonfinite_no_change_but_copy():
+    x = np.array([1.0, 2.0, 3.0], dtype=float)
+    y = trans.zero_out_inf_nan(x)
+
+    assert isinstance(y, np.ndarray)
+    np.testing.assert_array_equal(y, x)
+    assert y is not x
+
+
+def test_zero_out_inf_nan_series_with_nonfinite_replaces_preserves_index_and_name():
+    s = pd.Series([1.0, np.nan, np.inf, -np.inf], index=["a", "b", "c", "d"], name="vals")
+    out = trans.zero_out_inf_nan(s)
+
+    assert isinstance(out, pd.Series)
+    assert out.name == "vals"
+    assert list(out.index) == ["a", "b", "c", "d"]
+    np.testing.assert_array_equal(out.values, np.array([1.0, 0.0, 0.0, 0.0], dtype=float))
+
+    # Original not mutated
+    assert np.isnan(s.loc["b"])
+    assert np.isposinf(s.loc["c"])
+    assert np.isneginf(s.loc["d"])
+
+
+def test_zero_out_inf_nan_series_without_nonfinite_no_change_values():
+    s = pd.Series([1.0, 2.0], index=[10, 20], name="ok")
+    out = trans.zero_out_inf_nan(s)
+
+    assert isinstance(out, pd.Series)
+    assert out.name == "ok"
+    assert list(out.index) == [10, 20]
+    np.testing.assert_array_equal(out.values, s.values)
+
+
+def test_zero_out_inf_nan_dataframe_with_nonfinite_replaces_preserves_index_and_columns():
+    df = pd.DataFrame(
+        {"c1": [1.0, np.nan], "c2": [np.inf, 4.0]},
+        index=["r1", "r2"],
+    )
+    out = trans.zero_out_inf_nan(df)
+
+    assert isinstance(out, pd.DataFrame)
+    assert list(out.index) == ["r1", "r2"]
+    assert list(out.columns) == ["c1", "c2"]
+    np.testing.assert_array_equal(out.values, np.array([[1.0, 0.0], [0.0, 4.0]], dtype=float))
+
+    # Original not mutated
+    assert np.isnan(df.loc["r2", "c1"])
+    assert np.isposinf(df.loc["r1", "c2"])
+
+
+def test_zero_out_inf_nan_dataframe_without_nonfinite_no_change_values():
+    df = pd.DataFrame({"a": [1.0, 2.0], "b": [3.0, 4.0]}, index=[0, 1])
+    out = trans.zero_out_inf_nan(df)
+
+    assert isinstance(out, pd.DataFrame)
+    assert list(out.index) == [0, 1]
+    assert list(out.columns) == ["a", "b"]
+    np.testing.assert_array_equal(out.values, df.values)
