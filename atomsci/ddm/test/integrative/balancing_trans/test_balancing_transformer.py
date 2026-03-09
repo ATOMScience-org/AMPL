@@ -1,8 +1,11 @@
 import tempfile
+import pytest
+import re
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.transformations as trans
+import atomsci.ddm.pipeline.featurization as feat
 import atomsci.ddm.pipeline.compare_models as cm
 import atomsci.ddm.utils.model_file_reader as mfr
 import numpy as np
@@ -420,6 +423,40 @@ def test_sklearn_pipelines():
 
     assert reader.get_powertransformer_method() == 'yeo-johnson'
     assert reader.get_powertransformer_standardize()
+
+    res_dir = tempfile.mkdtemp()
+    identity_params = read_params(
+        make_relative_to_file('jsons/Identity_transformer.json'),
+        dset_key,
+        res_dir
+    )
+
+    # borrow the pipeline from PowerTransforer to test
+    # the Identity transformer since MRP3 contains nans in the dataset
+    # So it cannot train. Since it cannot train it will never make a model_wrapper
+    # which is what makes the feature transformers.
+    identity_pparams = parse.wrapper(identity_params)
+    transformers_x = powertransformer_pipe.model_wrapper.featurization.create_feature_transformer(
+        dataset=None,
+        params=identity_pparams
+    )
+    assert len(transformers_x)==0
+
+    res_dir = tempfile.mkdtemp()
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "feature_transform_type must be normalization, RobustScaler, "
+            "PowerTransformer, or Identity. Got NOTREALTRANSFORMER",
+        ),
+    ):
+        # Test that an unrecognized transformer raises the correct error
+        identity_pparams.feature_transform_type = 'NOTREALTRANSFORMER'
+        transformers_x = powertransformer_pipe.model_wrapper.featurization.create_feature_transformer(
+            dataset=None,
+            params=identity_pparams
+        )
+
 
 if __name__ == '__main__':
     test_sklearn_pipelines()
