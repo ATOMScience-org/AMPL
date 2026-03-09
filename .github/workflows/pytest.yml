@@ -151,29 +151,30 @@ jobs:
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
 
-      - name: Debug - dgl/dgllife install and import
+      - name: Debug - dgl + torchdata + shadowing
         run: |
           . .venv/bin/activate
           set -x
 
-          echo "=== Python ==="
+          echo "=== Interpreter and paths ==="
           which python
           python -V
+          python -c "import sys; print('sys.executable:', sys.executable); print('sys.path[0]:', sys.path[0]); print('cwd:', __import__('os').getcwd())"
 
-          echo "=== pip/uv ==="
+          echo "=== torchdata package identity (shadowing check) ==="
+          python -c "import importlib.util; spec = importlib.util.find_spec('torchdata'); print('torchdata spec:', spec); print('torchdata origin:', getattr(spec,'origin',None)); print('torchdata submodule locations:', getattr(spec,'submodule_search_locations',None))"
+
+          echo "=== torchdata import and datapipes ==="
+          python -c "import torchdata; print('torchdata file:', torchdata.__file__); print('torchdata version:', getattr(torchdata,'__version__','no __version__'))"
+          python -c "import torchdata.datapipes.iter as it; print('torchdata.datapipes.iter OK:', it)"
+
+          echo "=== dgl import ==="
+          python -c "import dgl; print('dgl OK:', dgl.__version__)"
+
+          echo "=== pip view (this venv) ==="
           python -m pip --version
-          uv --version
-
-          echo "=== Show installed packages ==="
-          python -m pip show torch dgl dgllife || true
-
-          echo "=== Freeze (relevant) ==="
-          python -m pip freeze | grep -E '^(torch|dgl|dgllife|torch-geometric|numpy)=' || true
-
-          echo "=== Import test ==="
-          python -c "import torch; print('torch', torch.__version__)"
-          python -c "import dgl; print('dgl', dgl.__version__)"
-          python -c "import dgllife; print('dgllife', dgllife.__version__)"
+          python -m pip show torch torchdata dgl dgllife || true
+          python -m pip freeze | grep -E '^(torch|torchdata|dgl|dgllife|numpy)=' || true
 
       - name: pytest
         run: |
@@ -255,29 +256,30 @@ jobs:
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
 
-      - name: Debug - dgl/dgllife install and import
+      - name: Debug - dgl + torchdata + shadowing
         run: |
           . .venv/bin/activate
           set -x
 
-          echo "=== Python ==="
+          echo "=== Interpreter and paths ==="
           which python
           python -V
+          python -c "import sys; print('sys.executable:', sys.executable); print('sys.path[0]:', sys.path[0]); print('cwd:', __import__('os').getcwd())"
 
-          echo "=== pip/uv ==="
+          echo "=== torchdata package identity (shadowing check) ==="
+          python -c "import importlib.util; spec = importlib.util.find_spec('torchdata'); print('torchdata spec:', spec); print('torchdata origin:', getattr(spec,'origin',None)); print('torchdata submodule locations:', getattr(spec,'submodule_search_locations',None))"
+
+          echo "=== torchdata import and datapipes ==="
+          python -c "import torchdata; print('torchdata file:', torchdata.__file__); print('torchdata version:', getattr(torchdata,'__version__','no __version__'))"
+          python -c "import torchdata.datapipes.iter as it; print('torchdata.datapipes.iter OK:', it)"
+
+          echo "=== dgl import ==="
+          python -c "import dgl; print('dgl OK:', dgl.__version__)"
+
+          echo "=== pip view (this venv) ==="
           python -m pip --version
-          uv --version
-
-          echo "=== Show installed packages ==="
-          python -m pip show torch dgl dgllife || true
-
-          echo "=== Freeze (relevant) ==="
-          python -m pip freeze | grep -E '^(torch|dgl|dgllife|torch-geometric|numpy)=' || true
-
-          echo "=== Import test ==="
-          python -c "import torch; print('torch', torch.__version__)"
-          python -c "import dgl; print('dgl', dgl.__version__)"
-          python -c "import dgllife; print('dgllife', dgllife.__version__)"
+          python -m pip show torch torchdata dgl dgllife || true
+          python -m pip freeze | grep -E '^(torch|torchdata|dgl|dgllife|numpy)=' || true
 
       - name: pytest
         run: |
@@ -306,7 +308,6 @@ jobs:
           echo "=== Checking if coverage was even run ==="
           command -v coverage || echo "coverage not on PATH"
           coverage --version || echo "Coverage not installed"
-
 
       - name: Save coverage
         uses: actions/upload-artifact@v4
@@ -361,30 +362,30 @@ jobs:
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
 
-
-      - name: Debug - dgl/dgllife install and import
+      - name: Debug - dgl + torchdata + shadowing
         run: |
           . .venv/bin/activate
           set -x
 
-          echo "=== Python ==="
+          echo "=== Interpreter and paths ==="
           which python
           python -V
+          python -c "import sys; print('sys.executable:', sys.executable); print('sys.path[0]:', sys.path[0]); print('cwd:', __import__('os').getcwd())"
 
-          echo "=== pip/uv ==="
+          echo "=== torchdata package identity (shadowing check) ==="
+          python -c "import importlib.util; spec = importlib.util.find_spec('torchdata'); print('torchdata spec:', spec); print('torchdata origin:', getattr(spec,'origin',None)); print('torchdata submodule locations:', getattr(spec,'submodule_search_locations',None))"
+
+          echo "=== torchdata import and datapipes ==="
+          python -c "import torchdata; print('torchdata file:', torchdata.__file__); print('torchdata version:', getattr(torchdata,'__version__','no __version__'))"
+          python -c "import torchdata.datapipes.iter as it; print('torchdata.datapipes.iter OK:', it)"
+
+          echo "=== dgl import ==="
+          python -c "import dgl; print('dgl OK:', dgl.__version__)"
+
+          echo "=== pip view (this venv) ==="
           python -m pip --version
-          uv --version
-
-          echo "=== Show installed packages ==="
-          python -m pip show torch dgl dgllife || true
-
-          echo "=== Freeze (relevant) ==="
-          python -m pip freeze | grep -E '^(torch|dgl|dgllife|torch-geometric|numpy)=' || true
-
-          echo "=== Import test ==="
-          python -c "import torch; print('torch', torch.__version__)"
-          python -c "import dgl; print('dgl', dgl.__version__)"
-          python -c "import dgllife; print('dgllife', dgllife.__version__)"
+          python -m pip show torch torchdata dgl dgllife || true
+          python -m pip freeze | grep -E '^(torch|torchdata|dgl|dgllife|numpy)=' || true
 
       - name: pytest
         run: |
@@ -413,7 +414,6 @@ jobs:
           echo "=== Checking if coverage was even run ==="
           command -v coverage || echo "coverage not on PATH"
           coverage --version || echo "Coverage not installed"
-
 
       - name: Save coverage
         uses: actions/upload-artifact@v4
@@ -467,30 +467,30 @@ jobs:
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
 
-
-      - name: Debug - dgl/dgllife install and import
+      - name: Debug - dgl + torchdata + shadowing
         run: |
           . .venv/bin/activate
           set -x
 
-          echo "=== Python ==="
+          echo "=== Interpreter and paths ==="
           which python
           python -V
+          python -c "import sys; print('sys.executable:', sys.executable); print('sys.path[0]:', sys.path[0]); print('cwd:', __import__('os').getcwd())"
 
-          echo "=== pip/uv ==="
+          echo "=== torchdata package identity (shadowing check) ==="
+          python -c "import importlib.util; spec = importlib.util.find_spec('torchdata'); print('torchdata spec:', spec); print('torchdata origin:', getattr(spec,'origin',None)); print('torchdata submodule locations:', getattr(spec,'submodule_search_locations',None))"
+
+          echo "=== torchdata import and datapipes ==="
+          python -c "import torchdata; print('torchdata file:', torchdata.__file__); print('torchdata version:', getattr(torchdata,'__version__','no __version__'))"
+          python -c "import torchdata.datapipes.iter as it; print('torchdata.datapipes.iter OK:', it)"
+
+          echo "=== dgl import ==="
+          python -c "import dgl; print('dgl OK:', dgl.__version__)"
+
+          echo "=== pip view (this venv) ==="
           python -m pip --version
-          uv --version
-
-          echo "=== Show installed packages ==="
-          python -m pip show torch dgl dgllife || true
-
-          echo "=== Freeze (relevant) ==="
-          python -m pip freeze | grep -E '^(torch|dgl|dgllife|torch-geometric|numpy)=' || true
-
-          echo "=== Import test ==="
-          python -c "import torch; print('torch', torch.__version__)"
-          python -c "import dgl; print('dgl', dgl.__version__)"
-          python -c "import dgllife; print('dgllife', dgllife.__version__)"
+          python -m pip show torch torchdata dgl dgllife || true
+          python -m pip freeze | grep -E '^(torch|torchdata|dgl|dgllife|numpy)=' || true
 
       - name: pytest
         run: |
