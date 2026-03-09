@@ -50,8 +50,7 @@ jobs:
 
       - name: Create virtual environment
         run: |
-          uv venv -- seed .venv
-          . .venv/bin/activate
+          uv venv --seed .venv
 
       - name: Install dependencies
         run: |
@@ -59,6 +58,11 @@ jobs:
           uv pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
+
+      - name: Debug - what is installed
+        run: |
+          . .venv/bin/activate
+          python -m pip --version
 
       - name: pytest
         run: |
