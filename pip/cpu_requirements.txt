@@ -1,24 +1,31 @@
-# Minimal pip requirement list for AMPL with CPU support only. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development.
-# -i https://download.pytorch.org/whl/cpu
-# --find-links https://data.dgl.ai/wheels/repo.html
-# --extra-index-url  https://pypi.python.org/simple
-# for LC developers: comment out pypi index url and use t$
-# --extra-index-url https://wci-repo.llnl.gov/repository/$
+# Minimal pip requirement list for AMPL with CPU support only.
+-# for LC developers: comment out pypi index url and use t$
+-# --extra-index-url https://wci-repo.llnl.gov/repository/$
+
 -i https://pypi.org/simple
 --extra-index-url https://download.pytorch.org/whl/cpu
+
+# DGL wheels
 --find-links https://data.dgl.ai/wheels/repo.html
+# If DGL provides torch-2.2 wheels, prefer that; otherwise keep torch-2.1.
+--find-links https://data.dgl.ai/wheels/torch-2.1/repo.html
 
 tensorflow-cpu~=2.14.0
 
+# Core torch stack (pinned for compatibility)
 torch==2.2.1+cpu
-torch_geometric
+torchdata==0.7.1
+
+# GNN stack (pin to avoid resolver upgrades breaking DGL/torchdata)
+dgl==2.1.0
+dgllife==0.3.2
+torch_geometric==2.7.0
+
 lightning
 
---find-links https://data.dgl.ai/wheels/torch-2.1/repo.html
-dgl==2.1.0
-dgllife
-#scipy>=1.10
+# Numeric stack
 numpy<2
+scipy>=1.10
 
 scikit-learn==1.2.2
 hyperopt
@@ -37,22 +44,16 @@ bravado
 
 imblearn
 
-# optional for home users: prettier images in RDKit
-# requires pkg-config to build: sudo apt-get pkg-config
-# requires Cairo: sudo apt-get install libcairo2-dev
-# pycairo
-
 maestrowf
 MolVS
 mordred
 
+# Dev/runtime utilities you had here (optional to keep in CPU requirements)
 pytest
 ipykernel
 
 deepchem==2.8
 rdkit==2024.3.5
-# deepchem 2.8 requires lightgbm. 
 lightgbm
 
 pyyaml>=6.0
-
