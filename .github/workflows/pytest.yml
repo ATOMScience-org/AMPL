@@ -73,6 +73,7 @@ jobs:
 
       - name: Debug - Find all coverage files
         run: |
+          . .venv/bin/activate
           echo "=== Current directory ==="
           pwd
           echo ""
@@ -83,10 +84,10 @@ jobs:
           find . -name ".coverage*" -type f 2>/dev/null || echo "No .coverage files found"
           echo ""
           echo "=== Contents of test directory ==="
-          ls -la atomsci/ddm/test/integrative/ || echo "Directory not found"
+          ls -la atomsci/ddm/test/unit/ || echo "Directory not found"
           echo ""
           echo "=== Checking if coverage was even run ==="
-          which coverage
+          command -v coverage || echo "coverage not on PATH"
           coverage --version || echo "Coverage not installed"
 
       - name: Save coverage
@@ -148,6 +149,30 @@ jobs:
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
 
+      - name: Debug - dgl/dgllife install and import
+        run: |
+          . .venv/bin/activate
+          set -x
+
+          echo "=== Python ==="
+          which python
+          python -V
+
+          echo "=== pip/uv ==="
+          python -m pip --version
+          uv --version
+
+          echo "=== Show installed packages ==="
+          python -m pip show torch dgl dgllife || true
+
+          echo "=== Freeze (relevant) ==="
+          python -m pip freeze | grep -E '^(torch|dgl|dgllife|torch-geometric|numpy)=' || true
+
+          echo "=== Import test ==="
+          python -c "import torch; print('torch', torch.__version__)"
+          python -c "import dgl; print('dgl', dgl.__version__)"
+          python -c "import dgllife; print('dgllife', dgllife.__version__)"
+
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
@@ -159,6 +184,7 @@ jobs:
 
       - name: Debug - Find all coverage files
         run: |
+          . .venv/bin/activate
           echo "=== Current directory ==="
           pwd
           echo ""
@@ -172,7 +198,7 @@ jobs:
           ls -la atomsci/ddm/test/integrative/ || echo "Directory not found"
           echo ""
           echo "=== Checking if coverage was even run ==="
-          which coverage
+          command -v coverage || echo "coverage not on PATH"
           coverage --version || echo "Coverage not installed"
 
       - name: Save coverage
@@ -227,6 +253,30 @@ jobs:
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
 
+      - name: Debug - dgl/dgllife install and import
+        run: |
+          . .venv/bin/activate
+          set -x
+
+          echo "=== Python ==="
+          which python
+          python -V
+
+          echo "=== pip/uv ==="
+          python -m pip --version
+          uv --version
+
+          echo "=== Show installed packages ==="
+          python -m pip show torch dgl dgllife || true
+
+          echo "=== Freeze (relevant) ==="
+          python -m pip freeze | grep -E '^(torch|dgl|dgllife|torch-geometric|numpy)=' || true
+
+          echo "=== Import test ==="
+          python -c "import torch; print('torch', torch.__version__)"
+          python -c "import dgl; print('dgl', dgl.__version__)"
+          python -c "import dgllife; print('dgllife', dgllife.__version__)"
+
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
@@ -238,6 +288,7 @@ jobs:
 
       - name: Debug - Find all coverage files
         run: |
+          . .venv/bin/activate
           echo "=== Current directory ==="
           pwd
           echo ""
@@ -251,8 +302,9 @@ jobs:
           ls -la atomsci/ddm/test/integrative/ || echo "Directory not found"
           echo ""
           echo "=== Checking if coverage was even run ==="
-          which coverage
+          command -v coverage || echo "coverage not on PATH"
           coverage --version || echo "Coverage not installed"
+
 
       - name: Save coverage
         uses: actions/upload-artifact@v4
@@ -307,6 +359,31 @@ jobs:
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
 
+
+      - name: Debug - dgl/dgllife install and import
+        run: |
+          . .venv/bin/activate
+          set -x
+
+          echo "=== Python ==="
+          which python
+          python -V
+
+          echo "=== pip/uv ==="
+          python -m pip --version
+          uv --version
+
+          echo "=== Show installed packages ==="
+          python -m pip show torch dgl dgllife || true
+
+          echo "=== Freeze (relevant) ==="
+          python -m pip freeze | grep -E '^(torch|dgl|dgllife|torch-geometric|numpy)=' || true
+
+          echo "=== Import test ==="
+          python -c "import torch; print('torch', torch.__version__)"
+          python -c "import dgl; print('dgl', dgl.__version__)"
+          python -c "import dgllife; print('dgllife', dgllife.__version__)"
+
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
@@ -318,6 +395,7 @@ jobs:
 
       - name: Debug - Find all coverage files
         run: |
+          . .venv/bin/activate
           echo "=== Current directory ==="
           pwd
           echo ""
@@ -331,8 +409,9 @@ jobs:
           ls -la atomsci/ddm/test/integrative/ || echo "Directory not found"
           echo ""
           echo "=== Checking if coverage was even run ==="
-          which coverage
+          command -v coverage || echo "coverage not on PATH"
           coverage --version || echo "Coverage not installed"
+
 
       - name: Save coverage
         uses: actions/upload-artifact@v4
@@ -386,6 +465,31 @@ jobs:
           if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
 
+
+      - name: Debug - dgl/dgllife install and import
+        run: |
+          . .venv/bin/activate
+          set -x
+
+          echo "=== Python ==="
+          which python
+          python -V
+
+          echo "=== pip/uv ==="
+          python -m pip --version
+          uv --version
+
+          echo "=== Show installed packages ==="
+          python -m pip show torch dgl dgllife || true
+
+          echo "=== Freeze (relevant) ==="
+          python -m pip freeze | grep -E '^(torch|dgl|dgllife|torch-geometric|numpy)=' || true
+
+          echo "=== Import test ==="
+          python -c "import torch; print('torch', torch.__version__)"
+          python -c "import dgl; print('dgl', dgl.__version__)"
+          python -c "import dgllife; print('dgllife', dgllife.__version__)"
+
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
@@ -397,6 +501,7 @@ jobs:
 
       - name: Debug - Find all coverage files
         run: |
+          . .venv/bin/activate
           echo "=== Current directory ==="
           pwd
           echo ""
@@ -410,7 +515,7 @@ jobs:
           ls -la atomsci/ddm/test/integrative/ || echo "Directory not found"
           echo ""
           echo "=== Checking if coverage was even run ==="
-          which coverage
+          command -v coverage || echo "coverage not on PATH"
           coverage --version || echo "Coverage not installed"
 
       - name: Save coverage
