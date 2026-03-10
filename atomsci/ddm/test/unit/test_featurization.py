@@ -322,5 +322,37 @@ def test_scale_by_heavyatomcount_raises_runtimeerror_when_cannot_infer_heavy_ato
     with pytest.raises(RuntimeError, match=r"Could not infer heavy atom column"):
         obj.scale_by_heavyatomcount_and_log_scale(df, descr_type="demo")
 
+def test_scale_by_heavyatomcount_and_log_scale_raises_on_negative_log_feature(monkeypatch):
+    params = param_parser.wrapper({
+        "dataset_key": "fake.csv", 
+        "featurizer": "compouted_descriptors",
+        "descriptor_type": "rdkit_raw",})
+    obj = feat.ComputedDescriptorFeaturization(params)
+
+    # No "HeavyAtomCount" or "nHeavyAtom" in descr_cols, and we do not pass heavy_atom_col
+    monkeypatch.setattr(
+        obj.__class__,
+        "desc_type_cols",
+        {"test_type": ["SomeFeature_log_scaled", "HeavyAtomCount"]},
+        raising=False,
+    )
+
+    # Build a DataFrame where:
+    #   - HeavyAtomCount is present so the function can infer heavy atom counts
+    #   - SomeFeature has a negative value, and desc_type_cols includes SomeFeature_log_scaled
+    df = pd.DataFrame({
+        "HeavyAtomCount": [10, 12],
+        "SomeFeature": [-1.0, 2.0]  # negative value triggers ValueError in log scaling
+    })
+
+    with pytest.raises(ValueError) as excinfo:
+        obj.scale_by_heavyatomcount_and_log_scale(
+            desc_df=df,
+            descr_type="test_type"  # uses desc_type_cols defined above
+        )
+
+    # Optionally check the error message
+    assert "Cannot log scale SomeFeature" in str(excinfo.value)
+
 if __name__ == '__main__':
     test_compute_moe()
