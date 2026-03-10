@@ -1,29 +1,50 @@
-# Minimal pip requirement list for AMPL with CPU support only.
--# for LC developers: comment out pypi index url and use t$
--# --extra-index-url https://wci-repo.llnl.gov/repository/$
-
+# ================================
+# Indexes and extra repositories
+# ================================
 -i https://pypi.org/simple
 --extra-index-url https://download.pytorch.org/whl/cpu
 
-# DGL wheels
+# For LC developers: comment out PyPI index url and use internal repo instead
+# -i https://wci-repo.llnl.gov/repository/pypi/simple
+# --extra-index-url https://wci-repo.llnl.gov/repository/$
+
+# DGL wheels (generic and torch-version specific)
 --find-links https://data.dgl.ai/wheels/repo.html
-# If DGL provides torch-2.2 wheels, prefer that; otherwise keep torch-2.1.
 --find-links https://data.dgl.ai/wheels/torch-2.1/repo.html
 
-tensorflow-cpu~=2.14.0
 
-# Core torch stack (pinned for compatibility)
-torch==2.2.1+cpu
+# =============================
+# Core deep learning frameworks
+# =============================
+
+# PyTorch CPU; Python 3.10 compatible; aligned with DGL torch-2.1 wheels
+torch==2.1.2+cpu
 torchdata==0.7.1
 
-# GNN stack (pin to avoid resolver upgrades breaking DGL/torchdata)
+# Lightning; pin to a recent stable series to avoid breaking changes
+lightning==2.2.5
+
+# TensorFlow CPU; compatible with DeepChem 2.8
+tensorflow-cpu~=2.14.0
+
+
+# ==========================
+# Graph / GNN related stack
+# ==========================
+
+# DGL stack; 2.1.0 has matching wheels for torch 2.1.x
 dgl==2.1.0
 dgllife==0.3.2
+
+# PyTorch Geometric; works with torch 2.1.x on CPU
 torch_geometric==2.7.0
 
-lightning
 
-# Numeric stack
+# ==================
+# Numeric / ML stack
+# ==================
+
+# Constrained for broad compatibility (esp. with DeepChem, scikit-learn)
 numpy<2
 scipy>=1.10
 
@@ -31,29 +52,48 @@ scikit-learn==1.2.2
 hyperopt
 
 xgboost
+lightgbm
+
+umap-learn
+
+
+# ============================
+# Visualization and plotting
+# ============================
 
 bokeh
 matplotlib
 matplotlib-venn
 seaborn>=0.13.0
-umap-learn
+
+
+# =========================
+# Data / IO / misc tooling
+# =========================
 
 pyarrow
-
+pyyaml>=6.0
 bravado
 
-imblearn
+# imbalanced-learn is the canonical package name on PyPI
+imbalanced-learn
 
 maestrowf
-MolVS
-mordred
 
-# Dev/runtime utilities you had here (optional to keep in CPU requirements)
-pytest
-ipykernel
+
+# ==========================
+# Cheminformatics / domain
+# ==========================
 
 deepchem==2.8
 rdkit==2024.3.5
-lightgbm
+MolVS
+mordred
 
-pyyaml>=6.0
+
+# ==========================
+# Dev / runtime utilities
+# ==========================
+
+pytest
+ipykernel
