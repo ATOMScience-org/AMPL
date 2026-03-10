@@ -19,11 +19,14 @@ jobs:
       - name: System Dependencies
         run: |
           sudo apt-get update
-          sudo apt install -y build-essential \
-            libcairo2-dev \
-            pkg-config \
-            python3-dev \
-            python3-openssl
+          sudo apt-get install -y \
+            build-essential \        # compilers, make, etc.
+            libcairo2-dev \          # for some plotting libraries
+            pkg-config \             # helps find C libraries
+            python3-dev \            # Python headers for building extensions
+            python3-openssl \        # Python OpenSSL bindings
+            libopenblas-dev \        # BLAS/LAPACK for numpy/scipy
+            libssl-dev               # SSL/TLS for some Python packages
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -111,11 +114,14 @@ jobs:
       - name: System Dependencies
         run: |
           sudo apt-get update
-          sudo apt install -y build-essential \
-            libcairo2-dev \
-            pkg-config \
-            python3-dev \
-            python3-openssl
+          sudo apt-get install -y \
+            build-essential \        # compilers, make, etc.
+            libcairo2-dev \          # for some plotting libraries
+            pkg-config \             # helps find C libraries
+            python3-dev \            # Python headers for building extensions
+            python3-openssl \        # Python OpenSSL bindings
+            libopenblas-dev \        # BLAS/LAPACK for numpy/scipy
+            libssl-dev               # SSL/TLS for some Python packages
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -221,11 +227,15 @@ jobs:
       - name: System Dependencies
         run: |
           sudo apt-get update
-          sudo apt install -y build-essential \
-            libcairo2-dev \
-            pkg-config \
-            python3-dev \
-            python3-openssl
+          sudo apt-get install -y \
+            build-essential \        # compilers, make, etc.
+            libcairo2-dev \          # for some plotting libraries
+            pkg-config \             # helps find C libraries
+            python3-dev \            # Python headers for building extensions
+            python3-openssl \        # Python OpenSSL bindings
+            libopenblas-dev \        # BLAS/LAPACK for numpy/scipy
+            libssl-dev               # SSL/TLS for some Python packages
+
       - uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
@@ -326,11 +336,15 @@ jobs:
       - name: System Dependencies
         run: |
           sudo apt-get update
-          sudo apt install -y build-essential \
-            libcairo2-dev \
-            pkg-config \
-            python3-dev \
-            python3-openssl
+          sudo apt-get install -y \
+            build-essential \        # compilers, make, etc.
+            libcairo2-dev \          # for some plotting libraries
+            pkg-config \             # helps find C libraries
+            python3-dev \            # Python headers for building extensions
+            python3-openssl \        # Python OpenSSL bindings
+            libopenblas-dev \        # BLAS/LAPACK for numpy/scipy
+            libssl-dev               # SSL/TLS for some Python packages
+
       - uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
@@ -432,11 +446,15 @@ jobs:
       - name: System Dependencies
         run: |
           sudo apt-get update
-          sudo apt install -y build-essential \
-            libcairo2-dev \
-            pkg-config \
-            python3-dev \
-            python3-openssl
+          sudo apt-get install -y \
+            build-essential \        # compilers, make, etc.
+            libcairo2-dev \          # for some plotting libraries
+            pkg-config \             # helps find C libraries
+            python3-dev \            # Python headers for building extensions
+            python3-openssl \        # Python OpenSSL bindings
+            libopenblas-dev \        # BLAS/LAPACK for numpy/scipy
+            libssl-dev               # SSL/TLS for some Python packages
+
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4

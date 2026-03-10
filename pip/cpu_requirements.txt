@@ -39,6 +39,10 @@ dgllife==0.3.2
 # PyTorch Geometric; works with torch 2.1.x on CPU
 torch_geometric==2.7.0
 
+# DGL currently imports pydantic but does not declare it.
+# Stay on pydantic 1.x for maximum compatibility.
+pydantic>=1.10,<2
+
 
 # ==================
 # Numeric / ML stack
