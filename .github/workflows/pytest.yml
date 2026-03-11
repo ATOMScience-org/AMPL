@@ -9,14 +9,14 @@ on:
 jobs:
   pytest-unit:
     runs-on: ubuntu-24.04
+    env:
+      ENV: test
+      DGLBACKEND: pytorch
     strategy:
       matrix:
         python-version: ["3.10"]
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
       - uses: ./.github/actions/python-uv-setup
         with:
           python-version: ${{ matrix.python-version }}
@@ -26,10 +26,8 @@ jobs:
         shell: bash
         run: |
           . .venv/bin/activate
-          cd atomsci/modac/test/unit && uv run python -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv
-          cd ../../../../atomsci/ddm/test/unit && uv run python -m pytest -m "not moe_required" -n 2 --capture=sys --capture=fd --cov=atomsci -vv
-        env:
-          ENV: test
+          cd atomsci/modac/test/unit && python -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv
+          cd ../../../../atomsci/ddm/test/unit && python -m pytest -m "not moe_required" -n 2 --capture=sys --capture=fd --cov=atomsci -vv
 
       - name: Save coverage
         uses: actions/upload-artifact@v4
@@ -43,6 +41,9 @@ jobs:
 
   pytest-integrative:
     runs-on: ubuntu-24.04
+    env:
+      ENV: test
+      DGLBACKEND: pytorch
     strategy:
       fail-fast: false
       matrix:
@@ -51,9 +52,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
       - uses: ./.github/actions/python-uv-setup
         with:
           python-version: ${{ matrix.python-version }}
@@ -82,8 +80,6 @@ jobs:
           . .venv/bin/activate
           cd atomsci/ddm/test/integrative
           ./integrative_batch_chunk_tests ${{ matrix.chunk }}
-        env:
-          ENV: test
 
       - name: Save coverage
         uses: actions/upload-artifact@v4
