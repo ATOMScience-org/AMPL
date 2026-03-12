@@ -2770,7 +2770,7 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
 
         chkpt_file = os.path.join(self.model_dir, 'checkpoint')
         with open(chkpt_file, 'r') as chkpt_in:
-            chkpt_dict = yaml.load(chkpt_in.read())
+            chkpt_dict = yaml.safe_load(chkpt_in.read())
         chkpt_prefix = chkpt_dict['model_checkpoint_path']
         files = [chkpt_file]
         # files.append(os.path.join(self.model_dir, 'model.pickle'))
