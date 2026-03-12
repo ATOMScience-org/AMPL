@@ -9,14 +9,12 @@ import os
 import re
 import pdb
 import numpy as np
-import molvs
 
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
-stdizer = molvs.standardize.Standardizer(prefer_organic=True)
-uncharger = molvs.charge.Uncharger()
+uncharger = rdMolStandardize.Uncharger()
 
 
 def get_rdkit_smiles(orig_smiles, useIsomericSmiles=True):
@@ -226,9 +224,13 @@ def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=Fals
     cmpd_mol = Chem.MolFromSmiles(orig_smiles)
     if cmpd_mol is None:
         return None
-    std_mol = stdizer.isotope_parent(stdizer.fragment_parent(cmpd_mol), skip_standardize=True)
-    if removeCharges:
-        std_mol = uncharger(std_mol)
+    try:
+        std_mol = rdMolStandardize.IsotopeParent(rdMolStandardize.FragmentParent(cmpd_mol), skipStandardize=True)
+        if removeCharges:
+            std_mol = uncharger(std_mol)
+    #except Chem.rdchem.MolSanitizeException:
+    except:
+        std_mol = None
     return std_mol
 
 
@@ -295,9 +297,13 @@ def base_mol_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False):
     cmpd_mol = Chem.inchi.MolFromInchi(inchi_str)
     if cmpd_mol is None:
         return None
-    std_mol = stdizer.isotope_parent(stdizer.fragment_parent(cmpd_mol), skip_standardize=True)
-    if removeCharges:
-        std_mol = uncharger(std_mol)
+    try:
+        std_mol = rdMolStandardize.IsotopeParent(rdMolStandardize.FragmentParent(cmpd_mol), skipStandardize=True)
+        if removeCharges:
+            std_mol = uncharger(std_mol)
+    #except Chem.rdchem.MolSanitizeException:
+    except:
+        std_mol = None
     return std_mol
 
 
