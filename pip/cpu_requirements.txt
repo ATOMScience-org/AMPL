@@ -99,5 +99,6 @@ mordred
 # Dev / runtime utilities
 # ==========================
 
+setuptools>=65
 pytest
 ipykernel

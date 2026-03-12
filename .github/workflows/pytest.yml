@@ -20,7 +20,7 @@ jobs:
       - uses: ./.github/actions/python-uv-setup
         with:
           python-version: ${{ matrix.python-version }}
-          debug: "true"
+          debug: "false"
 
       - name: pytest
         shell: bash
@@ -44,6 +44,7 @@ jobs:
     env:
       ENV: test
       DGLBACKEND: pytorch
+      DEBUG_DGL: "false"
     strategy:
       fail-fast: false
       matrix:
@@ -59,6 +60,7 @@ jobs:
 
       - name: Debug - dgl + torchdata + shadowing
         shell: bash
+        if: ${{ env.DEBUG_DGL == 'true' }}
         run: |
           . .venv/bin/activate
           set -x
