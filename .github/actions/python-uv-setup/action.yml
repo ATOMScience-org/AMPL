@@ -57,6 +57,10 @@ runs:
         if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
         if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
 
+        # ensure pkg_resources exists for hyperopt
+        uv pip install -U setuptools wheel
+        python -c "import pkg_resources; print('pkg_resources OK')" || true
+
     - name: Debug - what is installed
       if: ${{ inputs.debug == 'true' }}
       shell: bash
