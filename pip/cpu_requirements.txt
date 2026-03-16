@@ -19,7 +19,7 @@
 # Dev / runtime utilities
 # ==========================
 
-setuptools==70.3.0
+setuptools>=65,<76
 wheel==0.43.0
 hyperopt
 pytest
