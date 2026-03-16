@@ -7,11 +7,23 @@
 # For LC developers: comment out PyPI index url and use internal repo instead
 # -i https://wci-repo.llnl.gov/repository/pypi/simple
 # --extra-index-url https://wci-repo.llnl.gov/repository/$
+# or define variables to get the CERT
+# $ export REQUESTS_CA_BUNDLE=/etc/pki/tls/cert.pem
+# $ export SSL_CERT_FILE=/etc/pki/tls/cert.pem
 
 # DGL wheels (generic and torch-version specific)
 --find-links https://data.dgl.ai/wheels/repo.html
 --find-links https://data.dgl.ai/wheels/torch-2.1/repo.html
 
+# ==========================
+# Dev / runtime utilities
+# ==========================
+
+setuptools==70.3.0
+wheel==0.43.0
+hyperopt
+pytest
+ipykernel
 
 # =============================
 # Core deep learning frameworks
@@ -93,12 +105,3 @@ deepchem==2.8
 rdkit==2024.3.5
 MolVS
 mordred
-
-
-# ==========================
-# Dev / runtime utilities
-# ==========================
-
-setuptools>=65
-pytest
-ipykernel

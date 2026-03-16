@@ -48,6 +48,9 @@ def test():
 
     run_cmd = f"{python_path} {script_dir}/utils/hyperparam_search_wrapper.py --config_file ./H1_RF_hyperopt_temp.json"
 
+    print("sys.executable:", sys.executable)
+    subprocess.run(f"{sys.executable} -c \"import pkg_resources; print(pkg_resources.__file__)\"", shell=True, check=True)
+
     res = subprocess.run(run_cmd, shell=True, text=True, capture_output=True)
     print("hyperopt rc:", res.returncode)
     print("hyperopt stdout:\n", res.stdout)

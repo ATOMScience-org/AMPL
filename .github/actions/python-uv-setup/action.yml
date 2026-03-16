@@ -52,14 +52,25 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
+        set -euxo pipefail
         . .venv/bin/activate
+
+        which python
+        python -V
+
         uv pip install -e .
         if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
         if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
 
-        # ensure pkg_resources exists for hyperopt
-        uv pip install -U setuptools wheel
-        python -c "import pkg_resources; print('pkg_resources OK')" || true
+        # Force setuptools (pkg_resources) into this venv
+        uv pip install --upgrade --reinstall "setuptools>=65" wheel
+
+        # Prove it's importable, and show where it came from
+        python -c "import pkg_resources; import sys; print('pkg_resources:', pkg_resources.__file__); print('python:', sys.executable)"
+
+        # Show what is installed
+        python -m pip show setuptools
+        python -m pip show hyperopt
 
     - name: Debug - what is installed
       if: ${{ inputs.debug == 'true' }}
