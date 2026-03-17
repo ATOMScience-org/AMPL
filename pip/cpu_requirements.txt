@@ -15,16 +15,6 @@
 --find-links https://data.dgl.ai/wheels/repo.html
 --find-links https://data.dgl.ai/wheels/torch-2.1/repo.html
 
-# ==========================
-# Dev / runtime utilities
-# ==========================
-
-setuptools>=65,<76
-wheel==0.43.0
-hyperopt
-pytest
-ipykernel
-
 # =============================
 # Core deep learning frameworks
 # =============================
@@ -105,3 +95,10 @@ deepchem==2.8
 rdkit==2024.3.5
 MolVS
 mordred
+
+# ==========================
+# Dev / runtime utilities
+# ==========================
+
+pytest
+ipykernel
