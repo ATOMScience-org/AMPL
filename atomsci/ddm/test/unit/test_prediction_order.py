@@ -13,7 +13,7 @@ def test_predict_from_model():
     """test that predict_from_model makes predictions in the same
     order as the input
     """
-    model_path = '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz'
+    model_path = '../../examples/BSEP/models/bsep_classif_scaffold_split_graphconv.tar.gz'
     csv_path = '../../examples/BSEP/data/ChEMBL25_BSEP_curated_data.csv'
 
     id_col = 'compound_id'
@@ -44,7 +44,7 @@ def test_predict_full_dataset():
     """test that predict_full_dataset makes predictions in the same
     order as the input
     """
-    model_path = '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz'
+    model_path = '../../examples/BSEP/models/bsep_classif_scaffold_split_graphconv.tar.gz'
     csv_path = '../../examples/BSEP/data/ChEMBL25_BSEP_curated_data.csv'
 
     id_col = 'compound_id'
