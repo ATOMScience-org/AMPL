@@ -1,6 +1,8 @@
-import pkg_resources
-try:
-    __version__ = pkg_resources.require("atomsci-ampl")[0].version
-except TypeError:
-    pass
+from importlib.metadata import version, PackageNotFoundError
 
+try:
+    __version__ = version("atomsci-ampl")
+except PackageNotFoundError:
+    # Handle the case where the package isn't installed 
+    # (e.g., during local development or testing)
+    __version__ = "unknown"
