@@ -1,4 +1,4 @@
-# Minimal pip requirement list for AMPL with ROCm-enabled AMD GPU's. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development. It requires installation of ROCm first. 
+# Minimal pip requirement list for AMPL with ROCm-enabled AMD GPU's. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development. It requires installation of ROCm first.
 
 ### amd gpu: https://blog.tensorflow.org/2022/09/announcing-tensorflow-official-build-collaborators.html
 tensorflow
@@ -36,4 +36,4 @@ ipykernel
 deepchem[tensorflow] # instructions unclear here - trouble on my home system
 deepchem[torch]      # instructions unclear here - works fine on home system
 
-pyyaml==5.4.1
+pyyaml>=6.0
