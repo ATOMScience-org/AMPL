@@ -62,14 +62,6 @@ runs:
         if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
         if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
 
-        # Guarantee setuptools in THIS venv (pkg_resources lives here)
-        python -m pip install --upgrade --force-reinstall "setuptools>=65,<76" wheel
-
-        python -c "import pkg_resources; import sys; print('pkg_resources:', pkg_resources.__file__); print('python:', sys.executable)"
-        python -c "import sys; print(sys.executable); import hyperopt; print(hyperopt.__file__)"
-        python -c "import pkg_resources; print(pkg_resources.__file__)"
-        python -m pip show setuptools hyperopt
-
     - name: Debug - what is installed
       if: ${{ inputs.debug == 'true' }}
       shell: bash
