@@ -1,6 +1,9 @@
 import urllib.request as urlreq
-import io,json
+import io
+import json
 import pandas as pd
+
+
 
 # ******************************************************************************************************************************************
 def download_smiles(myList,intv=1) :
@@ -35,15 +38,15 @@ def download_smiles(myList,intv=1) :
         try :
             response = urlreq.urlopen(url)
             html = response.read()
-        except :
+        except Exception :
             fail_lst.append(inchikey)
             continue
         f=io.BytesIO(html)
         cnt=0
-        for l in f :
-            l=l.decode("utf-8") 
-            l=l.rstrip()
-            vals=l.split(',')
+        for bytes_line in f :
+            bytes_line=bytes_line.decode("utf-8") 
+            bytes_line=bytes_line.rstrip()
+            vals=bytes_line.split(',')
             if vals[0] == '"CID"' :
                 continue
             if cnt > 0:
@@ -53,7 +56,7 @@ def download_smiles(myList,intv=1) :
                 break
             
             cid_lst.append(vals[0])
-            sstr=vals[1].replace('"','')
+            _sstr=vals[1].replace('"','')
             smiles_lst.append(vals[1])    
             inchikey_lst.append(myList[it+cnt])
             cnt+=1
@@ -76,7 +79,7 @@ def download_bioactivity_assay(myList,intv=1) :
         Nothing returned yet, will return basic stats to help decide whether to use assay or not
     """
     ncmpds=len(myList)
-    smiles_lst,cid_lst,inchikey_lst=[],[],[]
+    
     sublst=""
     fail_lst=[]
     jsn_lst=[]
@@ -91,16 +94,16 @@ def download_bioactivity_assay(myList,intv=1) :
         try :
             response = urlreq.urlopen(url)
             html = response.read()
-        except :
+        except Exception :
             fail_lst.append(inchikey)
             continue
         f=io.BytesIO(html)
-        cnt=0
+        
         json_str=""
-        for l in f :
-            l=l.decode("utf-8") 
-            l=l.rstrip()
-            json_str += l
+        for lst in f :
+            lst=lst.decode("utf-8") 
+            lst=lst.rstrip()
+            json_str += lst
         jsn_lst.append(json_str)
     return jsn_lst
 #    save_smiles_df=pd.DataFrame( {'CID' : cid_lst, 'standard_inchi_key' :inchikey_lst, 'smiles' : smiles_lst})
@@ -118,7 +121,7 @@ def download_SID_from_bioactivity_assay(bioassayid) :
     """
     myList=[bioassayid]
     ncmpds=len(myList)
-    smiles_lst,cid_lst,inchikey_lst=[],[],[]
+    
     sublst=""
     fail_lst=[]
     jsn_lst=[]
@@ -134,16 +137,15 @@ def download_SID_from_bioactivity_assay(bioassayid) :
         try :
             response = urlreq.urlopen(url)
             html = response.read()
-        except :
+        except Exception:
             fail_lst.append(inchikey)
             continue
         f=io.BytesIO(html)
-        cnt=0
         json_str=""
-        for l in f :
-            l=l.decode("utf-8") 
-            l=l.rstrip()
-            json_str += l
+        for line in f :
+            line=line.decode("utf-8") 
+            line=line.rstrip()
+            json_str += line
         jsn_lst.append(json_str)
     res=json.loads(jsn_lst[0])
     res_lst=res["InformationList"]['Information'][0]['SID']
@@ -166,7 +168,7 @@ def download_dose_response_from_bioactivity(aid,sidlst) :
     sidstr= "," . join(str(val) for val in sidlst)
     myList=[sidstr]
     ncmpds=len(myList)
-    smiles_lst,cid_lst,inchikey_lst=[],[],[]
+    
     sublst=""
     fail_lst=[]
     jsn_lst=[]
@@ -182,12 +184,12 @@ def download_dose_response_from_bioactivity(aid,sidlst) :
         try :
             response = urlreq.urlopen(url)
             html = response.read()
-        except :
+        except Exception:
             fail_lst.append(inchikey)
             continue
         f=io.BytesIO(html)
-        cnt=0
-        json_str=""
+       
+        
         df=pd.read_csv(f)
         jsn_lst.append(df)
     return jsn_lst
@@ -207,7 +209,7 @@ def download_activitytype(aid,sid) :
     """
     myList=[sid]
     ncmpds=len(myList)
-    smiles_lst,cid_lst,inchikey_lst=[],[],[]
+    
     sublst=""
     fail_lst=[]
     jsn_lst=[]
@@ -226,12 +228,12 @@ def download_activitytype(aid,sid) :
         try :
             response = urlreq.urlopen(url)
             html = response.read()
-        except :
+        except Exception :
             fail_lst.append(inchikey)
             continue
         f=io.BytesIO(html)
-        cnt=0
-        json_str=""
+        
+       
         df=pd.read_csv(f)
         jsn_lst.append(df)
     return jsn_lst

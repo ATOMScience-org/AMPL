@@ -23,5 +23,8 @@
     "rfe": "uniformint|8,512",
     "rfd": "uniformint|8,512",
     "rff": "uniformint|8,200",
-    "result_dir": "./output,./tmp"
+    "result_dir": "./output,./tmp",
+    "ls_ratio": "uniform|0.1,0.9",
+    "wdp": "loguniform|-6.908,-4.605",
+    "wdt": "choice|l1,l2"
 }

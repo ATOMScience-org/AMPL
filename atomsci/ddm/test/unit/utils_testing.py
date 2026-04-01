@@ -1,10 +1,8 @@
 import glob
 import os
 import shutil
-import sys
 import inspect
 import pandas as pd
-import requests
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 import atomsci.ddm.pipeline.parameter_parser as parse
@@ -14,7 +12,6 @@ import atomsci.ddm.pipeline.featurization as feat
 import atomsci.ddm.pipeline.model_datasets as model_dataset
 import atomsci.ddm.utils.curate_data as curate_data
 import atomsci.ddm.utils.struct_utils as struct_utils
-from shutil import copyfile
 
 import logging
 logging.basicConfig(format='%(asctime)-15s %(message)s')
@@ -103,7 +100,23 @@ def moe_descriptors(datastore = False):
     return params_desc, dataset_obj_for_desc, df
 
 
+def copy_delaney(dest='.'):
+    """Copies the delaney-processed.csv file to destination
+
+    Copies the delaney-processed.csv file to the given destination.
+    """
+
+    delaney_source = os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            '../test_datasets/delaney-processed.csv'))
+
+    shutil.copy(delaney_source, dest)
+
 def curate_delaney():
+
+    assert (os.path.isfile('delaney-processed.csv'))
+
     """Curate dataset for model fitting"""
     if (not os.path.isfile('delaney-processed_curated.csv') and
             not os.path.isfile('delaney-processed_curated_fit.csv') and
@@ -141,39 +154,6 @@ def curate_delaney():
     assert (os.path.isfile('delaney-processed_curated_fit.csv'))
     assert (os.path.isfile('delaney-processed_curated_external.csv'))
 
-
-def download_delaney():
-    """Separate download function so that download can be run separately if there is no internet."""
-    if (not os.path.isfile('delaney-processed.csv')):
-        download_save(
-            'https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv',
-            'delaney-processed.csv')
-
-    assert (os.path.isfile('delaney-processed.csv'))
-
-
-def download_save(url, file_name, verify=True):
-    """Download dataset
-
-    Arguments:
-        url: URL
-        file_name: File name
-        verify: Verify SSL certificate
-    """
-
-    # Skip if file already exists
-    if (not (os.path.isfile(file_name) and os.path.getsize(file_name) > 0)):
-        assert(url)
-        r = requests.get(url, verify=verify)
-
-        assert (r.status_code == 200), 'Error: Could not download dataset'
-
-        with open(file_name, 'wb') as f:
-            f.write(r.content)
-
-        assert (os.path.isfile(file_name) and os.path.getsize(file_name) > 0), 'Error: dataset file not created'
-
-
 clean()
-download_delaney()
+copy_delaney()
 curate_delaney()

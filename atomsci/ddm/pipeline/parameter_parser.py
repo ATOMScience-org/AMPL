@@ -1,13 +1,9 @@
 import argparse
 import json
 import sys
-from time import process_time
-import typing
 import os
 import re
 import logging
-import datetime
-import pdb
 
 import deepchem.models as dcm
 import deepchem.models.torch_models as dcmt
@@ -18,7 +14,6 @@ import os.path
 import atomsci.ddm.utils.checksum_utils as cu
 import atomsci.ddm.utils.many_to_one as mto
 
-from packaging.version import parse
 
 log = logging.getLogger('ATOM')
 # TODO: mjt, do we need to deal with parameters with options?
@@ -37,7 +32,7 @@ parameter_synonyms = {'mode':'prediction_type',
                       'model_dir':'result_dir',
                     }
 
-model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel, 
+model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel,
             'GCNModel':dcm.GCNModel,
             'MPNNModel':dcm.MPNNModel,
             'GraphConvModel':dcm.GraphConvModel,
@@ -142,18 +137,19 @@ def all_auto_lists():
     return set(result)
 
 def extract_model_params(params, strip_prefix=True):
-    """Extracts parameters meant for a specific model. Use only for
-    arguments automatically added by an AutoArgumentAdder
+    """Extract parameters specific to a model.
+
+    This function extracts parameters intended for a specific model. It should only be used
+    for arguments automatically added by an AutoArgumentAdder.
 
     Args:
-        params (Namespace): Parameter Namespace
-        strip_prefix (bool): Automatically added parameters come with a prefix.
-            When True, the prefix is removed. e.g. AttentiveFP_mode
-            becomes mode
+        params (argparse.Namespace): The parameter namespace containing all arguments.
+        strip_prefix (bool): If True, removes the prefix from automatically added parameters.
+            For example, 'AttentiveFP_mode' becomes 'mode'.
 
     Returns:
-        dict: A subset of parameters from params that should be passed on to the
-            model
+        dict: A dictionary containing a subset of parameters from `params` that are relevant
+            to the specified model.
     """
     assert params.model_type in model_wl
 
@@ -161,25 +157,26 @@ def extract_model_params(params, strip_prefix=True):
     return aaa.extract_params(params, strip_prefix=strip_prefix)
 
 def extract_featurizer_params(params, strip_prefix=True):
-    """Extracts parameters meant for a specific featurizer. Use only for
-    arguments automatically added by an AutoArgumentAdder
+    """Extract parameters specific to a featurizer.
+
+    This function extracts parameters intended for a specific featurizer. It should only be used
+    for arguments automatically added by an AutoArgumentAdder.
 
     Args:
-        params (Namespace): Parameter Namespace
-        strip_prefix (bool): Automatically added parameters come with a prefix.
-            When True, the prefix is removed. e.g. MolGraphConvFeaturizer_use_edges
-            becomes use_edges
+        params (argparse.Namespace): The parameter namespace containing all arguments.
+        strip_prefix (bool): If True, removes the prefix from automatically added parameters.
+            For example, 'MolGraphConvFeaturizer_use_edges' becomes 'use_edges'.
 
     Returns:
-        dict: A subset of parameters from params that should be passed on to the
-            featurizer
+        dict: A dictionary containing a subset of parameters from `params` that are relevant
+            to the specified featurizer.
     """
     assert params.featurizer in featurizer_wl
 
     aaa = AutoArgumentAdder(featurizer_wl[params.featurizer], params.featurizer)
     return aaa.extract_params(params, strip_prefix=strip_prefix)
 
-def is_primative_type(t):
+def is_primitive_type(t):
     """Returns true if t is of type int, str, or float
 
     Args:
@@ -188,10 +185,10 @@ def is_primative_type(t):
     Returns:
         bool. True if type is int, str, or float
     """
-    return t == int or t == str or t == float
+    return t in (int, str, float)
 
-def primative_type_only(type_annotation):
-    """Given annotation, return only primative types that can be read in
+def primitive_type_only(type_annotation):
+    """Given annotation, return only primitive types that can be read in
     from commandline, int, float, and str.
 
     Default return value is str, which is default for type parameter in
@@ -203,13 +200,13 @@ def primative_type_only(type_annotation):
     Returns:
         type: One of 3 choices, int, float, str
     """
-    if is_primative_type(type_annotation):
+    if is_primitive_type(type_annotation):
         return type_annotation
 
     annots = strip_optional(type_annotation=type_annotation)
     if len(annots) > 1:
         for t in annots:
-            if is_primative_type(t):
+            if is_primitive_type(t):
                 return t
         return str
     else:
@@ -301,7 +298,7 @@ def is_list(p, type_annotation):
         return str(type_annotation).startswith('typing.List') or str(type_annotation) == "<class 'list'>"
 
 def strip_optional(type_annotation):
-    """In the upgrade to python 3.9 type_annotaions now use
+    """In the upgrade to python 3.10 type_annotaions now use
         typeing.Optional and we need to strip that off.
 
     Args:
@@ -319,21 +316,22 @@ def strip_optional(type_annotation):
         return [type_annotation]
 
 class AutoArgumentAdder:
-    """Finds, manages, and adds all parameters of an object to a argparse parser
+    """Finds, manages, and adds all parameters of an object to an argparse parser.
 
-    AutoArgumentAdder recursively finds all keyword arguments of a given object.
+    AutoArgumentAdder recursively identifies all keyword arguments of a given object.
     A prefix is added to each keyword argument to prevent collisions and help
     distinguish automatically added arguments from normal arguments.
 
     Attributes:
-        func (object): The original object e.g. dcm.AttentiveFPModel
-        funcs (List[object]): A list of parents. e.g. KerasModel
-        prefix (str): A prefix for arguments. e.g. 'AttentiveFPModel'
-        types (dict): A mapping between parameter names and types. Prefixes
-            are not used in the keys.
-        used_by (dict): A mapping between parameter names (no prefix) and
-            the object or objects that use that parameter.
-        args (set): A set of all argument names
+
+        func (object): The original object, e.g., dcm.AttentiveFPModel.
+        funcs (List[object]): A list of parent classes, e.g., KerasModel.
+        prefix (str): A prefix for arguments, e.g., 'AttentiveFPModel'.
+        types (dict): A mapping between parameter names and their types. Prefixes
+            are not included in the keys.
+        used_by (dict): A mapping between parameter names (without prefix) and
+            the object(s) that use those parameters.
+        args (set): A set of all argument names.
     """
     def __init__(self, func, prefix):
         """Initialize all attributes with given object
@@ -448,16 +446,16 @@ class AutoArgumentAdder:
         for p in self.args:
             p_name = f'--{self._make_param_name(p)}'
             t = self.types[p]
-            pt = primative_type_only(t)
+            pt = primitive_type_only(t)
 
             if p in parameter_synonyms:
                 # don't set default or type. e.g. learning_rate in AMPL is a str where as DeepChem
                 # expects a float
                 parser.add_argument(p_name, dest=parameter_synonyms[p],
-                    help=f'Auto added argument used in one of these: '+', '.join(self.used_by[p]))
+                    help='Auto added argument used in one of these: '+', '.join(self.used_by[p]))
             else:
                 parser.add_argument(p_name, type=pt, default=None,
-                    help=f'Auto added argument used in one of these: '+', '.join(self.used_by[p]))
+                    help='Auto added argument used in one of these: '+', '.join(self.used_by[p]))
 
     def extract_params(self, params, strip_prefix=False):
         """Extracts non-None parameters from the given Namespace.
@@ -535,6 +533,8 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          'umap_targ_wt', 'umap_min_dist', 'dropout_list','weight_decay_penalty',
                          'xgb_learning_rate',
                          'xgb_gamma',
+                         'xgb_alpha',
+                         'xgb_lambda',
                          "xgb_min_child_weight",
                          "xgb_subsample",
                          "xgb_colsample_bytree",
@@ -542,13 +542,15 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          }
 convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
                        'umap_dim', 'umap_neighbors', 'layer_nums', 'node_nums',
-                       'xgb_max_depth',  'xgb_n_estimators'}.union(all_auto_int_lists())
+                       'xgb_max_depth',  'xgb_n_estimators', 'seed'}.union(all_auto_int_lists())
 convert_to_numeric_list = convert_to_float_list | convert_to_int_list
 keep_as_list = {'dropouts','weight_init_stddevs','bias_init_consts',
                 'layer_sizes','dropout_list','layer_nums'}.union(all_auto_lists())
 not_a_list_outside_of_hyperparams = {'learning_rate','weight_decay_penalty',
                                      'xgb_learning_rate',
                                      'xgb_gamma',
+                                     'xgb_alpha',
+                                     'xgb_lambda',
                                      'xgb_min_child_weight',
                                      'xgb_subsample',
                                      'xgb_colsample_bytree',
@@ -576,7 +578,7 @@ def to_str(params_obj):
     """
     # This command converts the namespace_obj to a dict, with the spaces replaced with
     # a temporary string.
-    if type(params_obj) == dict:
+    if type(params_obj) is dict:
         strobj = dict_to_list(params_obj,replace_spaces=True)
     else:
         strobj = dict_to_list(vars(params_obj),replace_spaces=True)
@@ -678,7 +680,7 @@ def parse_config_file(config_file_path):
             flat_dict[vals] = flat_dict.pop(key)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters
-    hyperparam = 'hyperparam' in orig_keys and flat_dict['hyperparam'] == True
+    hyperparam = 'hyperparam' in orig_keys and flat_dict['hyperparam']
     newdict = remove_unrecognized_arguments(flat_dict, hyperparam)
 
     newdict['config_file'] = config_file_path
@@ -701,7 +703,7 @@ def flatten_dict(inp_dict,newdict = {}):
     """
 
     for key, val in inp_dict.items():
-        if isinstance(val,dict) and not (key in ['DatasetMetadata', 'dataset_metadata']):
+        if isinstance(val,dict) and key not in ['DatasetMetadata', 'dataset_metadata']:
             flatten_dict(val,newdict)
         else:
             if key in newdict and newdict[key] != val:
@@ -779,7 +781,7 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production'] 
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production', 'embedding_and_features']
     default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
     for key, value in inp_dictionary.items():
         if key in default_false:
@@ -799,13 +801,13 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
             elif isinstance(value, list):
                 sep = ","
                 newval = sep.join([str(item) for item in value])
-                if replace_spaces == True:
+                if replace_spaces:
                     temp_list_to_command_line.append(newval.replace(" ",replace_spaces_str))
                 else:
                     temp_list_to_command_line.append(newval)
             else:
                 newval = str(value)
-                if replace_spaces == True:
+                if replace_spaces:
                     temp_list_to_command_line.append(newval.replace(" ",replace_spaces_str))
                 else:
                     temp_list_to_command_line.append(newval)
@@ -1005,6 +1007,11 @@ def get_parser():
         '--embedding_model_path', dest='embedding_model_path', type=str, default=None,
         help='File path for pretrained model used to compute embedding features')
 
+    parser.add_argument(
+        '--embedding_and_features', dest='embedding_and_features', action='store_true',
+        help='File path for pretrained model used to compute embedding features')
+    parser.set_defaults(embedding_and_features=False)
+
 
     # **********************************************************************************************************
     # model_building_parameters: general
@@ -1043,6 +1050,10 @@ def get_parser():
         '--verbose', dest='verbose', action='store_true',
         help='True/False flag for setting verbosity')
     parser.set_defaults(verbose=False)
+    parser.add_argument(
+        '--seed', dest='seed', default=None,
+        help='Random seed used for initializing the random number generator to ensure results are reproducible.'
+        'Default is None and a random seed will be generated.')
 
     # **********************************************************************************************************
     # model_building_parameters: graphconv
@@ -1117,7 +1128,7 @@ def get_parser():
     production_help_string = \
         ('Runs training in produciton mode. The model will be trained for exactly max_epochs and '
          'it will duplicate the dataset so that the entire dataset will be used for training, '
-         'validatin, and test.')
+         'validation, and test.')
     parser.add_argument(
         '--production', dest='production', default=False,
         action='store_true',
@@ -1229,6 +1240,19 @@ def get_parser():
         help='Type of splitter to use: index, random, scaffold, butina, ave_min, temporal, fingerprint, multitaskscaffold or stratified.'
              ' Used to set the splitting.py subclass. Can be input as a comma separated list for hyperparameter search'
              ' (e.g. \'scaffold\',\'random\')')
+    # sampling specific parameters (imbalance-learn)
+    parser.add_argument(
+        '--sampling_method', dest='sampling_method', type=str, default=None,
+        help='Method for sampling to address class imbalance (e.g., \'undersampling\', \'SMOTE\')')
+
+    parser.add_argument(
+        '--sampling_ratio', dest='sampling_ratio', type=str, default='auto',
+        help='The "sampling_ratio" parameter of SMOTE must be a float in the range (0.0, 1.0], a str '
+            'among {"auto", "not majority", "minority", "all", "not minority"}')
+    parser.add_argument(
+        '--sampling_k_neighbors', dest='sampling_k_neighbors', type=int, default=5,
+        help='The nearest neighbors used to define the neighborhood of samples to use to generate the synthetic samples. Specifically used for SMOTE.')
+
 
     parser.add_argument(
         '--mtss_num_super_scaffolds', default=40, type=int,
@@ -1313,6 +1337,14 @@ def get_parser():
     parser.add_argument(
         '--xgb_gamma', dest='xgb_gamma', default='0.0',
         help='Minimum loss reduction required to make a further partition on a leaf node of the tree. Can be input'
+             ' as a comma separated list for hyperparameter search (e.g. \'0.0,0.1,0.2\')')
+    parser.add_argument(
+        '--xgb_alpha', dest='xgb_alpha', default='0.0',
+        help='L1 regularization term on weights. Increasing this value will make model more conservative. Can be input'
+             ' as a comma separated list for hyperparameter search (e.g. \'0.0,0.1,0.2\')')
+    parser.add_argument(
+        '--xgb_lambda', dest='xgb_lambda', default='1.0',
+        help='L2 regularization term on weights. Increasing this value will make model more conservative. Can be input'
              ' as a comma separated list for hyperparameter search (e.g. \'0.0,0.1,0.2\')')
     parser.add_argument(
         '--xgb_learning_rate', dest='xgb_learning_rate', default='0.1',
@@ -1438,9 +1470,9 @@ def get_parser():
             help='Scaling factor for constraining network size based on number of parameters in the network for '
                  'hyperparam search')
     parser.add_argument(
-        '--python_path', dest='python_path', required=False, 
+        '--python_path', dest='python_path', required=False,
         # default to the version of python used to run this script
-        default=sys.executable, 
+        default=sys.executable,
         help='Path to desired python version')
     parser.add_argument(
             '--rerun', dest= 'rerun', required=False, action='store_false',
@@ -1448,7 +1480,7 @@ def get_parser():
                  'already been built')
     parser.set_defaults(rerun=True)
     parser.add_argument(
-        '--script_dir', dest='script_dir', required=False, 
+        '--script_dir', dest='script_dir', required=False,
         # use location of this file to generate script dir
         default=os.path.abspath(os.path.join(__file__, '../..')),
         help='Path where pipeline file you want to run hyperparam search from is located')
@@ -1500,7 +1532,7 @@ def get_parser():
     # NN model
     parser.add_argument(
         '--lr', dest='lr', required=False, default=None,
-        help='learing rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
+        help='learning rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
     parser.add_argument(
         '--ls', dest='ls', required=False, default=None,
         help='layer sizes shown in HyperOpt domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
@@ -1510,6 +1542,12 @@ def get_parser():
     parser.add_argument(
         '--dp', dest='dp', required=False, default=None,
         help='dropouts shown in HyperOpt domain format, e.g. --dp=uniform|3|0,0.4')
+    parser.add_argument(
+        '--wdp', dest='wdp', required=False, default=None,
+        help='weight_decay_penalty shown in HyperOpt domain format, e.g. --wdp=loguniform|-6.908,-4.605')
+    parser.add_argument(
+        '--wdt', dest='wdt', required=False, default=None,
+        help='weight_decay_penalty_type shown in HyperOpt domain format, e.g. --wdt=choice|l1,l2')
     # RF model
     parser.add_argument(
         '--rfe', dest='rfe', required=False, default=None,
@@ -1524,6 +1562,12 @@ def get_parser():
     parser.add_argument(
         '--xgbg', dest='xgbg', required=False, default=None,
         help='xgb_gamma shown in HyperOpt domain format, e.g. --xgbg=uniform|0,0.4')
+    parser.add_argument(
+        '--xgba', dest='xgba', required=False, default=None,
+        help='xgb_alpha shown in HyperOpt domain format, e.g. --xgba=uniform|0,0.4')
+    parser.add_argument(
+        '--xgbb', dest='xgbb', required=False, default=None,
+        help='xgb_lambda shown in HyperOpt domain format, e.g. --xgbb=uniform|0,0.4')
     parser.add_argument(
         '--xgbl', dest='xgbl', required=False, default=None,
         help='xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
@@ -1721,11 +1765,11 @@ def postprocess_args(parsed_args):
 
     # set num_model_tasks to equal len(response_cols)
     # this ignores the current value of num_model_tasks
-    if not parsed_args.num_model_tasks is None:
+    if parsed_args.num_model_tasks is not None:
         log.debug("num_model_tasks is deprecated and its value is ignored.")
-    if parsed_args.response_cols is None or type(parsed_args.response_cols) == str:
+    if parsed_args.response_cols is None or type(parsed_args.response_cols) is str:
         parsed_args.num_model_tasks = 1
-    elif type(parsed_args.response_cols) == list:
+    elif type(parsed_args.response_cols) is list:
         parsed_args.num_model_tasks = len(parsed_args.response_cols)
     else:
         raise Exception(f'Unexpected type for response_cols {type(parsed_args.response_cols)}')
@@ -1736,7 +1780,36 @@ def postprocess_args(parsed_args):
     if vars(parsed_args).get('dataset_key') and os.path.exists(parsed_args.dataset_key):
         _ = mto.many_to_one(fn=parsed_args.dataset_key, smiles_col=parsed_args.smiles_col, id_col=parsed_args.id_col)
 
+    # Validates the sampling_ratio argument for SMOTE and undersampling
+    parsed_args.sampling_ratio = validate_sampling_strategy_argument(parsed_args.sampling_ratio)
+
     return parsed_args
+
+#***********************************************************************************************************
+def validate_sampling_strategy_argument(value):
+    """Validates sampling_strategy parameter for SMOTE and undersampling.
+    Validates that the input value is either a float in the range (0.0, 1.0] or a string among
+    {'auto', 'not majority', 'minority', 'all', 'not minority'}. Raises a ValueError if the validation fails.
+
+    Args:
+        value (str): The input value to validate.
+
+    Raises:
+        ValueError: If the value is not a float in the range (0.0, 1.0] or a valid string.
+    """
+    valid_strings = {"auto", "not majority", "minority", "all", "not minority"}
+
+    try:
+        float_value = float(value)
+        if float_value <= 0.0 or float_value > 1.0:
+            raise ValueError(f"Value '{value}' is not a float in the range (0.0, 1.0].")
+        else:
+            return float_value
+    except ValueError:
+        if value not in valid_strings:
+            raise ValueError(f"Value '{value}' is not a valid string among {valid_strings}.")
+        else:
+            return value
 
 
 #***********************************************************************************************************
@@ -1750,7 +1823,7 @@ def make_dataset_key_absolute(parsed_args):
     # if so, make it relative to current working directory
     # update to allow for datastore
     if not parsed_args.datastore:
-        if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)):
+        if (parsed_args.dataset_key is not None) and (not os.path.isabs(parsed_args.dataset_key)):
             parsed_args.dataset_key = os.path.abspath(parsed_args.dataset_key)
 
     return parsed_args
@@ -1791,7 +1864,7 @@ def remove_unrecognized_arguments(params, hyperparam=False):
     Returns:
         dict of parameters
     """
-    if not type(params) == dict:
+    if type(params) is not dict:
         params = vars(params)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters

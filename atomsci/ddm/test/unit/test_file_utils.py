@@ -3,8 +3,6 @@ import tarfile
 import os 
 import glob
 import atomsci.ddm.utils.file_utils as futils
-import shutil
-from os import path
 from tempfile import TemporaryDirectory
 
 def test_extractall_tarfile():

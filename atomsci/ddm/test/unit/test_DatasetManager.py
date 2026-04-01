@@ -2,7 +2,6 @@ from deepchem.data import DiskDataset
 import numpy as np
 import pandas as pd
 from atomsci.ddm.pipeline.splitting import DatasetManager, _copy_modify_NumpyDataset
-import pdb
 
 def make_test_dataset_and_attr():
     ids = ['a', 'a', 'b', 'b', 'c']

@@ -8,8 +8,6 @@ AMPL provides different pip installation files for different environments and us
 
 * cuda_requirements.txt : minimal installation to run AMPL with CUDA-enabled GPUs.
 
-* docker_requirements.txt : is used for AMPL docker image build.
-
 * mchip_requirements.txt : is used for macOS with M chip.
 
 * readthedocs_requirements.txt : is used for readthedocs build.

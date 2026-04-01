@@ -4,8 +4,13 @@
 
 *Published: June, 2024, ATOM DDM Team*
 
-------------
+Please check out the companion tutorial video: |youtube-image|
 
+.. |youtube-image| image:: ../_static/img/youtube_icon.png
+   :alt: Tutorial 02 Perform Split
+   :target: https://www.youtube.com/watch?v=gsa2xfG3OSE
+
+------------
 A common problem with machine learning (ML) models is that they can very
 easily "overfit" the training data. This means that the model predicts
 the response values for training set compounds with perfect accuracy,

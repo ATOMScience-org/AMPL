@@ -9,7 +9,7 @@ import pandas as pd
 
 import tempfile
 import tarfile
-import json
+import pytest
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm
@@ -167,6 +167,7 @@ def wait_to_finish(split_json, search_json, max_time=1200):
 
     return result_df
 
+@pytest.mark.slurm_required
 def test():
     """Test full model pipeline: Split data, featurize data, fit model, get results"""
 

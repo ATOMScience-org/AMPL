@@ -4,7 +4,6 @@ import os
 import glob
 import matplotlib
 
-import sys
 import tempfile
 import tarfile
 import json
@@ -16,13 +15,11 @@ import sklearn.metrics as metrics
 from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from mpl_toolkits.mplot3d import Axes3D
 
 from atomsci.ddm.utils import file_utils as futils
 from atomsci.ddm.utils import model_file_reader as mfr
 from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import perf_data as perf
-from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import predict_from_model as pfm
 
 #matplotlib.style.use('ggplot')
@@ -66,26 +63,27 @@ test_inactive_col = sat_cols[2]
 continuous_pal = sns.color_palette('crest', as_cmap=True)
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=False, plot_size=7, 
-                       external_training_data=None, pdf_dir=None):
-    """Plot predicted vs actual values from a trained regression model for each split subset (train,
+def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=False, plot_size=7,
+                        external_training_data=None, pdf_dir=None):
+    """
+    Plot predicted vs actual values from a trained regression model for each split subset (train,
     valid, and test).
 
     Args:
-        model (`ModelPipeline` or str): Either a ModelPipeline object for a model that was trained in the current Python session,
-        or a path to a saved model .tar.gz file or directory.
-        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
-        threshold (float): Threshold activity value to mark on plot with dashed lines.
-        error_bars (bool): If true and if uncertainty estimates are included in the model predictions, draw error bars
-            at +- 1 SD from the predicted y values.
-        plot_size (float): Height of each subplot
-        external_training_data (str): Path to copy of training dataset, if different from path used when model was trained. Only
-        used for saved models.
-        pdf_dir (str): If given, output the plots to a PDF file in the given directory.
+        model (ModelPipeline or str): Either a ModelPipeline object for a model that was trained in the 
+            current Python session, or a path to a saved model .tar.gz file or directory.
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently, 'best' 
+            is the only allowed value.
+        threshold (float, optional): Threshold activity value to mark on the plot with dashed lines.
+        error_bars (bool, optional): If True and if uncertainty estimates are included in the model 
+            predictions, draw error bars at ±1 SD from the predicted y values.
+        plot_size (float, optional): Height of each subplot.
+        external_training_data (str, optional): Path to a copy of the training dataset, if different 
+            from the path used when the model was trained. Only used for saved models.
+        pdf_dir (str, optional): If given, output the plots to a PDF file in the specified directory.
 
     Returns:
         None
-
     """
     if isinstance(model, str):
         return plot_pred_vs_actual_from_file(model, plot_size=plot_size, external_training_data=external_training_data, error_bars=error_bars)
@@ -467,7 +465,7 @@ def plot_perf_vs_epoch(MP, plot_size=7, pdf_dir=None):
         #if num_subplots == 1:
         #    title += f", Best validation set {perf_label} at epoch {best_epoch)"
         ax.set_title(title, fontdict={'fontsize' : 12})
-        legend = ax.legend(loc='lower right')
+        _legend = ax.legend(loc='lower right')
     
         # Now plot the score used for choosing the best epoch and model params, if different from the default R2 or ROC AUC
         if num_subplots == 2:
@@ -568,7 +566,7 @@ def get_classifier_perf_data_from_pipeline(MP, epoch_label='best'):
     wrapper = MP.model_wrapper
     classif_data = {}
     tasks = MP.params.response_cols
-    ntasks = len(tasks)
+    _ntasks = len(tasks)
     for itask, task in enumerate(tasks):
         classif_data[task] = {}
     training_metrics = get_metrics_from_metadata(MP.model_metadata)
@@ -800,7 +798,7 @@ def plot_ROC_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None):
             ax.set_xlabel('False positive rate')
             ax.set_ylabel('True positive rate')
             ax.set_title(title, fontdict={'fontsize' : 12})
-            legend = ax.legend(loc='lower right')
+            _legend = ax.legend(loc='lower right')
         
             if pdf_dir is not None:
                 pdf.savefig(fig)
@@ -824,6 +822,10 @@ def plot_prec_recall_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None):
 
     """
     params = MP.params
+    if pdf_dir is not None:
+        pdf_path = os.path.join(pdf_dir, '%s_%s_model_%s_features_%s_split_ROC_curves.pdf' % (
+                                params.dataset_name, params.model_type, params.featurizer, params.splitter))
+        pdf = PdfPages(pdf_path)
     curve_data = get_classifier_perf_data_from_pipeline(MP, epoch_label=epoch_label)
     tasks = list(curve_data.keys())
     ntasks = len(tasks)
@@ -838,14 +840,13 @@ def plot_prec_recall_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None):
             subsets = list(curve_data[task].keys())
             for iss, subset in enumerate(subsets):
                 ss_data = curve_data[task][subset]
-                prd = PrecisionRecallDisplay.from_predictions(ss_data['true_class'], ss_data['class_probs'],
+                _prd = PrecisionRecallDisplay.from_predictions(ss_data['true_class'], ss_data['class_probs'],
                                                             ax=ax, drawstyle='default', c=subset_colors[subset], name=subset)
                 ax.set_title(f"Response column: '{task}'")    
-            legend = ax.legend(loc='lower left')
+            _legend = ax.legend(loc='lower left')
 
     if pdf_dir is not None:
         pdf.savefig(fig)
-    if pdf_dir is not None:
         pdf.close()
         MP.log.info("Wrote plot to %s" % pdf_path)
 
@@ -894,7 +895,7 @@ def old_plot_prec_recall_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None
         ax.set_xlabel('Recall')
         ax.set_ylabel('Precision')
         ax.set_title(title, fontdict={'fontsize' : 12})
-        legend = ax.legend(loc='lower right')
+        _legend = ax.legend(loc='lower right')
     
         if pdf_dir is not None:
             pdf.savefig(fig)
@@ -959,7 +960,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
         pdf = PdfPages(pdf_path)
 
     dataset = MP.data.dataset
-    ncmpds = dataset.y.shape[0]
+    _ncmpds = dataset.y.shape[0]
     ntasks = dataset.y.shape[1]
     nfeat = dataset.X.shape[1]
     cmpd_ids = {}
@@ -1151,7 +1152,7 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
         pdf = PdfPages(pdf_path)
 
     dataset = MP.data.dataset
-    ncmpds = dataset.y.shape[0]
+    _ncmpds = dataset.y.shape[0]
     ntasks = dataset.y.shape[1]
     nfeat = dataset.X.shape[1]
     cmpd_ids = {}
@@ -1181,7 +1182,7 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
     all_features = np.concatenate([features[subset] for subset in subsets], axis=0)
 
     epoch_label = 'best'
-    pred_vals = {}
+    #pred_vals = {}
     real_vals = {}
     for subset in subsets:
         perf_data = MP.model_wrapper.get_perf_data(subset, epoch_label)

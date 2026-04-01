@@ -8,6 +8,7 @@ import tarfile
 import json
 import glob
 import pandas as pd
+import pytest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../delaney_Panel'))
 from test_delaney_panel import init, train_and_predict
@@ -173,12 +174,14 @@ def test_XGB_results():
 
     assert json.loads(model_info['model_parameters_dict']) == {'xgb_colsample_bytree': 1.0,
             'xgb_gamma': 0.1, 'xgb_learning_rate': 0.11, 'xgb_max_depth': 6,
+            'xgb_alpha': 0.0, 'xgb_lambda': 1.0,
             'xgb_min_child_weight': 1.0, 'xgb_n_estimators': 100, 'xgb_subsample': 1.0}
 
     assert model_info['feat_parameters_dict'] == json.dumps({})
 
     clean()
 
+@pytest.mark.dgl_required
 def test_AttentiveFP_results():
     clean()
     H1_curate()
@@ -201,6 +204,7 @@ def test_AttentiveFP_results():
 
     clean()
 
+@pytest.mark.dgl_required
 def test_GCN_results():
     clean()
     H1_curate()
@@ -248,6 +252,7 @@ def test_GraphConvModel_results():
 
     clean()
 
+@pytest.mark.dgl_required
 def test_MPNN_results():
     if not llnl_utils.is_lc_system():
         assert True
@@ -275,7 +280,12 @@ def test_MPNN_results():
 
     clean()
 
+@pytest.mark.dgl_required
 def test_PytorchMPNN_results():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
+    
     clean()
     H1_curate()
     json_f = 'jsons/reg_config_H1_fit_PytorchMPNNModel.json'

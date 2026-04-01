@@ -8,15 +8,12 @@
 #
 import matplotlib
 matplotlib.use('Agg')
-import pandas as pd, os, csv
+import pandas as pd
 import numpy as np
 
 import atomsci.ddm.pipeline.chem_diversity as cd
 import atomsci.ddm.utils.curate_data as curate_data
 
-import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib_venn import venn3
 
 #=====================================
 # Union of three lists 
@@ -241,8 +238,8 @@ def aggregate_basesmiles(assay_df, value_col='pIC50', output_value_col=None,
     smiles_map = dict([(smiles,i) for i, smiles in enumerate(uniq_smiles_strs)])
     smiles_indices = np.array([smiles_map.get(smiles, nuniq) for smiles in smiles_strs])
 
-    assay_vals = assay_df[value_col].values
-    value_flags = assay_df[relation_col].values
+    _assay_vals = assay_df[value_col].values
+    _value_flags = assay_df[relation_col].values
 
     # Compute a maximum likelihood estimate of the mean assay value for each compound, averaging over replicates
     # and factoring in censoring. Report the censoring/relation/value_flag only if the flags are consistent across
@@ -303,10 +300,10 @@ def genUnionSet(dtc_df,ex_df,ch_df):
     combine_df = pd.concat([dtc_df,ex_df,ch_df],ignore_index=True).drop_duplicates().reset_index(drop=True)
     print('Total number of base smiles strings in combined data: ', combine_df.shape)
 
-    tolerance=10
-    column='pIC50'; #'standard_value'
-    list_bad_duplicates='No'
-    max_std=1
+    _tolerance=10
+    column='pIC50' #'standard_value'
+    _list_bad_duplicates='No'
+    _max_std=1
 
     union_df=aggregate_basesmiles(combine_df, value_col=column, output_value_col=None,
                              label_actives=True,

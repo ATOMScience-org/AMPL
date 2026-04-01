@@ -1,8 +1,6 @@
 import os
-import sys
 import pandas as pd
 import pytest
-import inspect
 import json
 import numpy as np
 import atomsci.ddm.pipeline.featurization as feat
@@ -12,7 +10,6 @@ import deepchem as dc
 import atomsci.ddm.pipeline.model_datasets as model_dataset
 import atomsci.ddm.pipeline.parameter_parser as parse
 from atomsci.ddm.pipeline import model_pipeline as mp
-from atomsci.ddm.pipeline import featurization as feat
 import utils_testing as utils
 
 """This testing script assumes that /ds/data/public/delaney/delaney-processed.csv is still on the same path on twintron. Assumes that the dataset_key: /ds/projdata/gsk_data/GSK_derived/PK_parameters/gsk_blood_plasma_partition_rat_crit_res_data.csv under the bucket gskdata and with the object_oid: 5af0e6368003ff018de33db5 still exists. 

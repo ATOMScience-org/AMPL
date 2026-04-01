@@ -1,0 +1,18 @@
+{"verbose": "True",
+    "datastore": "False", 
+    "save_results": "False", 
+    "model_type": "NN", 
+    "featurizer": "ecfp", 
+    "split_strategy": "k_fold_cv", 
+    "splitter": "random",
+    "split_test_frac": "0.15", 
+    "split_valid_frac": "0.15", 
+    "transformers": "True", 
+    "dataset_key": "replaced",
+    "id_col": "compound_id", 
+    "response_cols":"pIC50", 
+    "smiles_col": "base_rdkit_smiles",
+    "max_epochs":"2",
+    "prediction_type": "regression",
+    "result_dir": "replaced"
+}

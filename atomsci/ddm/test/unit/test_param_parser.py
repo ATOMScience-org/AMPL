@@ -1,18 +1,11 @@
 import argparse
-import json
-import logging
 import os
-import shutil
-import sys
-import pandas as pd
 import pytest
 import inspect
-import warnings
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 import atomsci.ddm.pipeline.parameter_parser as parse
 
-import pdb
 
 config_path = currentdir + '/config_list_inputs.json'
 filter_dict_path = currentdir + '/filter_dict_example.json'
@@ -388,3 +381,47 @@ def test_hierarchical_dict():
 def default_parameters():
     default_params = parse.list_defaults()
     return default_params
+
+
+#test utility functions
+
+def test_is_primitive():
+    assert parse.is_primitive_type(type(1.0))
+    assert parse.is_primitive_type(type('str'))
+    assert parse.is_primitive_type(type(1))
+    assert not parse.is_primitive_type(type({'foo':1}))
+    assert not parse.is_primitive_type(type(['foo']))
+
+# test the new parameters for PR #331 sparsity, MTSS improvements   
+def test_weight_decay_penalty_and_type():
+    """
+    Test the weight_decay_penalty parameter to ensure it is parsed correctly.
+    """
+    # Example input with weight_decay_penalty parameter
+    input_params = {
+        "model_type": "NN",
+        "weight_decay_penalty": "0.0001",
+        "weight_decay_penalty_type": "L2" }
+     
+    # Parse the parameters
+    params = parse.wrapper(input_params)
+     
+    # Assertions to verify the parameter is parsed correctly
+    assert params.weight_decay_penalty == 0.0001, "weight_decay_penalty value is incorrect"
+    assert params.weight_decay_penalty_type == "L2", "weight_decay_penalty_type value is incorrect"
+    
+def test_xgb_alpha_and_xgb_lambda():
+    """
+    Test the xgb_alpha and xgb_lambda parameters in the parameter parser.
+    """
+    # Define test inputs
+    input_params = {
+        "model_type": "xgboost",
+        "xgb_alpha": "0.1",
+        "xgb_lambda": "0.5" }
+    # Parse the inputs
+    params = parse.wrapper(input_params)
+    
+    # Assertions
+    assert params.xgb_alpha == 0.1, "xgb_alpha parameter did not parse correctly."
+    assert params.xgb_lambda == 0.5, "xgb_lambda parameter did not parse correctly."

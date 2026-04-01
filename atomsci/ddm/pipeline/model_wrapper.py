@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
 """Contains class ModelWrapper and its subclasses, which are wrappers for DeepChem and scikit-learn model classes."""
-
 import logging
 import os
 import shutil
 import joblib
-import pdb
 
 import deepchem as dc
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 if dc.__version__.startswith('2.1'):
     from deepchem.models.tensorgraph.fcnet import MultitaskRegressor, MultitaskClassifier
@@ -24,10 +23,10 @@ from sklearn.ensemble import RandomForestRegressor
 
 
 try:
-    import dgl
-    import dgllife
-    import deepchem.models as dcm
-    from deepchem.models import AttentiveFPModel
+    import dgl    # noqa: F401
+    import dgllife   # noqa: F401
+    import deepchem.models as dcm  # noqa: F401
+    from deepchem.models import AttentiveFPModel  # noqa: F401
     afp_supported = True
 except (ImportError, OSError):
     afp_supported = False
@@ -41,13 +40,12 @@ except ImportError:
 import pickle
 import yaml
 import glob
-from datetime import datetime
 import time
-import socket
 from packaging import version
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import llnl_utils
+from atomsci.ddm.pipeline import model_datasets as md
 from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import perf_data as perf
 import atomsci.ddm.pipeline.parameter_parser as pp
@@ -82,7 +80,7 @@ def get_latest_pytorch_checkpoint(model, model_dir=None):
     print(latest_chkpt)
 
     return latest_chkpt
- 
+
 
 def dc_restore(model, checkpoint=None, model_dir=None, session=None):
     """Reload the values of all variables from a checkpoint file.
@@ -171,7 +169,7 @@ def all_bases(model):
     return result
 
 # ****************************************************************************************
-def create_model_wrapper(params, featurizer, ds_client=None):
+def create_model_wrapper(params, featurizer, ds_client=None, random_state=None, seed=None):
     """Factory function for creating Model objects of the correct subclass for params.model_type.
 
     Args:
@@ -189,11 +187,11 @@ def create_model_wrapper(params, featurizer, ds_client=None):
     """
     if params.model_type == 'NN':
         if params.featurizer == 'graphconv':
-            return GraphConvDCModelWrapper(params, featurizer, ds_client)
+            return GraphConvDCModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
         else:
-            return MultitaskDCModelWrapper(params, featurizer, ds_client)
+            return MultitaskDCModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     elif params.model_type == 'RF':
-        return DCRFModelWrapper(params, featurizer, ds_client)
+        return DCRFModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     elif params.model_type == 'xgboost':
         if not xgboost_supported:
             raise Exception("Unable to import xgboost. \
@@ -204,14 +202,14 @@ def create_model_wrapper(params, featurizer, ds_client=None):
                              twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user "
                             )
         elif version.parse(xgb.__version__) < version.parse('0.9'):
-            raise Exception(f"xgboost required to be = 0.9 for GPU support. \
+            raise Exception("xgboost required to be = 0.9 for GPU support. \
                              current version = xgb.__version__ \
                              installation: \
                              from pip: pip install xgboost==0.90")
         else:
-            return DCxgboostModelWrapper(params, featurizer, ds_client)
+            return DCxgboostModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     elif params.model_type == 'hybrid':
-        return HybridModelWrapper(params, featurizer, ds_client)
+        return HybridModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     elif params.model_type in pp.model_wl:
         requested_model = pp.model_wl[params.model_type]
         bases = all_bases(requested_model)
@@ -220,19 +218,34 @@ def create_model_wrapper(params, featurizer, ds_client=None):
         if any(['TorchModel' in str(b) for b in bases]):
             if not afp_supported:
                 raise Exception("dgl and dgllife packages must be installed to use attentive_fp model.")
-            return PytorchDeepChemModelWrapper(params, featurizer, ds_client)
+            return PytorchDeepChemModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
         elif any(['KerasModel' in str(b) for b in bases]):
-            return KerasDeepChemModelWrapper(params, featurizer, ds_client)
+            return KerasDeepChemModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     else:
         raise ValueError("Unknown model_type %s" % params.model_type)
 
 # ****************************************************************************************
 
 class ModelWrapper(object):
-    """Wrapper for DeepChem and sklearn model objects. Provides methods to train and test a model,
+    """Root class of AMPL wrappers for DeepChem and sklearn model objects; models developed by the AMPL team
+    are implemented as subclasses of this class. Provides generic methods to train and test a model,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
+    Class hierarchy:
+
+    ModelWrapper
+    ├── NNModelWrapper
+    |   └── PytorchDeepChemModelWrapper
+    |   |   ├── MultitaskDCModelWrapper
+    |   |   ├── KerasDeepChemModelWrapper
+    |   |       └── GraphConvDCModelWrapper
+    |   ├── HybridModelWrapper
+    ├── ForestModelWrapper
+    │   ├── DCRFModelWrapper
+    │   └── DCxgboostModelWrapper
+
     Attributes:
+
         Set in __init__
             params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
 
@@ -242,17 +255,22 @@ class ModelWrapper(object):
 
             output_dir (str): The parent path of the model directory
 
-            transformers (list): Initialized as an empty list, stores the transformers on the response cols
+            transformers (dict of lists): Initialized using transformers.get_blank_transformations.
+            Keyed using integer fold numbers or 'final' e.g., {0:[], 1:[], 'final':[]}.
+            Stores deepchem transformation objects on the response cols for each fold and uses the 'final' key for
+            the transformer fitted for the final model. When using k-fold validation, 'final' is fitted
+            using all training and validation data. Without k-fold validation, transformers for 0 and 'final'
+            are the same.
 
-            transformers_x (list): Initialized as an empty list, stores the transformers on the features
+            transformers_x (dict of lists): Same as transformers, but stores the transformers on the features
 
-            transformers_w (list): Initialized as an empty list, stores the transformers on the weights
+            transformers_w (dict of lists): Same as transformers, but stores the transformers on the weights
 
         set in setup_model_dirs:
             best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
 
     """
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes ModelWrapper object.
 
         Args:
@@ -272,11 +290,17 @@ class ModelWrapper(object):
 
                 output_dir (str): The parent path of the model directory
 
-                transformers (list): Initialized as an empty list, stores the transformers on the response cols
+                transformers (dict of lists): Initialized using transformers.get_blank_transformations.
+                Keyed using integer fold numbers or 'final' e.g., {0:[], 1:[], 'final':[]}.
+                Stores deepchem transformation objects on the response cols for each fold and uses the 'final' key for
+                the transformer fitted for the final model. When using k-fold validation, 'final' is fitted
+                using all training and validation data. Without k-fold validation, transformers for 0 and 'final'
+                are the same.
 
-                transformers_x (list): Initialized as an empty list, stores the transformers on the features
+                transformers_x (dict of lists): Same as transformers, but stores the transformers on the features
 
-                transformers_w (list): Initialized as an empty list, stores the transformers on the weights
+                transformers_w (dict of lists): Same as transformers, but stores the transformers on the weights
+
 
         """
         self.params = params
@@ -286,9 +310,12 @@ class ModelWrapper(object):
         self.output_dir = self.params.output_dir
         self.model_dir = os.path.join(self.output_dir, 'model')
         os.makedirs(self.model_dir, exist_ok=True)
-        self.transformers = []
-        self.transformers_x = []
-        self.transformers_w = []
+        self.transformers = trans.get_blank_transformations()
+        self.transformers_x = trans.get_blank_transformations()
+        self.transformers_w = trans.get_blank_transformations()
+
+        self.random_state = random_state
+        self.seed = seed
 
         # ****************************************************************************************
 
@@ -327,63 +354,72 @@ class ModelWrapper(object):
         raise NotImplementedError
 
         # ****************************************************************************************
-    def _create_output_transformers(self, model_dataset):
+    def _create_output_transformers(self, dataset):
         """Initialize transformers for responses and persist them for later.
 
         Args:
-            model_dataset: The ModelDataset object that handles the current dataset
+            dataset: A dc.Dataset object
 
         Side effects:
             Overwrites the attributes:
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
         """
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
-        if self.params.prediction_type=='regression' and self.params.transformers==True:
-            self.transformers = [trans.NormalizationTransformerMissingData(transform_y=True, dataset=model_dataset.dataset)]
+        if self.params.prediction_type=='regression' and self.params.transformers is True:
+            return [trans.NormalizationTransformerMissingData(transform_y=True, dataset=dataset)]
+        else:
+            return []
 
         # ****************************************************************************************
 
-    def _create_feature_transformers(self, model_dataset):
+    def _create_feature_transformers(self, dataset):
         """Initialize transformers for features, and persist them for later.
 
         Args:
-            model_dataset: The ModelDataset object that handles the current dataset
+            dataset: A dc.Dataset object
 
         Side effects:
             Overwrites the attributes:
                 transformers_x: A list of deepchem transformation objects on featurizers, only if conditions are met.
         """
         # Set up transformers for features, if needed
-        self.transformers_x = trans.create_feature_transformers(self.params, model_dataset)
+        return trans.create_feature_transformers(self.params, self.featurization, dataset)
 
         # ****************************************************************************************
 
-    def create_transformers(self, model_dataset):
+    def create_transformers(self, training_datasets):
         """Initialize transformers for responses, features and weights, and persist them for later.
 
         Args:
-            model_dataset: The ModelDataset object that handles the current dataset
+            training_datasets: A dictionary of dc.Datasets containing the training data from
+            each fold. Generated using transformers.get_all_training_datasets.
 
         Side effects:
             Overwrites the attributes:
-                transformers: A list of deepchem transformation objects on responses, only if conditions are met
+                transformers (dict of lists): Initialized using transformers.get_blank_transformations.
+                Keyed using integer fold numbers or 'final' e.g., {0:[], 1:[], 'final':[]}.
+                Stores deepchem transformation objects on the response cols for each fold and uses the 'final' key for
+                the transformer fitted for the final model. When using k-fold validation, 'final' is fitted
+                using all training and validation data. Without k-fold validation, transformers for 0 and 'final'
+                are the same.
 
-                transformers_x: A list of deepchem transformation objects on features, only if conditions are met.
+                transformers_x (dict of lists): Same as transformers, but stores the transformers on the features
 
-                transformers_w: A list of deepchem transformation objects on weights, only if conditions are met.
-
-                params.transformer_key: A string pointing to the dataset key containing the transformer in the datastore, or the path to the transformer
+                transformers_w (dict of lists): Same as transformers, but stores the transformers on the weights
 
         """
-        self._create_output_transformers(model_dataset)
+        total_transformers = 0
+        for k, td in training_datasets.items():
+            self.transformers[k] = self._create_output_transformers(td)
 
-        self._create_feature_transformers(model_dataset)
+            self.transformers_x[k] = self._create_feature_transformers(td)
 
-        # Set up transformers for weights, if needed
-        self.transformers_w = trans.create_weight_transformers(self.params, model_dataset)
+            # Set up transformers for weights, if needed
+            self.transformers_w[k] = trans.create_weight_transformers(self.params, td)
 
-        if len(self.transformers) + len(self.transformers_x) + len(self.transformers_w) > 0:
+            total_transformers = len(self.transformers[k]) + len(self.transformers_x[k]) + len(self.transformers_w[k])
 
+        if total_transformers > 0:
             # Transformers are no longer saved as separate datastore objects; they are included in the model tarball
             self.params.transformer_key = os.path.join(self.output_dir, 'transformers.pkl')
             with open(self.params.transformer_key, 'wb') as txfmrpkl:
@@ -403,7 +439,10 @@ class ModelWrapper(object):
         # Try local path first to check for transformers unpacked from model tarball
         if not trans.transformers_needed(self.params):
             return
+
+        # for backwards compatibity if this file exists, all folds use the same transformers
         local_path = f"{self.output_dir}/transformers.pkl"
+
         if os.path.exists(local_path):
             self.log.info(f"Reloading transformers from model tarball {local_path}")
             with open(local_path, 'rb') as txfmr:
@@ -426,35 +465,52 @@ class ModelWrapper(object):
 
 
         if len(transformers_tuple) == 3:
-            self.transformers, self.transformers_x, self.transformers_w = transformers_tuple
+            ty, tx, tw = transformers_tuple
         else:
-            self.transformers, self.transformers_x = transformers_tuple
-            self.transformers_w = []
+            # this must be very old, we no longer save just 2 transformers
+            ty, tx = transformers_tuple
+            # ensure that this is an old model where transformers are still lists
+            assert isinstance(ty, list)
+            tw = []
+
+        # this is for backwards compatibility, if ty, tx, tw are lists, convert them to dictionaries.
+        if isinstance(ty, list):
+            # this is an old model. Only one set of transformers
+            for k in trans.get_transformer_keys(self.params):
+                self.transformers[k] = ty
+                self.transformers_x[k] = tx
+                self.transformers_w[k] = tw
+        else:
+            # these are new transformers. They are dictionaries
+            self.transformers = ty
+            self.transformers_x = tx
+            self.transformers_w = tw
 
         # ****************************************************************************************
 
-    def transform_dataset(self, dataset):
+    def transform_dataset(self, dataset, fold):
         """Transform the responses and/or features in the given DeepChem dataset using the current transformers.
 
         Args:
             dataset: The DeepChem DiskDataset that contains a dataset
+            fold (int/str): Which fold is being transformed.
 
         Returns:
             transformed_dataset: The transformed DeepChem DiskDataset
 
         """
         transformed_dataset = dataset
-        if len(self.transformers) > 0:
+        if len(self.transformers[fold]) > 0:
             self.log.info("Transforming response data")
-            for transformer in self.transformers:
+            for transformer in self.transformers[fold]:
                 transformed_dataset = transformer.transform(transformed_dataset)
-        if len(self.transformers_x) > 0:
+        if len(self.transformers_x[fold]) > 0:
             self.log.info("Transforming feature data")
-            for transformer in self.transformers_x:
+            for transformer in self.transformers_x[fold]:
                 transformed_dataset = transformer.transform(transformed_dataset)
-        if len(self.transformers_w) > 0:
+        if len(self.transformers_w[fold]) > 0:
             self.log.info("Transforming weights")
-            for transformer in self.transformers_w:
+            for transformer in self.transformers_w[fold]:
                 transformed_dataset = transformer.transform(transformed_dataset)
 
         return transformed_dataset
@@ -505,15 +561,11 @@ class ModelWrapper(object):
 
         # Create a PerfData object, which knows how to format the prediction results in the structure
         # expected by the model tracker.
-
-        # We pass transformed=False to indicate that the preds and uncertainties we get from
-        # generate_predictions are already untransformed, so that perf_data.get_prediction_results()
-        # doesn't untransform them again.
-        if hasattr(self.transformers[0], "ishybrid"):
+        if hasattr(self.transformers['final'][0], "ishybrid"):
             # indicate that we are training a hybrid model
-            perf_data = perf.create_perf_data("hybrid", model_dataset, self.transformers, 'test', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio, transformed=False)
+            perf_data = perf.create_perf_data("hybrid", model_dataset, 'test', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio)
         else:
-            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, self.transformers, 'test', transformed=False)
+            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, 'test')
         test_dset = model_dataset.test_dset
         test_preds, test_stds = self.generate_predictions(test_dset)
         _ = perf_data.accumulate_preds(test_preds, test_dset.ids, test_stds)
@@ -548,15 +600,11 @@ class ModelWrapper(object):
 
         # Create a PerfData object, which knows how to format the prediction results in the structure
         # expected by the model tracker.
-
-        # We pass transformed=False to indicate that the preds and uncertainties we get from
-        # generate_predictions are already untransformed, so that perf_data.get_prediction_results()
-        # doesn't untransform them again.
-        if hasattr(self.transformers[0], "ishybrid"):
+        if hasattr(self.transformers['final'][0], "ishybrid"):
             # indicate that we are training a hybrid model
-            perf_data = perf.create_perf_data("hybrid", model_dataset, self.transformers, 'full', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio, transformed=False)
+            perf_data = perf.create_perf_data("hybrid", model_dataset, 'full', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio)
         else:
-            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, self.transformers, 'full', transformed=False)
+            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, 'full')
         full_preds, full_stds = self.generate_predictions(model_dataset.dataset)
         _ = perf_data.accumulate_preds(full_preds, model_dataset.dataset.ids, full_stds)
         return perf_data
@@ -621,7 +669,7 @@ class ModelWrapper(object):
         """
         try:
             self.model.save()
-        except Exception as error:
+        except Exception:
           try:
             self.model.save_checkpoint()
           except Exception as e:
@@ -657,7 +705,7 @@ class LCTimerIterator:
     # ****************************************************************************************
     def __iter__(self):
         return self
-        
+
     # ****************************************************************************************
     def __next__(self):
         """Returns epoch index or stops when the have been enough iterations."""
@@ -668,7 +716,7 @@ class LCTimerIterator:
             # If we're running on an LC system, check that we have enough time to complete another epoch
             # before the current job finishes, by extrapolating from the time elapsed so far.
 
-            now = time.time() 
+            now = time.time()
             elapsed_time = now - self.start_time
             training_time = now - self.training_start
             time_remaining = self.time_limit * 60 - elapsed_time
@@ -730,7 +778,8 @@ class LCTimerKFoldIterator(LCTimerIterator):
 
 # ****************************************************************************************
 class NNModelWrapper(ModelWrapper):
-    """Wrapper for NN models.
+    """ModelWrapper class for neural network models, including both DeepChem models and NN models implemented
+       within AMPL.
 
         Many NN models share similar functions. This class aggregates those similar functions
         to reduce copied code
@@ -763,7 +812,7 @@ class NNModelWrapper(ModelWrapper):
             return self.get_full_dataset_perf_data(self.data)
         if epoch_label == 'best':
             epoch = self.best_epoch
-            model_dir = self.best_model_dir
+            #model_dir = self.best_model_dir
         else:
             raise ValueError("Unknown epoch_label '%s'" % epoch_label)
 
@@ -801,7 +850,7 @@ class NNModelWrapper(ModelWrapper):
             return self.get_full_dataset_pred_results(self.data)
         if epoch_label == 'best':
             epoch = self.best_epoch
-            model_dir = self.best_model_dir
+            #model_dir = self.best_model_dir
         else:
             raise ValueError("Unknown epoch_label '%s'" % epoch_label)
         if subset == 'train':
@@ -889,14 +938,11 @@ class NNModelWrapper(ModelWrapper):
         # Create PerfData structures for computing cross-validation metrics
         em = perf.EpochManagerKFold(self,
                                 subsets={'train':'train_valid', 'valid':'valid', 'test':'test'},
-                                prediction_type=self.params.prediction_type, 
-                                model_dataset=pipeline.data, 
-                                production=self.params.production,
-                                transformers=self.transformers)
-        em.set_make_pred(lambda x: self.model.predict(x, []))
-        em.on_new_best_valid(lambda : 1+1) # does not need to take any action
+                                prediction_type=self.params.prediction_type,
+                                model_dataset=pipeline.data,
+                                production=self.params.production)
 
-        test_dset = pipeline.data.test_dset
+        em.on_new_best_valid(lambda : 1+1) # does not need to take any action
 
         # Train a separate model for each fold
         models = []
@@ -905,20 +951,27 @@ class NNModelWrapper(ModelWrapper):
 
         for ei in LCTimerKFoldIterator(self.params, pipeline, self.log):
             # Create PerfData structures that are only used within loop to compute metrics during initial training
-            train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'train')
-            test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
+            train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'train')
+            test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'test')
             for k in range(num_folds):
                 self.model = models[k]
                 train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
+                train_dset = self.transform_dataset(train_dset, fold=k)
+                valid_dset = self.transform_dataset(valid_dset, fold=k)
+                test_dset = self.transform_dataset(pipeline.data.test_dset, fold=k)
 
                 # We turn off automatic checkpointing - we only want to save a checkpoints for the final model.
                 self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0, restore=False)
-                train_pred = self.model.predict(train_dset, [])
-                test_pred = self.model.predict(test_dset, [])
+                train_pred = self.model.predict(train_dset, self.transformers[k])
+                test_pred = self.model.predict(test_dset, self.transformers[k])
 
                 train_perf = train_perf_data.accumulate_preds(train_pred, train_dset.ids)
                 test_perf = test_perf_data.accumulate_preds(test_pred, test_dset.ids)
 
+                # update the make pred function to include latest transformers
+                def make_pred(x):
+                    return self.model.predict(x, self.transformers[k])
+                em.set_make_pred(make_pred)
                 valid_perf = em.accumulate(ei, subset='valid', dset=valid_dset)
                 self.log.info("Fold %d, epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
                               k, ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
@@ -935,7 +988,12 @@ class NNModelWrapper(ModelWrapper):
 
         # Train a new model for best_epoch epochs on the combined training/validation set. Compute the training and test
         # set metrics at each epoch.
-        fit_dataset = pipeline.data.combined_training_data()
+        fit_dataset = self.transform_dataset(pipeline.data.combined_training_data(), fold='final')
+        test_dset = self.transform_dataset(pipeline.data.test_dset, fold='final')
+        def make_pred(x):
+            return self.model.predict(x, self.transformers['final'])
+        em.set_make_pred(make_pred)
+
         retrain_start = time.time()
         self.model = self.recreate_model()
         self.log.info(f"Best epoch was {self.best_epoch}, retraining with combined training/validation set")
@@ -953,12 +1011,15 @@ class NNModelWrapper(ModelWrapper):
         # Only copy the model files we need, not the entire directory
         self._copy_model(self.best_model_dir)
         retrain_time = time.time() - retrain_start
-        self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (self.best_epoch, retrain_time, 
-                       retrain_time/self.best_epoch))
+        self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (self.best_epoch, retrain_time,
+                       retrain_time/max(1, self.best_epoch)))
 
     # ****************************************************************************************
     def train_with_early_stopping(self, pipeline):
-        """Trains a neural net model for up to self.params.max_epochs epochs, while tracking the validation
+        """Training method for neural networks without k-fold cross validation that allows
+        early stopping when validation metric fails to improve for specified number of epochs.
+
+        Trains a neural net model for up to self.params.max_epochs epochs, while tracking the validation
         set metric given by params.model_choice_score_type. Saves a model checkpoint each time the metric
         is improved over its previous saved value by more than a threshold percentage. If the metric fails to
         improve for more than a specified 'patience' number of epochs, stop training and revert the model state
@@ -988,15 +1049,18 @@ class NNModelWrapper(ModelWrapper):
         self.data = pipeline.data
 
         em = perf.EpochManager(self,
-                                prediction_type=self.params.prediction_type, 
-                                model_dataset=pipeline.data, 
-                                production=self.params.production,
-                                transformers=self.transformers)
-        em.set_make_pred(lambda x: self.model.predict(x, []))
+                                prediction_type=self.params.prediction_type,
+                                model_dataset=pipeline.data,
+                                production=self.params.production)
+        def make_pred(dset):
+            return self.model.predict(dset, self.transformers['final'])
+        em.set_make_pred(make_pred)
         em.on_new_best_valid(lambda : self.model.save_checkpoint())
 
-        test_dset = pipeline.data.test_dset
         train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
+        train_dset = self.transform_dataset(train_dset, 'final')
+        valid_dset = self.transform_dataset(valid_dset, 'final')
+        test_dset = self.transform_dataset(pipeline.data.test_dset, 'final')
         for ei in LCTimerIterator(self.params, pipeline, self.log):
             # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
             # saved will be the one we created intentionally when we reached a new best validation score.
@@ -1058,7 +1122,7 @@ class NNModelWrapper(ModelWrapper):
         """
         pred, std = None, None
         self.log.info("Predicting values for current model")
-
+        dataset = self.transform_dataset(dataset, 'final')
         # For deepchem's predict_uncertainty function, you are not allowed to specify transformers. That means that the
         # predictions are being made in the transformed space, not the original space. We call undo_transforms() to generate
         # the transformed predictions. To transform the standard deviations, we rely on the fact that at present we only use
@@ -1070,15 +1134,15 @@ class NNModelWrapper(ModelWrapper):
         # Current (2.1) DeepChem neural net classification models don't support uncertainties.
         if self.params.uncertainty and self.params.prediction_type == 'classification':
             self.log.warning("Warning: DeepChem neural net models support uncertainty for regression only.")
- 
+
         if self.params.uncertainty and self.params.prediction_type == 'regression':
-            # For the models we use, predict_uncertainty returns a tuple (not a list of tuples) for both singletask and multitask. 
+            # For the models we use, predict_uncertainty returns a tuple (not a list of tuples) for both singletask and multitask.
             # A list is only returned if we request multiple *outputs* (e.g., predictions and embeddings), which are not the same thing as tasks.
 
             # Fully connected NN models return predictions and uncertainties as arrays with shape (num_cmpds, num_tasks, num_classes), with
             # num_classes = 1 for regression models. GraphConv regression models omit the num_classes dimension.
             pred_std = self.model.predict_uncertainty(dataset)
-            if type(pred_std) == tuple:
+            if isinstance(pred_std, tuple):
                 pred, std = pred_std
                 ncmpds = pred.shape[0]
                 ntasks = pred.shape[1]
@@ -1113,17 +1177,21 @@ class NNModelWrapper(ModelWrapper):
 
                 # =-=ksm: The second 'isinstance' shouldn't be necessary since NormalizationTransformerMissingData
                 # is a subclass of dc.trans.NormalizationTransformer.
-                if len(self.transformers) == 1 and (isinstance(self.transformers[0], dc.trans.NormalizationTransformer) 
-                                                 or isinstance(self.transformers[0],trans.NormalizationTransformerMissingData)):
-                    y_stds = self.transformers[0].y_stds.reshape((1,ntasks,1))
+                if len(self.transformers) == 1 and (isinstance(self.transformers['final'][0], dc.trans.NormalizationTransformer)
+                                                 or isinstance(self.transformers['final'][0],trans.NormalizationTransformerMissingData)):
+                    y_stds = self.transformers['final'][0].y_stds.reshape((1,ntasks,1))
                     std = std / y_stds
-                pred = dc.trans.undo_transforms(pred, self.transformers)
+                pred = dc.trans.undo_transforms(pred, self.transformers['final'])
         else:
             # Classification models and regression models without uncertainty are handled here
-            txform = [] if (not self.params.transformers or self.transformers is None) else self.transformers
+            if (not self.params.transformers or self.transformers is None):
+                txform = []
+            else:
+                txform = self.transformers['final']
+
             pred = self.model.predict(dataset, txform)
             if self.params.prediction_type == 'regression':
-                if type(pred) == list and len(pred) == 0:
+                if isinstance(pred, list) and len(pred) == 0:
                     # DeepChem models return empty list if no valid predictions
                     pred = np.array([]).reshape((0,0,1))
                 else:
@@ -1133,8 +1201,9 @@ class NNModelWrapper(ModelWrapper):
 
 # ****************************************************************************************
 class HybridModelWrapper(NNModelWrapper):
-    """A wrapper for hybrid models, contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
-    generate predictions for an input dataset, and generate performance metrics for these predictions.
+    """Implementation of AMPL's "hybrid" model, a specialized neural network that can be trained on a mixture of
+    single concentration % binding/inhibition data and aggregate dose-response (pIC50 or pKi) data. Requires specially
+    formatted training data that includes a column of concentrations for the single-point measurements.
 
     Attributes:
         Set in __init__
@@ -1175,7 +1244,7 @@ class HybridModelWrapper(NNModelWrapper):
 
     """
 
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes HybridModelWrapper object.
 
         Args:
@@ -1200,7 +1269,8 @@ class HybridModelWrapper(NNModelWrapper):
 
             model: dc.models.TorchModel
         """
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
+
         if self.params.layer_sizes is None:
             if self.params.featurizer == 'ecfp':
                 self.params.layer_sizes = [1000, 500]
@@ -1224,15 +1294,15 @@ class HybridModelWrapper(NNModelWrapper):
                 ("dp1", torch.nn.Dropout(p=self.params.dropouts[0]).to(self.dev)),
                 ("relu1", torch.nn.ReLU().to(self.dev))
             ])
-            
+
             if len(self.params.layer_sizes) > 1:
                 for i in range(1, len(self.params.layer_sizes)):
                     model_dict[f"layer{i+1}"] = torch.nn.Linear(self.params.layer_sizes[i-1], self.params.layer_sizes[i]).to(self.dev)
                     model_dict[f"dp{i+1}"] = torch.nn.Dropout(p=self.params.dropouts[i]).to(self.dev)
                     model_dict[f"relu{i+1}"] = torch.nn.ReLU().to(self.dev)
-            
+
             model_dict["last_layer"] = torch.nn.Linear(self.params.layer_sizes[-1], 1).to(self.dev)
-            
+
             self.model_dict = model_dict
             self.model = torch.nn.Sequential(model_dict).to(self.dev)
         else:
@@ -1244,7 +1314,7 @@ class HybridModelWrapper(NNModelWrapper):
         is needed. It can be the ratio of concentration and Kd of the radioligand in a competitive binding assay, or the concentration
         of the substrate and Michaelis constant (Km) of enzymatic inhibition assay.
         """
-        
+
         if self.params.is_ki:
             if self.params.ki_convert_ratio is None:
                 raise Exception("Ki converting ratio is missing. Cannot convert Ki into IC50")
@@ -1253,7 +1323,7 @@ class HybridModelWrapper(NNModelWrapper):
         else:
             IC50 = 10**(9-activity)
         pred_frac = 1.0/(1.0 + IC50/conc)
-        
+
         return pred_frac
 
     def _l2_loss(self, yp, yr):
@@ -1267,8 +1337,9 @@ class HybridModelWrapper(NNModelWrapper):
         if len(pos_bind[0]) == 0:
             return loss_ki, torch.tensor(0.0, dtype=torch.float32)
         # convert Ki to % binding
-        y_stds = self.transformers[0].y_stds
-        y_means = self.transformers[0].y_means
+        # assumes no folds
+        y_stds = self.transformers['final'][0].y_stds
+        y_means = self.transformers['final'][0].y_means
         if self.params.is_ki:
             bind_pred = self._predict_binding(y_means + y_stds * yp[pos_bind, 0], conc=yr[pos_bind, 1])
         else:
@@ -1295,8 +1366,9 @@ class HybridModelWrapper(NNModelWrapper):
         # Compute L2 loss for pKi predictions
         loss_ki = torch.sum((yp[pos_ki, 0] - yr[pos_ki, 0]) ** 2)
         #convert the ki prediction back to Ki scale
-        y_stds = self.transformers[0].y_stds
-        y_means = self.transformers[0].y_means
+        #hybrid models do not support kfold validation
+        y_stds = self.transformers['final'][0].y_stds
+        y_means = self.transformers['final'][0].y_means
         # Compute fraction bound to *radioligand* (not drug) from predicted pKi
         if self.params.is_ki:
             rl_bind_pred = 1 - self._predict_binding(y_means + y_stds * yp[pos_bind, 0], conc=yr[pos_bind, 1])
@@ -1319,10 +1391,10 @@ class HybridModelWrapper(NNModelWrapper):
 
         loss_ki, loss_bind = self.loss_func(self.model(xb), yb)
         loss = loss_ki + loss_bind
-        
+
         if opt is not None:
             loss.backward()
-            opt.step()   
+            opt.step()
             opt.zero_grad()
 
         return loss_ki.item(), loss_bind.item(), len(xb)
@@ -1334,7 +1406,7 @@ class HybridModelWrapper(NNModelWrapper):
             self.dl = dl
             self.n_ki = n_ki
             self.n_bind = n_bind
-    
+
     def _tensorize(self, x):
             return torch.tensor(x, dtype=torch.float32)
 
@@ -1353,23 +1425,23 @@ class HybridModelWrapper(NNModelWrapper):
             # train
             train_ki_pos = np.where(np.isnan(y_train[:,1].numpy()))[0]
             train_bind_pos = np.where(~np.isnan(y_train[:,1].numpy()))[0]
-            
+
             # valid
             valid_ki_pos = np.where(np.isnan(y_valid[:,1].numpy()))[0]
             valid_bind_pos = np.where(~np.isnan(y_valid[:,1].numpy()))[0]
-            
+
             train_ds = TensorDataset(x_train, y_train)
             train_dl = DataLoader(train_ds, batch_size=self.params.batch_size, shuffle=True, pin_memory=True)
-            train_data = self.SubsetData(train_ds, 
-                                        train_dl, 
-                                        len(train_ki_pos), 
+            train_data = self.SubsetData(train_ds,
+                                        train_dl,
+                                        len(train_ki_pos),
                                         len(train_bind_pos))
 
             valid_ds = TensorDataset(x_valid, y_valid)
             valid_dl = DataLoader(valid_ds, batch_size=self.params.batch_size * 2, pin_memory=True)
-            valid_data = self.SubsetData(valid_ds, 
-                                        valid_dl, 
-                                        len(valid_ki_pos), 
+            valid_data = self.SubsetData(valid_ds,
+                                        valid_dl,
+                                        len(valid_ki_pos),
                                         len(valid_bind_pos))
 
             self.train_valid_dsets.append((train_data, valid_data))
@@ -1382,13 +1454,13 @@ class HybridModelWrapper(NNModelWrapper):
 
         test_ds = TensorDataset(x_test, y_test)
         test_dl = DataLoader(test_ds, batch_size=self.params.batch_size * 2, pin_memory=True)
-        test_data = self.SubsetData(test_ds, 
-                                    test_dl, 
-                                    len(test_ki_pos), 
+        test_data = self.SubsetData(test_ds,
+                                    test_dl,
+                                    len(test_ki_pos),
                                     len(test_bind_pos))
 
         self.test_data = test_data
-    
+
     def save_model(self, checkpoint_file, model, opt, epoch, model_dict):
         """Save a model to a checkpoint file.
         Include epoch, model_dict in checkpoint dict.
@@ -1399,7 +1471,7 @@ class HybridModelWrapper(NNModelWrapper):
             opt_state_dict=opt.state_dict(),
             model_dict=model_dict
             )
-        
+
         torch.save(checkpoint, checkpoint_file)
 
     def train(self, pipeline):
@@ -1411,7 +1483,7 @@ class HybridModelWrapper(NNModelWrapper):
         # load hybrid data
         self._load_hybrid_data(pipeline.data)
 
-        checkpoint_file = os.path.join(self.model_dir, 
+        checkpoint_file = os.path.join(self.model_dir,
             f"{self.params.dataset_name}_model_{self.params.model_uuid}.pt")
 
         opt = torch.optim.Adam(self.model.parameters(), lr=self.params.learning_rate)
@@ -1419,7 +1491,6 @@ class HybridModelWrapper(NNModelWrapper):
         em = perf.EpochManager(self,
                                 prediction_type="hybrid",
                                 model_dataset=pipeline.data,
-                                transformers=self.transformers,
                                 is_ki=self.params.is_ki,
                                 production=self.params.production,
                                 ki_convert_ratio=self.params.ki_convert_ratio)
@@ -1427,13 +1498,15 @@ class HybridModelWrapper(NNModelWrapper):
         em.set_make_pred(lambda x: self.generate_predictions(x)[0])
         # initialize ei here so we can use it in the closure
         ei = 0
-        em.on_new_best_valid(lambda : self.save_model(checkpoint_file, self.model, 
+        em.on_new_best_valid(lambda : self.save_model(checkpoint_file, self.model,
             opt, ei, self.model_dict))
 
         train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
+        train_dset = self.transform_dataset(train_dset, 'final')
+        valid_dset = self.transform_dataset(valid_dset, 'final')
+        test_dset = self.transform_dataset(pipeline.data.test_dset, 'final')
         if len(pipeline.data.train_valid_dsets) > 1:
             raise Exception("Currently the hybrid model  doesn't support K-fold cross validation splitting.")
-        test_dset = pipeline.data.test_dset
         train_data, valid_data = self.train_valid_dsets[0]
         for ei in LCTimerIterator(self.params, pipeline, self.log):
             # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
@@ -1468,7 +1541,7 @@ class HybridModelWrapper(NNModelWrapper):
             self.num_epochs_trained = ei + 1
             if em.should_stop():
                 break
- 
+
         # Revert to last checkpoint
         checkpoint = torch.load(checkpoint_file)
         self.model.load_state_dict(checkpoint['model_state_dict'])
@@ -1490,7 +1563,7 @@ class HybridModelWrapper(NNModelWrapper):
         Side effects:
             Resets the value of model, transformers, and transformers_x
         """
-        
+
         checkpoint_file = os.path.join(reload_dir, f"{self.params.dataset_name}_model_{self.params.model_uuid}.pt")
         if os.path.isfile(checkpoint_file):
             checkpoint = torch.load(checkpoint_file)
@@ -1500,7 +1573,7 @@ class HybridModelWrapper(NNModelWrapper):
             self.model.eval()
         else:
             raise Exception(f"Checkpoint file doesn't exist in the reload_dir {reload_dir}")
-        
+
         # Restore the transformers from the datastore or filesystem
         self.reload_transformers()
 
@@ -1529,9 +1602,9 @@ class HybridModelWrapper(NNModelWrapper):
 
         data_ds = TensorDataset(x_data, y_data)
         data_dl = DataLoader(data_ds, batch_size=self.params.batch_size * 2, pin_memory=True)
-        data_data = self.SubsetData(data_ds, 
-                                    data_dl, 
-                                    len(data_ki_pos), 
+        _data_data = self.SubsetData(data_ds,
+                                    data_dl,
+                                    len(data_ki_pos),
                                     len(data_bind_pos))
         pred = []
         real = []
@@ -1548,11 +1621,11 @@ class HybridModelWrapper(NNModelWrapper):
         if self.params.transformers and self.transformers is not None:
             if has_conc:
                 pred = np.concatenate((pred, real[:, [1]]), axis=1)
-                pred = self.transformers[0].untransform(pred, isreal=False)
+                pred = self.transformers['final'][0].untransform(pred, isreal=False)
                 pred_bind_pos = np.where(~np.isnan(pred[:, 1]))[0]
                 pred[pred_bind_pos, 0] = self._predict_binding(pred[pred_bind_pos, 0], pred[pred_bind_pos, 1])
             else:
-                pred = self.transformers[0].untransform(pred, isreal=False)
+                pred = self.transformers['final'][0].untransform(pred, isreal=False)
         else:
             if has_conc:
                 pred = np.concatenate((pred, real[:, [1]]), axis=1)
@@ -1579,27 +1652,30 @@ class HybridModelWrapper(NNModelWrapper):
         return model_spec_metadata
 
     # ****************************************************************************************
-    def _create_output_transformers(self, model_dataset):
+    def _create_output_transformers(self, dataset):
         """Initialize transformers for responses and persist them for later.
 
         Args:
-            model_dataset: The ModelDataset object that handles the current dataset
+            dataset: The dc.Dataset object that contains the current training dataset
 
         Side effects:
             Overwrites the attributes:
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
         """
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
-        if self.params.prediction_type=='regression' and self.params.transformers==True:
-            self.transformers = [trans.NormalizationTransformerHybrid(transform_y=True, dataset=model_dataset.dataset)]
+        if self.params.prediction_type=='regression' and self.params.transformers is True:
+            return [trans.NormalizationTransformerHybrid(transform_y=True, dataset=dataset)]
+        else:
+            return []
 
 # ****************************************************************************************
 class ForestModelWrapper(ModelWrapper):
-    """Wrapper class for DCRFModelWrapper and DCxgboostModelWrapper
+    """ModelWrapper class for tree-based models (random forests and gradient-boosted trees).
+    Contains code that is common to the two model types; model-specific code is in the
+    subclasses DCRFModelWrapper and DCxgboostModelWrapper.
 
-    contains code that is similar between the two tree based classes
     """
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes DCRFModelWrapper object.
 
         Args:
@@ -1608,7 +1684,7 @@ class ForestModelWrapper(ModelWrapper):
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
         self.best_model_dir = os.path.join(self.output_dir, 'best_model')
         self.model_dir = self.best_model_dir
         os.makedirs(self.best_model_dir, exist_ok=True)
@@ -1641,24 +1717,26 @@ class ForestModelWrapper(ModelWrapper):
 
         self.data = pipeline.data
         self.best_epoch = None
-        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers,'train')
-        self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid')
-        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
+        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'train')
+        self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'valid')
+        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'test')
 
-        test_dset = pipeline.data.test_dset
 
         num_folds = len(pipeline.data.train_valid_dsets)
         for k in range(num_folds):
             train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
+            train_dset = self.transform_dataset(train_dset, fold=k)
+            valid_dset = self.transform_dataset(valid_dset, fold=k)
+            test_dset = self.transform_dataset(pipeline.data.test_dset, fold=k)
             self.model.fit(train_dset)
 
-            train_pred = self.model.predict(train_dset, [])
+            train_pred = self.model.predict(train_dset, self.transformers[k])
             train_perf = self.train_perf_data.accumulate_preds(train_pred, train_dset.ids)
 
-            valid_pred = self.model.predict(valid_dset, [])
+            valid_pred = self.model.predict(valid_dset, self.transformers[k])
             valid_perf = self.valid_perf_data.accumulate_preds(valid_pred, valid_dset.ids)
 
-            test_pred = self.model.predict(test_dset, [])
+            test_pred = self.model.predict(test_dset, self.transformers[k])
             test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids)
             self.log.info("Fold %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
                           k, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
@@ -1676,6 +1754,7 @@ class ForestModelWrapper(ModelWrapper):
         if num_folds > 1:
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
+            fit_dataset = self.transform_dataset(fit_dataset, fold='final')
             self.model.fit(fit_dataset)
         self.model_save()
         # The best model is just the single RF training run.
@@ -1781,7 +1860,9 @@ class ForestModelWrapper(ModelWrapper):
 
 # ****************************************************************************************
 class DCRFModelWrapper(ForestModelWrapper):
-    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    """ModelWrapper class for random forest models.
+
+    Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
     Attributes:
@@ -1806,7 +1887,7 @@ class DCRFModelWrapper(ForestModelWrapper):
 
     """
 
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes DCRFModelWrapper object.
 
         Args:
@@ -1815,7 +1896,7 @@ class DCRFModelWrapper(ForestModelWrapper):
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
 
     # ****************************************************************************************
     def make_dc_model(self, model_dir):
@@ -1833,12 +1914,19 @@ class DCRFModelWrapper(ForestModelWrapper):
             rf_model = RandomForestRegressor(n_estimators=self.params.rf_estimators,
                                              max_features=self.params.rf_max_features,
                                              max_depth=self.params.rf_max_depth,
-                                             n_jobs=-1)
+                                             n_jobs=-1,
+                                             random_state=self.seed)
         else:
+            if self.params.weight_transform_type == 'balancing':
+                class_weights = 'balanced'
+            else:
+                class_weights = None
             rf_model = RandomForestClassifier(n_estimators=self.params.rf_estimators,
                                               max_features=self.params.rf_max_features,
                                               max_depth=self.params.rf_max_depth,
-                                              n_jobs=-1)
+                                              class_weight=class_weights,
+                                              n_jobs=-1,
+                                              random_state=self.seed)
 
         return dc.models.sklearn_models.SklearnModel(rf_model, model_dir=model_dir)
 
@@ -1882,7 +1970,8 @@ class DCRFModelWrapper(ForestModelWrapper):
         pred, std = None, None
         self.log.info("Evaluating current model")
 
-        pred = self.model.predict(dataset, self.transformers)
+        dataset = self.transform_dataset(dataset, 'final')
+        pred = self.model.predict(dataset, self.transformers['final'])
         ncmpds = pred.shape[0]
         pred = pred.reshape((ncmpds,1,-1))
 
@@ -1892,7 +1981,7 @@ class DCRFModelWrapper(ForestModelWrapper):
                 ## s.d. from forest
                 if self.params.transformers and self.transformers is not None:
                     RF_per_tree_pred = [dc.trans.undo_transforms(
-                        tree.predict(dataset.X), self.transformers) for tree in rf_model.estimators_]
+                        tree.predict(dataset.X), self.transformers['final']) for tree in rf_model.estimators_]
                 else:
                     RF_per_tree_pred = [tree.predict(dataset.X) for tree in rf_model.estimators_]
 
@@ -1928,10 +2017,12 @@ class DCRFModelWrapper(ForestModelWrapper):
         }
         model_spec_metadata = dict(rf_specific = rf_metadata)
         return model_spec_metadata
-    
+
 # ****************************************************************************************
 class DCxgboostModelWrapper(ForestModelWrapper):
-    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    """ModelWrapper class for gradient-boosted tree models, as implemented in the xgboost package.
+
+    Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
     Attributes:
@@ -1957,7 +2048,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
 
     """
 
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes RunModel object.
 
         Args:
@@ -1966,7 +2057,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
 
     # ****************************************************************************************
     def make_dc_model(self, model_dir):
@@ -1993,19 +2084,28 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          subsample=self.params.xgb_subsample,
                                          colsample_bytree=self.params.xgb_colsample_bytree,
                                          colsample_bylevel=1,
-                                         reg_alpha=0,
-                                         reg_lambda=1,
+                                         reg_alpha=self.params.xgb_alpha,
+                                         reg_lambda=self.params.xgb_lambda,
                                          scale_pos_weight=1,
                                          base_score=0.5,
-                                         random_state=0,
+                                         random_state= self.seed,
                                          missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
-                                         gpu_id = -1,
-                                         n_gpus = 0,
+                                         device='cpu',
                                          max_bin = 16,
                                          )
         else:
+            if self.params.weight_transform_type == 'balancing':
+                # Compute a class weight for positive class samples to help deal with imblanced datasets
+                class_freqs = md.get_class_freqs(self.params)
+                if len(class_freqs) > 1:
+                    raise ValueError("xgboost models don't currently support multitask data")
+                if len(class_freqs[0]) > 2:
+                    raise ValueError("xgboost models don't currently support multiclass data")
+                pos_class_weight = class_freqs[0][0]/class_freqs[0][1]
+            else:
+                pos_class_weight = 1
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
                                          learning_rate=self.params.xgb_learning_rate,
                                          n_estimators=self.params.xgb_n_estimators,
@@ -2018,16 +2118,15 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                           subsample=self.params.xgb_subsample,
                                           colsample_bytree=self.params.xgb_colsample_bytree,
                                           colsample_bylevel=1,
-                                          reg_alpha=0,
-                                          reg_lambda=1,
-                                          scale_pos_weight=1,
+                                          reg_alpha=self.params.xgb_alpha,
+                                          reg_lambda=self.params.xgb_lambda,
+                                          scale_pos_weight=pos_class_weight,
                                           base_score=0.5,
-                                          random_state=0,
+                                          random_state=self.seed,
                                           importance_type='gain',
                                           missing=np.nan,
-                                          gpu_id = -1,
-                                          n_jobs=-1,                                          
-                                          n_gpus = 0,
+                                          device='cpu',
+                                          n_jobs=-1,
                                           max_bin = 16,
                                          )
 
@@ -2060,24 +2159,26 @@ class DCxgboostModelWrapper(ForestModelWrapper):
 
         self.data = pipeline.data
         self.best_epoch = None
-        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers,'train')
-        self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid')
-        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
+        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'train')
+        self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'valid')
+        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'test')
 
-        test_dset = pipeline.data.test_dset
 
         num_folds = len(pipeline.data.train_valid_dsets)
         for k in range(num_folds):
             train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
+            train_dset = self.transform_dataset(train_dset, fold=k)
+            valid_dset = self.transform_dataset(valid_dset, fold=k)
+            test_dset = self.transform_dataset(pipeline.data.test_dset, fold=k)
             self.model.fit(train_dset)
 
-            train_pred = self.model.predict(train_dset, [])
+            train_pred = self.model.predict(train_dset, self.transformers[k])
             train_perf = self.train_perf_data.accumulate_preds(train_pred, train_dset.ids)
 
-            valid_pred = self.model.predict(valid_dset, [])
+            valid_pred = self.model.predict(valid_dset, self.transformers[k])
             valid_perf = self.valid_perf_data.accumulate_preds(valid_pred, valid_dset.ids)
 
-            test_pred = self.model.predict(test_dset, [])
+            test_pred = self.model.predict(test_dset, self.transformers[k])
             test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids)
             self.log.info("Fold %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
                           k, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
@@ -2094,6 +2195,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
         if num_folds > 1:
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
+            fit_dataset = self.transform_dataset(fit_dataset, fold='final')
             self.model.fit(fit_dataset)
         self.model_save()
         # The best model is just the single xgb training run.
@@ -2128,16 +2230,15 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          subsample=self.params.xgb_subsample,
                                          colsample_bytree=self.params.xgb_colsample_bytree,
                                          colsample_bylevel=1,
-                                         reg_alpha=0,
-                                         reg_lambda=1,
+                                         reg_alpha=self.params.xgb_alpha,
+                                         reg_lambda=self.params.xgb_lambda,
                                          scale_pos_weight=1,
                                          base_score=0.5,
-                                         random_state=0,
+                                         random_state=self.seed,
                                          missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
-                                         gpu_id = -1,
-                                         n_gpus = 0,
+                                         device='cpu',
                                          max_bin = 16,
                                          )
         else:
@@ -2153,16 +2254,15 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          subsample=self.params.xgb_subsample,
                                          colsample_bytree=self.params.xgb_colsample_bytree,
                                          colsample_bylevel=1,
-                                         reg_alpha=0,
-                                         reg_lambda=1,
+                                         reg_alpha=self.params.xgb_alpha,
+                                         reg_lambda=self.params.xgb_lambda,
                                          scale_pos_weight=1,
                                          base_score=0.5,
-                                         random_state=0,
+                                         random_state=self.seed,
                                          importance_type='gain',
                                          missing=np.nan,
-                                         gpu_id = -1,
-                                         n_jobs=-1,                                          
-                                         n_gpus = 0,
+                                         device='cpu',
+                                         n_jobs=-1,
                                          max_bin = 16,
                                          )
 
@@ -2244,7 +2344,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
         pred, std = None, None
         self.log.warning("Evaluating current model")
 
-        pred = self.model.predict(dataset, self.transformers)
+        dataset = self.transform_dataset(dataset, 'final')
+        pred = self.model.predict(dataset, self.transformers['final'])
         ncmpds = pred.shape[0]
         pred = pred.reshape((ncmpds, 1, -1))
         self.log.warning("uncertainty not supported by xgboost models")
@@ -2264,6 +2365,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                        "xgb_learning_rate" : self.params.xgb_learning_rate,
                        "xgb_n_estimators" : self.params.xgb_n_estimators,
                        "xgb_gamma" : self.params.xgb_gamma,
+                       "xgb_alpha" : self.params.xgb_alpha,
+                       "xgb_lambda" : self.params.xgb_lambda,
                        "xgb_min_child_weight" : self.params.xgb_min_child_weight,
                        "xgb_subsample" : self.params.xgb_subsample,
                        "xgb_colsample_bytree"  :self.params.xgb_colsample_bytree
@@ -2280,13 +2383,9 @@ class DCxgboostModelWrapper(ForestModelWrapper):
 
 # ****************************************************************************************
 class PytorchDeepChemModelWrapper(NNModelWrapper):
-    """Implementation of AttentiveFP model from Xiong et al. [1]_. It uses a graph attention model
-    to propagate information from bond and neighboring atom features across a molecule represented as
-    a graph.
-
-    References:
-        .. [1] Xiong, Zhaoping et al. "Pushing the Boundaries of Molecular Representation for Drug Discovery
-           with the Graph Attention Mechanism." Journal of Medicinal Chemistry (2019) doi: 10.1021/acs.jmedchem.0b00959
+    """ModelWrapper implementation for all DeepChem neural network model classes. Contrary to the class
+    name, this includes DeepChem models based on Keras as well as PyTorch. Provides a generic wrapper for
+    the whitelisted DeepChem model classes AttentiveFPModel, GCNModel, and the PyTorch version of MPNNModel.
 
     Attributes:
         Set in __init__
@@ -2309,7 +2408,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
             valid_perfs (dict): A dictionary of predicted values and metrics on the validation dataset
 
     """
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes AttentiveFPModelWrapper object. Creates the underlying DeepChem AttentiveFPModel instance.
 
         Args:
@@ -2318,10 +2417,9 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
-        # use NNModelWrapper init. 
-        super().__init__(params, featurizer, ds_client)
+        # use NNModelWrapper init.
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
         self.num_epochs_trained = 0
-
         self.model = self.recreate_model()
 
     # ****************************************************************************************
@@ -2347,8 +2445,9 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
 
         # build the model
         model = chosen_model(
+                sed = self.seed,
                 **extracted_features
-            ) 
+            )
 
         return model
 
@@ -2407,7 +2506,10 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
 
 # ****************************************************************************************
 class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
-    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    """ModelWrapper class for fully connected neural network models, aka multilayer perceptrons. Provides
+    interface to the DeepChem MultitaskClassifier and MultitaskRegressor model classes.
+
+    Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
     Attributes:
@@ -2451,6 +2553,92 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
                 contains a list of dictionaries of predicted values and metrics on the validation dataset
 
     """
+    def train_with_early_stopping(self, pipeline):
+        """Training method for fully connected neural networks without k-fold cross validation that allows
+        early stopping when validation metric fails to improve for specified number of epochs. Differs from
+        superclass NNModelWrapper implementation by saving mean input feature weights by epoch, providing a
+        way to monitor effects of different weight_decay_penalty settings.
+
+        Trains a neural net model for up to self.params.max_epochs epochs, while tracking the validation
+        set metric given by params.model_choice_score_type. Saves a model checkpoint each time the metric
+        is improved over its previous saved value by more than a threshold percentage. If the metric fails to
+        improve for more than a specified 'patience' number of epochs, stop training and revert the model state
+        to the last saved checkpoint.
+
+        Args:
+            pipeline (ModelPipeline): The ModelPipeline instance for this model run.
+
+        Side effects:
+            Sets the following attributes for NNModelWrapper:
+                data (ModelDataset): contains the dataset, set in pipeline
+
+                best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
+                best_validation_score (float): The best validation model choice score attained during training.
+
+                train_perf_data (list of PerfData): Initialized as an empty array,
+                    contains the predictions and performance of the training dataset
+
+                valid_perf_data (list of PerfData): Initialized as an empty array,
+                    contains the predictions and performance of the validation dataset
+
+                train_epoch_perfs (np.array): A standard training set performance metric (r2_score or roc_auc), at the end of each epoch.
+
+                valid_epoch_perfs (np.array): A standard validation set performance metric (r2_score or roc_auc), at the end of each epoch.
+        """
+        self.data = pipeline.data
+        feature_names = self.data.featurization.get_feature_columns()
+        nfeatures = len(feature_names)
+        self.feature_weights = dict(zip(feature_names, [[] for f in feature_names]))
+
+        em = perf.EpochManager(self,
+                                prediction_type=self.params.prediction_type,
+                                model_dataset=pipeline.data,
+                                production=self.params.production)
+        def make_pred(dset):
+            return self.model.predict(dset, self.transformers['final'])
+        em.set_make_pred(make_pred)
+        em.on_new_best_valid(lambda : self.model.save_checkpoint())
+
+        train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
+        train_dset = self.transform_dataset(train_dset, 'final')
+        valid_dset = self.transform_dataset(valid_dset, 'final')
+        test_dset = self.transform_dataset(pipeline.data.test_dset, 'final')
+        for ei in LCTimerIterator(self.params, pipeline, self.log):
+            # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
+            # saved will be the one we created intentionally when we reached a new best validation score.
+            self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0)
+            train_perf, valid_perf, test_perf = em.update_epoch(ei,
+                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset)
+
+            self.log.info("Epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
+                          ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
+                          pipeline.metric_type, test_perf))
+
+            layer1_weights = self.model.model.layers[0].weight
+            feature_weights = np.zeros(nfeatures, dtype=float)
+            for node_weights in layer1_weights:
+                node_feat_weights = torch.abs(node_weights).detach().numpy()
+                feature_weights += node_feat_weights
+            for fnum, fname in enumerate(feature_names):
+                self.feature_weights[fname].append(feature_weights[fnum])
+
+            self.num_epochs_trained = ei + 1
+            # Compute performance metrics for each subset, and check if we've reached a new best validation set score
+            if em.should_stop():
+                break
+
+        self.feature_weights_df = pd.DataFrame(self.feature_weights)
+        self.feature_weights_df['epoch'] = range(len(self.feature_weights_df))
+
+        # Revert to last checkpoint
+        self.restore()
+        self.model_save()
+
+        # Only copy the model files we need, not the entire directory
+        self._copy_model(self.best_model_dir)
+        self.log.info(f"Best model from epoch {self.best_epoch} saved to {self.best_model_dir}")
+
 
     def recreate_model(self, model_dir=None):
         """Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type
@@ -2549,7 +2737,7 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
             model_spec_metdata (dict): A dictionary of the parameter sets for the MultitaskDCModelWrapper object.
                 Parameters are saved under the key 'nn_specific' as a subdictionary.
         """
-        
+
         nn_metadata = dict(
                     best_epoch = self.best_epoch,
                     max_epochs = self.params.max_epochs,
@@ -2568,6 +2756,10 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
 
 # ****************************************************************************************
 class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
+    """ModelWrapper class providing interface to DeepChem models implemented with the Keras toolkit.
+    This class overrides the superclass methods for saving and reloading models to deal with checkpoint
+    file formats specific to TensorFlow (and thus Keras) based models.
+    """
     def _copy_model(self, dest_dir):
         """Copies the files needed to recreate a DeepChem NN model from the current model
         directory to a destination directory.
@@ -2578,7 +2770,7 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
 
         chkpt_file = os.path.join(self.model_dir, 'checkpoint')
         with open(chkpt_file, 'r') as chkpt_in:
-            chkpt_dict = yaml.load(chkpt_in.read())
+            chkpt_dict = yaml.safe_load(chkpt_in)
         chkpt_prefix = chkpt_dict['model_checkpoint_path']
         files = [chkpt_file]
         # files.append(os.path.join(self.model_dir, 'model.pickle'))
@@ -2632,7 +2824,10 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
 
 # ****************************************************************************************
 class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
-    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    """ModelWrapper subclass for Duvenaud style graph convolution models, as implemented in the DeepChem
+    GraphConvModel model class.
+
+    Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
     Attributes:
@@ -2677,7 +2872,7 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
 
     """
 
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes GraphConvDCModelWrapper object.
 
         Args:
@@ -2705,12 +2900,11 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
             model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
 
         """
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
         # TODO (ksm): The next two attributes aren't used; suggest we drop them.
         self.g = tf.Graph()
         self.sess = tf.compat.v1.Session(graph=self.g)
         self.num_epochs_trained = 0
-
         self.model = self.recreate_model(model_dir=self.model_dir)
 
     # ****************************************************************************************
@@ -2748,7 +2942,8 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
             dense_layer_size=self.params.layer_sizes[-1],
             dropout=self.params.dropouts,
             penalty=self.params.weight_decay_penalty,
-            penalty_type=self.params.weight_decay_penalty_type)
+            penalty_type=self.params.weight_decay_penalty_type,
+            seed=self.seed)
         return model
 
     # ****************************************************************************************
@@ -2789,5 +2984,3 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
         )
         model_spec_metadata = dict(nn_specific = nn_metadata)
         return model_spec_metadata
-
-

@@ -15,6 +15,6 @@ seaborn>=0.13.0
 setuptools
 sphinx
 sphinx_rtd_theme
-tensorflow
+tensorflow-cpu
 torch
 umap-learn

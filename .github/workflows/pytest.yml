@@ -1,0 +1,138 @@
+name: tests
+
+on:
+    push:
+      branches: ["**"]
+    pull_request:
+      types: [opened, reopened, ready_for_review]
+
+jobs:
+  pytest-unit:
+    runs-on: ubuntu-24.04
+    env:
+      ENV: test
+      DGLBACKEND: pytorch
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-uv-setup
+        with:
+          python-version: ${{ matrix.python-version }}
+          debug: "false"
+
+      - name: pytest
+        shell: bash
+        run: |
+          . .venv/bin/activate
+          cd atomsci/modac/test/unit && python -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv
+          cd "${{ github.workspace }}/atomsci/ddm/test/unit" && python -m pytest -m "not moe_required" -n 2 --capture=fd --cov=atomsci -vv --durations=4 --durations-min=0.05
+
+      - name: Save coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-pytest-unit
+          path: |
+            atomsci/ddm/test/unit/.coverage*
+            atomsci/modac/test/unit/.coverage*
+          include-hidden-files: true
+          if-no-files-found: error
+
+  pytest-integrative:
+    runs-on: ubuntu-24.04
+    env:
+      ENV: test
+      DGLBACKEND: pytorch
+      DEBUG_DGL: "false"
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+        chunk: [0, 1, 2, 3]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-uv-setup
+        with:
+          python-version: ${{ matrix.python-version }}
+          debug: "false"
+
+      - name: Debug - dgl + torchdata + shadowing
+        shell: bash
+        if: ${{ env.DEBUG_DGL == 'true' }}
+        run: |
+          . .venv/bin/activate
+          set -x
+
+          which python
+          python -V
+          python -c "import sys, os; print('sys.executable:', sys.executable); print('sys.path[0]:', sys.path[0]); print('cwd:', os.getcwd())"
+          python -c "import importlib.util; spec = importlib.util.find_spec('torchdata'); print('torchdata spec:', spec); print('torchdata origin:', getattr(spec,'origin',None)); print('torchdata submodule locations:', getattr(spec,'submodule_search_locations',None))"
+          python -c "import torchdata; print('torchdata file:', torchdata.__file__); print('torchdata version:', getattr(torchdata,'__version__','no __version__'))"
+          python -c "import torchdata.datapipes.iter as it; print('torchdata.datapipes.iter OK:', it)"
+          python -c "import dgl; print('dgl OK:', dgl.__version__)"
+          python -m pip --version
+          python -m pip show torch torchdata dgl dgllife || true
+          python -m pip freeze | grep -E '^(torch|torchdata|dgl|dgllife|numpy)=' || true
+
+      - name: pytest
+        shell: bash
+        run: |
+          . .venv/bin/activate
+          cd atomsci/ddm/test/integrative
+          ./integrative_batch_chunk_tests ${{ matrix.chunk }}
+
+      - name: Save coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-pytest-integrative-${{ matrix.chunk }}
+          path: atomsci/ddm/test/integrative/**/.coverage*
+          include-hidden-files: true
+          if-no-files-found: error
+
+  coverage-merge:
+    runs-on: ubuntu-24.04
+    needs: [pytest-unit, pytest-integrative]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install coverage
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install coverage
+
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: coverage-reports
+
+      - name: Merge coverage reports
+        run: |
+          # List directory structure for debugging
+          set -euo pipefail
+          ls -la coverage-reports || true
+
+          # Find and combine all coverage files
+          find coverage-reports -name ".coverage*" -type f -print
+
+          # Combine all coverage files
+          find coverage-reports -name ".coverage*" -type f -print0 | xargs -0 coverage combine
+          # Generate XML report for codecov
+          coverage xml
+
+      - name: Upload merged coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

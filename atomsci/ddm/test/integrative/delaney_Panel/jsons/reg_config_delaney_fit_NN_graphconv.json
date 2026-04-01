@@ -40,6 +40,7 @@
 
     "comment": "Test",
     "comment": "----------------------------------------",    
-    "perf_threshold": "0.50"
+    "perf_threshold": "0.50",
 
+    "seed":0
 }

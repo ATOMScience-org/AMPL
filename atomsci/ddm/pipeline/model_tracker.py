@@ -2,22 +2,21 @@
 
 import os
 import tempfile
-import sys
 import pandas as pd
 import json
 import tarfile
 import logging
-
-logger = logging.getLogger('ATOM')
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import transformations as trans
 import atomsci.ddm.utils.file_utils as futils
 
+logger = logging.getLogger('ATOM')
+
 mlmt_supported = True
 try:
-    from atomsci.clients import MLMTClient
+    from atomsci.clients import MLMTClient  # noqa: F401
 except (ModuleNotFoundError, ImportError):
     logger.debug("Model tracker client not supported in your environment; will save models in filesystem only.")
     mlmt_supported = False
@@ -62,7 +61,7 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
         raise ValueError("model_uuid is missing from pipeline metadata.")
 
     #### Part 1: Save the model tarball in the datastore ####
-    model = pipeline.model_wrapper
+    _model = pipeline.model_wrapper
     # Put tar file in a temporary directory that will automatically be destroyed when we're done
     with tempfile.TemporaryDirectory() as tmp_dir:
         tarball_path = os.path.join(tmp_dir, f"model_{model_uuid}.tar.gz")
@@ -433,7 +432,7 @@ def convert_metadata(old_metadata):
     """
 
     model_metadata = old_metadata['ModelMetadata']
-    model_parameters = model_metadata['ModelParameters']
+    _model_parameters = model_metadata['ModelParameters']
     training_dataset = model_metadata['TrainingDataset'].copy()
     new_metadata = {
         "model_uuid": old_metadata['model_uuid'],

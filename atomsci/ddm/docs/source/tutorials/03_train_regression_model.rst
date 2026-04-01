@@ -4,8 +4,13 @@
 
 *Published: June, 2024, ATOM DDM Team*
 
-------------
+Please check out the companion tutorial video: |youtube-image|
 
+.. |youtube-image| image:: ../_static/img/youtube_icon.png
+   :alt: Tutorial 03 Train Regression Model
+   :target: https://www.youtube.com/watch?v=46PhwXqqnyg
+
+------------
 
 The process of training a machine learning (ML) model can be thought of
 as fitting a highly parameterized function to map inputs to outputs. An
