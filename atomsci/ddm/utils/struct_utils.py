@@ -227,8 +227,7 @@ def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=Fals
         std_mol = rdMolStandardize.IsotopeParent(rdMolStandardize.FragmentParent(cmpd_mol), skipStandardize=True)
         if removeCharges:
             std_mol = uncharger(std_mol)
-    #except Chem.rdchem.MolSanitizeException:
-    except:
+    except Exception:
         std_mol = None
     return std_mol
 
@@ -300,8 +299,7 @@ def base_mol_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False):
         std_mol = rdMolStandardize.IsotopeParent(rdMolStandardize.FragmentParent(cmpd_mol), skipStandardize=True)
         if removeCharges:
             std_mol = uncharger(std_mol)
-    #except Chem.rdchem.MolSanitizeException:
-    except:
+    except Exception:
         std_mol = None
     return std_mol
 
