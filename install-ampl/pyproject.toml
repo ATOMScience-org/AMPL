@@ -34,7 +34,6 @@ dependencies = [
     "tensorflow-cpu==2.14.0; python_version >= '3.10' and python_version < '3.12'",
 
     # atomsci-ampl deps [need to be added to atomsci-ampl]
-    "molvs",
     "xgboost",
     "umap-learn",
     "imbalanced-learn",

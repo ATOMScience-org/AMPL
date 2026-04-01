@@ -93,7 +93,6 @@ maestrowf
 
 deepchem==2.8
 rdkit==2024.3.5
-MolVS
 mordred
 
 # ==========================
