@@ -65,7 +65,7 @@ def test_base_smiles_from_smiles():
         useCanonicalTautomers=True,
         useIsomericSmiles=False,
         removeCharges=True,
-        workers=1)
+        workers=2)
     assert results == ['Brc1cc(OC2CC3CCC(C2)N3)cc(-c2ccccc2)c1',
         'Brc1ccc(N2CCN(CCCCOc3ccc4ccccc4c3)CC2)cc1',
         'Brc1ccc(N2CCN(CCCN3CCC(Cc4ccccc4)CC3)CC2)cc1']
@@ -74,7 +74,7 @@ def test_base_smiles_from_smiles():
         useCanonicalTautomers=True,
         useIsomericSmiles=False,
         removeCharges=True,
-        workers=1)
+        workers=2)
     assert results == ['',
         'Brc1cc(OC2CC3CCC(C2)N3)cc(-c2ccccc2)c1',
         'Brc1ccc(N2CCN(CCCCOc3ccc4ccccc4c3)CC2)cc1',
