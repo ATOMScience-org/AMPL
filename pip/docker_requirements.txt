@@ -36,7 +36,6 @@ bravado
 # pycairo
 
 maestrowf
-MolVS
 mordred
 pytest
 ipykernel

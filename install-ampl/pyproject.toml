@@ -1,40 +1,21 @@
 
 [project]
-name = "ampl"
-version = "1.0"
+name = "atomsci-ampl"
+description = "ATOM Modeling PipeLine"
+version = "1.8.0"
+requires-python = ">=3.9,<3.12"
 
 # NOTE:
 # * deepchem only works with python <= 3.10 (and possibly 3.11)
 #   - seems to install in python 3.11 but website says suports only 
 #     python <= 3.10
-#   - does not work with python 3.12+ due to tensorflow-addons dependency
+#   - does NOT work with python 3.12+ due to tensorflow-addons dependency
 #     which is no longer supported and only has support up to python 3.11
 # * ampl only works with python 3.9, 3.10, 3.11 (due to deepchem)
-#   - encoders / decoders need python 3.9
-#   - everthing else works with python 3.9 and 3.10 (and possibly 3.11)
-# * this will install on python 3.12 but won't have deepchem
-requires-python = ">=3.9,<3.13"
 
 # Dependencies for all Python versions
 dependencies = [
-    "setuptools",
-    "pip",
-
-    # core dependencies
-    "torch_cluster",
-    "torch_scatter",
-    "torch_sparse",
-    "torch_spline_conv",
     "torch-geometric",
-
-    # deepchem 2.8.0 deps [NOTE: may not work on python >= 3.11]
-    "deepchem[torch,tensorflow]==2.8.0; python_version >= '3.10' and python_version < '3.12'",
-
-    # deepchem[tensorflow] deps
-    "tensorflow-cpu==2.14.0; python_version >= '3.10' and python_version < '3.12'",
-
-    # atomsci-ampl deps [need to be added to atomsci-ampl]
-    "molvs",
     "xgboost",
     "umap-learn",
     "imbalanced-learn",
@@ -43,28 +24,41 @@ dependencies = [
     "pytest",
     "seaborn",
     "matplotcheck",
-
-    # code repos
-    "atomsci-ampl; python_version >= '3.10' and python_version < '3.12'",
+    "numpy<2",
     "atomsci-clients",
 
-    # rdkit
+    # deepchem 2.7.1 for Python 3.9 version
+    "deepchem[torch,tensorflow]==2.7.1; python_version < '3.10'",
+    # deepchem 2.8.0 deps [NOTE: may not work on python 3.11]
+    "deepchem[torch,tensorflow]==2.8.0; python_version >= '3.10'",
+
+    # deepchem[tensorflow] deps
+    "tensorflow-cpu==2.14.0",
+
     "rdkit>=2024.3.5; python_version >= '3.10'",
-
-    "numpy<2",
-
-    # python specific versions [dgl / pyg dependent]
     "dgl==2.1.0; python_version >= '3.10'",
 
-    "pyg_lib==0.3.1; python_version >= '3.10' and python_version < '3.12'",
-    "pyg_lib==0.4.0; python_version >= '3.12'",
+    "pyg_lib==0.2.0; python_version < '3.10'",
+    "pyg_lib==0.3.1; python_version >= '3.10'",
 
-    "torch==2.1.2+cpu; python_version >= '3.10' and python_version < '3.12'",
-    "torch==2.3.1+cpu; python_version >= '3.12'"
+    "torch==2.0.1+cpu; python_version < '3.10'",
+    "torch==2.1.2+cpu; python_version >= '3.10'",
+    "torch_cluster",
+    "torch_scatter",
+    "torch_sparse",
+    "torch_spline_conv",
 ]
 
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["atomsci*"]
+namespaces = true
 
 [tool.uv]
+managed = true
 allow-insecure-host = [
     "download.pytorch.org",
     "data.dgl.ai",
@@ -82,9 +76,8 @@ url = "https://data.dgl.ai/wheels/repo.html"
 format = "flat"
 
 [[tool.uv.index]]
-# NOTE: pyg libraries for torch >= 2.2 seem to have GLIBC incompatibilities on LC
-name = "pyg_lib_py312"
-url = "https://data.pyg.org/whl/torch-2.3.1+cpu.html"
+name = "pyg_lib_py39"
+url = "https://data.pyg.org/whl/torch-2.0.1+cpu.html"
 format = "flat"
 
 [[tool.uv.index]]
@@ -94,9 +87,6 @@ format = "flat"
 
 [tool.uv.sources]
 # code repos
-atomsci-ampl = [
-    { git = "https://github.com/ATOMScience-org/AMPL.git", rev = "py310",  marker = "python_version >= '3.10'"}
-]
 atomsci-clients = { git = "ssh://git@czgitlab.llnl.gov:7999/atom/clients.git", rev = "master" }
 
 # dgl
@@ -104,24 +94,24 @@ dgl = { index = "dgl" }
 
 # torch
 torch = { index = "pytorch" }
+
 pyg_lib = [
-    { index = "pyg_lib_py310", marker = "python_version >= '3.10' and python_version < '3.12'" },
-    { index = "pyg_lib_py312", marker = "python_version >= '3.12'" },
+    { index = "pyg_lib_py39", marker = "python_version < '3.10'" },
+    { index = "pyg_lib_py310", marker = "python_version >= '3.10'" },
 ]
 torch_cluster = [
-    { index = "pyg_lib_py310", marker = "python_version >= '3.10' and python_version < '3.12'" },
-    { index = "pyg_lib_py312", marker = "python_version >= '3.12'" },
+    { index = "pyg_lib_py39", marker = "python_version < '3.10'" },
+    { index = "pyg_lib_py310", marker = "python_version >= '3.10'" },
 ]
 torch_scatter = [
-    { index = "pyg_lib_py310", marker = "python_version >= '3.10' and python_version < '3.12'" },
-    { index = "pyg_lib_py312", marker = "python_version >= '3.12'" },
+    { index = "pyg_lib_py39", marker = "python_version < '3.10'" },
+    { index = "pyg_lib_py310", marker = "python_version >= '3.10'" },
 ]
 torch_sparse = [
-    { index = "pyg_lib_py310", marker = "python_version >= '3.10' and python_version < '3.12'" },
-    { index = "pyg_lib_py312", marker = "python_version >= '3.12'" },
+    { index = "pyg_lib_py39", marker = "python_version < '3.10'" },
+    { index = "pyg_lib_py310", marker = "python_version >= '3.10'" },
 ]
 torch_spline_conv = [
-    { index = "pyg_lib_py310", marker = "python_version >= '3.10' and python_version < '3.12'" },
-    { index = "pyg_lib_py312", marker = "python_version >= '3.12'" },
+    { index = "pyg_lib_py39", marker = "python_version < '3.10'" },
+    { index = "pyg_lib_py310", marker = "python_version >= '3.10'" },
 ]
-

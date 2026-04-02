@@ -20,13 +20,13 @@ def test_get_rdkit_smiles():
 
 def test_rdkit_smiles_from_smiles():
     result = su.rdkit_smiles_from_smiles(test_smiles, useCanonicalTautomers=True)
-    assert result == ['Brc1cc(O[C@@H]2C[C@H]3CC[C@@H](C2)N3)cc(-c2ccccc2)c1', 
-        'Brc1ccc(N2CCN(CCCCOc3ccc4ccccc4c3)CC2)cc1', 
+    assert result == ['Brc1cc(O[C@@H]2C[C@H]3CC[C@@H](C2)N3)cc(-c2ccccc2)c1',
+        'Brc1ccc(N2CCN(CCCCOc3ccc4ccccc4c3)CC2)cc1',
         'Brc1ccc(N2CCN(CCCN3CCC(Cc4ccccc4)CC3)CC2)cc1']
 
     result = su.rdkit_smiles_from_smiles(test_smiles, useCanonicalTautomers=False)
     assert result == ['Brc1cc(O[C@@H]2C[C@H]3CC[C@@H](C2)N3)cc(-c2ccccc2)c1',
-        'Brc1ccc(N2CCN(CCCCOc3ccc4ccccc4c3)CC2)cc1', 
+        'Brc1ccc(N2CCN(CCCCOc3ccc4ccccc4c3)CC2)cc1',
         'Brc1ccc(N2CCN(CCCN3CCC(Cc4ccccc4)CC3)CC2)cc1']
 
     result = su.rdkit_smiles_from_smiles(test_smiles, useIsomericSmiles=False)
@@ -157,7 +157,7 @@ def test_mol_wt_from_smiles():
 
 def test_canonical_tautomers_from_smiles():
     canonical_tautomers = [su.canonical_tautomers_from_smiles(s) for s in ['asdf']+test_smiles]
-    assert canonical_tautomers==[[''], 
+    assert canonical_tautomers==[[''],
         ['Brc1cc(O[C@@H]2C[C@H]3CC[C@@H](C2)N3)cc(-c2ccccc2)c1'],
         ['Brc1ccc(N2CCN(CCCCOc3ccc4ccccc4c3)CC2)cc1'],
         ['Brc1ccc(N2CCN(CCCN3CCC(Cc4ccccc4)CC3)CC2)cc1']]
