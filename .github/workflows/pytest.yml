@@ -20,14 +20,24 @@ jobs:
       - uses: ./.github/actions/python-uv-setup
         with:
           python-version: ${{ matrix.python-version }}
+          lockfile: uv.lock.cpu
+          extras: cpu
+          dependency-groups: dev
           debug: "false"
 
-      - name: pytest
+      - name: Run modac unit tests
         shell: bash
+        working-directory: atomsci/modac/test/unit
         run: |
-          . .venv/bin/activate
-          cd atomsci/modac/test/unit && python -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv
-          cd "${{ github.workspace }}/atomsci/ddm/test/unit" && python -m pytest -m "not moe_required" -n 2 --capture=fd --cov=atomsci -vv --durations=4 --durations-min=0.05
+          . "${{ github.workspace }}/.venv/bin/activate"
+          python -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv
+
+      - name: Run ddm unit tests
+        shell: bash
+        working-directory: atomsci/ddm/test/unit
+        run: |
+          . "${{ github.workspace }}/.venv/bin/activate"
+          python -m pytest -m "not moe_required" -n 2 --capture=fd --cov=atomsci -vv --durations=4 --durations-min=0.05
 
       - name: Save coverage
         uses: actions/upload-artifact@v4
@@ -56,13 +66,16 @@ jobs:
       - uses: ./.github/actions/python-uv-setup
         with:
           python-version: ${{ matrix.python-version }}
+          lockfile: uv.lock.cpu
+          extras: cpu
+          dependency-groups: dev
           debug: "false"
 
       - name: Debug - dgl + torchdata + shadowing
         shell: bash
         if: ${{ env.DEBUG_DGL == 'true' }}
         run: |
-          . .venv/bin/activate
+          . "${{ github.workspace }}/.venv/bin/activate"
           set -x
 
           which python
@@ -76,11 +89,11 @@ jobs:
           python -m pip show torch torchdata dgl dgllife || true
           python -m pip freeze | grep -E '^(torch|torchdata|dgl|dgllife|numpy)=' || true
 
-      - name: pytest
+      - name: Run integrative tests
         shell: bash
+        working-directory: atomsci/ddm/test/integrative
         run: |
-          . .venv/bin/activate
-          cd atomsci/ddm/test/integrative
+          . "${{ github.workspace }}/.venv/bin/activate"
           ./integrative_batch_chunk_tests ${{ matrix.chunk }}
 
       - name: Save coverage
