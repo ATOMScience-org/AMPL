@@ -2588,7 +2588,6 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
         """
         self.data = pipeline.data
         feature_names = self.data.featurization.get_feature_columns()
-        nfeatures = len(feature_names)
         self.feature_weights = dict(zip(feature_names, [[] for f in feature_names]))
 
         em = perf.EpochManager(self,
