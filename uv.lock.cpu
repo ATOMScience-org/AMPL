@@ -218,6 +218,7 @@ dependencies = [
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "seaborn" },
+    { name = "setuptools" },
     { name = "umap-learn" },
     { name = "xgboost" },
 ]
@@ -225,7 +226,8 @@ dependencies = [
 [package.optional-dependencies]
 cpu = [
     { name = "dgl" },
-    { name = "tensorflow-cpu" },
+    { name = "tensorflow", marker = "sys_platform == 'darwin'" },
+    { name = "tensorflow-cpu", marker = "sys_platform == 'linux'" },
     { name = "torch-geometric" },
     { name = "torchdata" },
 ]
@@ -284,8 +286,10 @@ requires-dist = [
     { name = "scikit-learn", specifier = "==1.2.2" },
     { name = "scipy", specifier = ">=1.10" },
     { name = "seaborn", specifier = ">=0.13.0" },
+    { name = "setuptools" },
+    { name = "tensorflow", marker = "sys_platform == 'darwin' and extra == 'cpu'", specifier = "~=2.14.0" },
     { name = "tensorflow", marker = "extra == 'mchip'", specifier = "~=2.14.0" },
-    { name = "tensorflow-cpu", marker = "extra == 'cpu'", specifier = "~=2.14.0" },
+    { name = "tensorflow-cpu", marker = "sys_platform == 'linux' and extra == 'cpu'", specifier = "~=2.14.0" },
     { name = "torch", marker = "extra == 'mchip'", specifier = "==2.1.2" },
     { name = "torch-geometric", marker = "extra == 'cpu'", specifier = "==2.7.0" },
     { name = "torch-geometric", marker = "extra == 'cuda'", specifier = "==2.7.0" },
@@ -3094,9 +3098,7 @@ dependencies = [
     { name = "wrapt" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/61/83/5c17a657faf96262400e9b3127485dd1c67708a6e554e44892758279a8ce/tensorflow_cpu-2.14.1-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:d57057ba570c1a6b73a300759dd09057d721d2d04dc9e82fb1b8b4fe4c2ca380", size = 229650285, upload-time = "2023-11-14T18:57:56.447Z" },
     { url = "https://files.pythonhosted.org/packages/4f/ea/acd6d4c6a23de999e7fbb20d68eefa65d395df7ae16249294a02dd1772d5/tensorflow_cpu-2.14.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:97f63588962997f2816031578450f747468f9441b17f5bbf352fc93adecc2051", size = 198216087, upload-time = "2023-11-14T19:00:57.579Z" },
-    { url = "https://files.pythonhosted.org/packages/d6/c8/a4f108e13b8cb8f6d7fa08cc61242b2881a175c6472ce0405e5a84d518d8/tensorflow_cpu-2.14.1-cp310-cp310-win_amd64.whl", hash = "sha256:2aced2fd217d95d53f3968372bc741b9967b266ae59c45622a5af1aff12eda68", size = 2131, upload-time = "2023-11-14T19:01:51.168Z" },
 ]
 
 [[package]]
