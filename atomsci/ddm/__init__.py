@@ -4,10 +4,8 @@
 #except TypeError:
 #    pass
 try:
-    # Python 3.8+
     from importlib.metadata import version, PackageNotFoundError
 except ImportError:
-    # For very old Pythons, use backport if available
     try:
         from importlib_metadata import version, PackageNotFoundError
     except ImportError:

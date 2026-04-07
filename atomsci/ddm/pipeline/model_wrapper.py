@@ -2616,10 +2616,8 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
                           pipeline.metric_type, test_perf))
 
             layer1_weights = self.model.model.layers[0].weight
-            feature_weights = np.zeros(nfeatures, dtype=float)
-            for node_weights in layer1_weights:
-                node_feat_weights = torch.abs(node_weights).detach().numpy()
-                feature_weights += node_feat_weights
+            feature_weights = layer1_weights.detach().abs().mean(dim=0).cpu().numpy()
+
             for fnum, fname in enumerate(feature_names):
                 self.feature_weights[fname].append(feature_weights[fnum])
 

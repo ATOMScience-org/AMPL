@@ -46,7 +46,8 @@ VENV ?= atomsci-env
 # Work Directory
 WORK_DIR ?= work
 
-.PHONY: build-docker install install-dev install-system install-venv jupyter-notebook jupyter-lab \
+.PHONY: sync-cpu sync-cuda sync-rocm sync-mps test-cpu test-gpu test-rocm test-mps \
+        build-docker install install-dev install-system install-venv jupyter-notebook jupyter-lab \
 	pytest ruff ruff-fix setup uninstall uninstall-dev uninstall-system uninstall-venv
 
 # Load Docker image
@@ -156,6 +157,31 @@ setup:
 	$(MAKE) install-venv
 
 uninstall: uninstall-system
+
+# for uv env
+sync-cpu:
+	UV_PROJECT_ENVIRONMENT=.venv-cpu uv sync --extra cpu
+
+sync-cuda:
+	UV_PROJECT_ENVIRONMENT=.venv-cuda uv sync --extra cuda
+
+sync-rocm:
+	UV_PROJECT_ENVIRONMENT=.venv-rocm uv sync --extra rocm
+
+sync-mps:
+	UV_PROJECT_ENVIRONMENT=.venv-mps uv sync --extra mps
+
+test-cpu:
+	UV_PROJECT_ENVIRONMENT=.venv-cpu uv run pytest
+
+test-gpu:
+	UV_PROJECT_ENVIRONMENT=.venv-cuda uv run pytest
+
+test-rocm:
+	UV_PROJECT_ENVIRONMENT=.venv-rocm uv run pytest
+
+test-mps:
+	UV_PROJECT_ENVIRONMENT=.venv-mps uv run pytest
 
 # Uninstall atomsci-ampl from user space
 uninstall-dev:
