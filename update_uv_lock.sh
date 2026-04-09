@@ -7,7 +7,7 @@
 #     dependencies changed, pyproject.toml changed, or lockfile mismatch happens. refresh the commited lockfile.
 #
 # Usage:
-#     ./update_lock.sh <cpu|cuda|rocm|mchip>
+#     ./update_uv_lock.sh <cpu|cuda|rocm|mchip>
 
 set -euo pipefail
 
