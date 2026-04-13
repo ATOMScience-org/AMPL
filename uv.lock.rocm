@@ -203,7 +203,6 @@ dependencies = [
     { name = "deepchem" },
     { name = "hyperopt" },
     { name = "imbalanced-learn" },
-    { name = "imblearn" },
     { name = "lightgbm" },
     { name = "lightning" },
     { name = "maestrowf" },
@@ -252,6 +251,7 @@ mchip = [
 rocm = [
     { name = "dgl" },
     { name = "dgllife" },
+    { name = "tensorflow" },
     { name = "torch" },
     { name = "torch-geometric" },
     { name = "torchdata" },
@@ -285,7 +285,6 @@ requires-dist = [
     { name = "dgllife", marker = "extra == 'rocm'", specifier = "==0.3.2" },
     { name = "hyperopt" },
     { name = "imbalanced-learn" },
-    { name = "imblearn" },
     { name = "lightgbm" },
     { name = "lightning", specifier = "==2.2.5" },
     { name = "maestrowf" },
@@ -304,6 +303,7 @@ requires-dist = [
     { name = "tensorflow", marker = "sys_platform == 'darwin' and extra == 'cpu'", specifier = "~=2.14.0" },
     { name = "tensorflow", marker = "extra == 'cuda'", specifier = "~=2.14.0" },
     { name = "tensorflow", marker = "extra == 'mchip'", specifier = "~=2.14.0" },
+    { name = "tensorflow", marker = "extra == 'rocm'", specifier = "~=2.14.0" },
     { name = "tensorflow-cpu", marker = "sys_platform == 'linux' and extra == 'cpu'", specifier = "~=2.14.0" },
     { name = "torch", marker = "extra == 'cpu'", specifier = "==2.1.2" },
     { name = "torch", marker = "extra == 'cuda'", specifier = "==2.1.2" },
@@ -1121,18 +1121,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/30/41/8b15f1df14ff38f1fdd4eb2b128478d99c38db4a14292270639ae9d65447/imbalanced-learn-0.12.4.tar.gz", hash = "sha256:8153ba385d296b07d97e0901a2624a86c06b48c94c2f92da3a5354827697b7a3", size = 478372, upload-time = "2024-10-04T17:00:55.162Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d8/0d/c3bfccc5d460eec8ff56889802aa88f5d07280d5282b307a74558e6edc44/imbalanced_learn-0.12.4-py3-none-any.whl", hash = "sha256:d47fc599160d3ea882e712a3a6b02bdd353c1a6436d8d68d41b1922e6ee4a703", size = 258324, upload-time = "2024-10-04T17:00:52.715Z" },
-]
-
-[[package]]
-name = "imblearn"
-version = "0.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "imbalanced-learn" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/32/0a/f83099534a77757abf27427d339590c83cc68c3386690d4741d6454e185f/imblearn-0.0.tar.gz", hash = "sha256:d8fbb662919c1b16f438ad91a8256220e53bcf6815c9ad5502c518b798de34f2", size = 945, upload-time = "2017-01-19T11:52:35.89Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/a7/4179e6ebfd654bd0eac0b9c06125b8b4c96a9d0a8ff9e9507eb2a26d2d7e/imblearn-0.0-py2.py3-none-any.whl", hash = "sha256:d42c2d709d22c00d2b9a91e638d57240a8b79b4014122d92181fcd2549a2f79a", size = 1874, upload-time = "2017-01-19T11:52:37.416Z" },
 ]
 
 [[package]]

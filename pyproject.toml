@@ -22,7 +22,6 @@ dependencies = [
   "pyyaml>=6.0",
   "bravado",
   "imbalanced-learn",
-  "imblearn",
   "maestrowf",
   "deepchem==2.8",
   "rdkit==2024.3.5",
@@ -51,7 +50,7 @@ cpu = [
   "tensorflow~=2.14.0; platform_system == 'Darwin'",
   "dgl==2.1.0",
   "dgllife==0.3.2",
-  "torch_geometric==2.7.0",
+  "torch-geometric==2.7.0",
 ]
 
 cuda = [
@@ -74,11 +73,11 @@ rocm = [
 
 mchip = [
   "torch==2.1.2",
-  "torchdata",
+  "torchdata==0.7.1",
   "tensorflow~=2.14.0",
   "dgl==2.1.0",
   "dgllife==0.3.2",
-  "torch_geometric==2.7.0",
+  "torch-geometric==2.7.0",
 ]
 
 [build-system]
