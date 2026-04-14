@@ -25,8 +25,10 @@ import time
 import traceback
 import copy
 import pickle
+import math
 
-from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
+import optuna
+optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import model_pipeline as mp
