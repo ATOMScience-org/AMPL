@@ -122,10 +122,7 @@ Use the provided sync script for your target platform.
 | ROCm | `./sync_uv_env.sh rocm` | `.venv-rocm` | `source .venv-rocm/bin/activate` |
 | Apple Silicon / M chip | `./sync_uv_env.sh mchip` | `.venv-mchip` | `source .venv-mchip/bin/activate` |
 
-After activating the environment, install AMPL in editable mode:
-```bash
-uv pip install -e .
-```
+The sync script installs AMPL in editable mode with `--no-deps`, so no additional install step is needed.
 ## Platform-specific setup
 
 The following settings may be useful depending on your platform and runtime environment.
