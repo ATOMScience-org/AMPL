@@ -1487,7 +1487,7 @@ def get_parser():
 
     parser.add_argument(
         '--search_type', dest='search_type', required=False, default='grid',
-        help='Type of hyperparameter search to do. Options = [grid, random, geometric, and user_specified]')
+        help='Type of hyperparameter search to do. Options = [grid, random, geometric, user_specified, and hyperopt (Optuna Bayesian search)]')
 
     parser.add_argument(
         '--split_only', dest='split_only', required=False, action='store_true',
@@ -1528,64 +1528,64 @@ def get_parser():
         help='Time limit in minutes for hyperparameter search batch jobs.'
              'If set to None then this parameter will not be used.')
 
-    # HyperOptSearch specific parameters
+    # OptunaSearch specific parameters
     # NN model
     parser.add_argument(
         '--lr', dest='lr', required=False, default=None,
-        help='learning rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
+        help='learning rate shown in Optuna domain format, e.g. --lr=uniform|0.00001,0.001')
     parser.add_argument(
         '--ls', dest='ls', required=False, default=None,
-        help='layer sizes shown in HyperOpt domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
+        help='layer sizes shown in Optuna domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
     parser.add_argument(
         '--ls_ratio', dest='ls_ratio', required=False, default=None,
-        help='layer size ratios (layer size / previous layer size) shown in HyperOpt domain format, the number of layers is not needed here, taken from ls, e.g. --ls_ratio=uniform|0.1,0.9')
+        help='layer size ratios (layer size / previous layer size) shown in Optuna domain format, the number of layers is not needed here, taken from ls, e.g. --ls_ratio=uniform|0.1,0.9')
     parser.add_argument(
         '--dp', dest='dp', required=False, default=None,
-        help='dropouts shown in HyperOpt domain format, e.g. --dp=uniform|3|0,0.4')
+        help='dropouts shown in Optuna domain format, e.g. --dp=uniform|3|0,0.4')
     parser.add_argument(
         '--wdp', dest='wdp', required=False, default=None,
-        help='weight_decay_penalty shown in HyperOpt domain format, e.g. --wdp=loguniform|-6.908,-4.605')
+        help='weight_decay_penalty shown in Optuna domain format, e.g. --wdp=loguniform|-6.908,-4.605')
     parser.add_argument(
         '--wdt', dest='wdt', required=False, default=None,
-        help='weight_decay_penalty_type shown in HyperOpt domain format, e.g. --wdt=choice|l1,l2')
+        help='weight_decay_penalty_type shown in Optuna domain format, e.g. --wdt=choice|l1,l2')
     # RF model
     parser.add_argument(
         '--rfe', dest='rfe', required=False, default=None,
-        help='rf_estimators shown in HyperOpt domain format, e.g. --rfe=uniformint|64,512')
+        help='rf_estimators shown in Optuna domain format, e.g. --rfe=uniformint|64,512')
     parser.add_argument(
         '--rfd', dest='rfd', required=False, default=None,
-        help='rf_max_depth shown in HyperOpt domain format, e.g. --rfd=uniformint|64,512')
+        help='rf_max_depth shown in Optuna domain format, e.g. --rfd=uniformint|64,512')
     parser.add_argument(
         '--rff', dest='rff', required=False, default=None,
-        help='rf_max_features shown in HyperOpt domain format, e.g. --rff=uniformint|64,512')
+        help='rf_max_features shown in Optuna domain format, e.g. --rff=uniformint|64,512')
     # XGBoost model
     parser.add_argument(
         '--xgbg', dest='xgbg', required=False, default=None,
-        help='xgb_gamma shown in HyperOpt domain format, e.g. --xgbg=uniform|0,0.4')
+        help='xgb_gamma shown in Optuna domain format, e.g. --xgbg=uniform|0,0.4')
     parser.add_argument(
         '--xgba', dest='xgba', required=False, default=None,
-        help='xgb_alpha shown in HyperOpt domain format, e.g. --xgba=uniform|0,0.4')
+        help='xgb_alpha shown in Optuna domain format, e.g. --xgba=uniform|0,0.4')
     parser.add_argument(
         '--xgbb', dest='xgbb', required=False, default=None,
-        help='xgb_lambda shown in HyperOpt domain format, e.g. --xgbb=uniform|0,0.4')
+        help='xgb_lambda shown in Optuna domain format, e.g. --xgbb=uniform|0,0.4')
     parser.add_argument(
         '--xgbl', dest='xgbl', required=False, default=None,
-        help='xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
+        help='xgb_learning_rate shown in Optuna domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
     parser.add_argument(
         '--xgbd', dest='xgbd', required=False, default=None,
-        help='xgb_max_depth shown in HyperOpt domain format, e.g. --xgbd=uniformint|3,10')
+        help='xgb_max_depth shown in Optuna domain format, e.g. --xgbd=uniformint|3,10')
     parser.add_argument(
         '--xgbc', dest='xgbc', required=False, default=None,
-        help='xgb_colsample_bytree shown in HyperOpt domain format, e.g. --xgbc=uniform|0.1,1.0')
+        help='xgb_colsample_bytree shown in Optuna domain format, e.g. --xgbc=uniform|0.1,1.0')
     parser.add_argument(
         '--xgbs', dest='xgbs', required=False, default=None,
-        help='xgb_subsample shown in HyperOpt domain format, e.g. --xgbs=uniform|0.1,1.0')
+        help='xgb_subsample shown in Optuna domain format, e.g. --xgbs=uniform|0.1,1.0')
     parser.add_argument(
         '--xgbn', dest='xgbn', required=False, default=None,
-        help='xgb_n_estimators shown in HyperOpt domain format, e.g. --xgbn=choice|200,500,1000')
+        help='xgb_n_estimators shown in Optuna domain format, e.g. --xgbn=choice|200,500,1000')
     parser.add_argument(
         '--xgbw', dest='xgbw', required=False, default=None,
-        help='xgb_min_child_weight shown in HyperOpt domain format, e.g. --xgbw=uniform|1.0,1.2')
+        help='xgb_min_child_weight shown in Optuna domain format, e.g. --xgbw=uniform|1.0,1.2')
     # checkpoint
     parser.add_argument(
         '--hp_checkpoint_save', dest='hp_checkpoint_save', required=False, default=None,
