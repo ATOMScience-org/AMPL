@@ -42,22 +42,22 @@ case "$platform" in
     uv pip install --python "$venv_dir/bin/python" \
       --index-url https://download.pytorch.org/whl/cpu \
       torch==2.1.2 torchdata==0.7.1
-    VIRTUAL_ENV="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cpu --group dev
+    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cpu --group dev
     ;;
   cuda)
     uv pip install --python "$venv_dir/bin/python" \
       --index-url https://download.pytorch.org/whl/cu121 \
       torch==2.1.2 torchdata==0.7.1
-    VIRTUAL_ENV="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cuda --group dev
+    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cuda --group dev
     ;;
   rocm)
     uv pip install --python "$venv_dir/bin/python" \
       --index-url https://download.pytorch.org/whl/rocm5.6 \
       torch==2.1.2 torchdata==0.7.1
-    VIRTUAL_ENV="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra rocm --group dev
+    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra rocm --group dev
     ;;
   mchip)
-    VIRTUAL_ENV="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra mchip --group dev
+    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra mchip --group dev
     ;;
   *)
     echo "Invalid platform: $platform"
