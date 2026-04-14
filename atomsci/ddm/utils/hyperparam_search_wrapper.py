@@ -1293,20 +1293,44 @@ class UserSpecifiedSearch(HyperparameterSearch):
                 new_dict[key] = value
         return new_dict
 
-def build_hyperopt_search_domain(label, method, param_list):
-    """Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.
-    This function is used by the HyperOptSearch class, not intended for standalone usage.
+def build_optuna_suggest(trial, label, method, param_list):
+    """Sample a hyperparameter value from an Optuna trial using the specified distribution.
+
+    Translates the same ``method|params`` format used across AMPL config files into the
+    corresponding ``trial.suggest_*`` call.  This function is used by the OptunaSearch class
+    and is not intended for standalone usage.
+
+    Note: ``loguniform`` param_list values must be in natural-log scale (matching the legacy
+    hyperopt convention), e.g. ``[-13.8, -6.9]``.  They are converted to actual-scale bounds
+    via ``math.exp()`` before being passed to Optuna.
+
+    Args:
+        trial: An :class:`optuna.trial.Trial` object.
+        label (str): Name of the hyperparameter (used as the Optuna parameter name).
+        method (str): Sampling method — one of ``'choice'``, ``'uniform'``,
+            ``'loguniform'``, or ``'uniformint'``.
+        param_list (list): Parameters for the chosen method:
+            - ``choice``: list of candidate values.
+            - ``uniform``/``loguniform``/``uniformint``: ``[low, high]``.
+
+    Returns:
+        The sampled value.
+
+    Raises:
+        ValueError: If *method* is not one of the supported options.
     """
     if method == "choice":
-        return hp.choice(label, param_list)
+        return trial.suggest_categorical(label, param_list)
     elif method == "uniform":
-        return hp.uniform(label, param_list[0], param_list[1])
+        return trial.suggest_float(label, param_list[0], param_list[1])
     elif method == "loguniform":
-        return hp.loguniform(label, param_list[0], param_list[1])
+        # param_list values are in natural-log scale (legacy hyperopt convention);
+        # Optuna expects actual-scale bounds with log=True.
+        return trial.suggest_float(label, math.exp(param_list[0]), math.exp(param_list[1]), log=True)
     elif method == "uniformint":
-        return hp.uniformint(label, param_list[0], param_list[1])
+        return trial.suggest_int(label, int(param_list[0]), int(param_list[1]))
     else:
-        raise Exception(f"Method {method} is not supported, choose from 'choice, uniform, loguniform, uniformint'.")
+        raise ValueError(f"Method {method} is not supported, choose from 'choice, uniform, loguniform, uniformint'.")
 
 class HyperOptSearch():
     """Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)
