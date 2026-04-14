@@ -1405,16 +1405,80 @@ class OptunaSearch():
         else:
             fd = f"{feat}_{desc}"
 
-        def lossfn(p):
+        def objective(trial):
+            # Build a local param dict by sampling from the trial using build_optuna_suggest.
+            # This mirrors the old hyperopt approach where fmin populated a dict p for lossfn.
+            p = {}
+            if isinstance(self.params.featurizer, list):
+                p["featurizer"] = trial.suggest_categorical("featurizer", self.params.featurizer)
+            if isinstance(self.params.descriptor_type, list):
+                p["descriptor_type"] = trial.suggest_categorical("descriptor_type", self.params.descriptor_type)
+
+            if self.params.model_type == "RF":
+                if self.params.rfe:
+                    dl = self.params.rfe.split("|")
+                    p["rf_estimators"] = build_optuna_suggest(trial, "rf_estimators", dl[0], [float(e) for e in dl[1].split(",")])
+                if self.params.rfd:
+                    dl = self.params.rfd.split("|")
+                    p["rf_max_depth"] = build_optuna_suggest(trial, "rf_max_depth", dl[0], [float(e) for e in dl[1].split(",")])
+                if self.params.rff:
+                    dl = self.params.rff.split("|")
+                    p["rf_max_features"] = build_optuna_suggest(trial, "rf_max_features", dl[0], [float(e) for e in dl[1].split(",")])
+            elif self.params.model_type == "NN":
+                if self.params.lr:
+                    dl = self.params.lr.split("|")
+                    p["learning_rate"] = build_optuna_suggest(trial, "learning_rate", dl[0], [float(e) for e in dl[1].split(",")])
+                # for layer sizes, use a different method if the ls_ratio is provided
+                if self.params.ls:
+                    dl = self.params.ls.split("|")
+                    ls_method = dl[0]
+                    num_layer = int(dl[1])
+                    ls_par_list = [float(e) for e in dl[2].split(",")]
+                    if not self.params.ls_ratio:
+                        for i in range(num_layer):
+                            p[f"ls{i}"] = build_optuna_suggest(trial, f"ls{i}", ls_method, ls_par_list)
+                    else:
+                        p["ls"] = build_optuna_suggest(trial, "ls", ls_method, ls_par_list)
+                        ratio_dl = self.params.ls_ratio.split("|")
+                        ratio_par_list = [float(e) for e in ratio_dl[-1].split(",")]
+                        for i in range(1, num_layer):
+                            p[f"ratio{i}"] = build_optuna_suggest(trial, f"ratio{i}", ratio_dl[0], ratio_par_list)
+                # dropouts
+                if self.params.dp:
+                    dl = self.params.dp.split("|")
+                    dp_method = dl[0]
+                    num_layer = int(dl[1])
+                    dp_par_list = [float(e) for e in dl[2].split(",")]
+                    for i in range(num_layer):
+                        p[f"dp{i}"] = build_optuna_suggest(trial, f"dp{i}", dp_method, dp_par_list)
+                # weight decay penalty
+                if self.params.wdp:
+                    dl = self.params.wdp.split("|")
+                    p["weight_decay_penalty"] = build_optuna_suggest(trial, "weight_decay_penalty", dl[0], [float(e) for e in dl[1].split(",")])
+                # weight decay penalty type
+                if self.params.wdt:
+                    dl = self.params.wdt.split("|")
+                    p["weight_decay_penalty_type"] = build_optuna_suggest(trial, "weight_decay_penalty_type", dl[0], dl[1].split(","))
+            elif self.params.model_type == "xgboost":
+                xgb_map = [
+                    ("xgbg", "xgbg"), ("xgba", "xgba"), ("xgbb", "xgbb"), ("xgbl", "xgbl"),
+                    ("xgbd", "xgbd"), ("xgbc", "xgbc"), ("xgbs", "xgbs"), ("xgbn", "xgbn"), ("xgbw", "xgbw"),
+                ]
+                for short, label in xgb_map:
+                    val_str = getattr(self.params, short, None)
+                    if val_str:
+                        dl = val_str.split("|")
+                        p[label] = build_optuna_suggest(trial, label, dl[0], [float(e) for e in dl[1].split(",")])
+
+            # Assign sampled values back to self.params — logic identical to the old lossfn(p)
             if "featurizer" in p:
                 self.params.featurizer = p["featurizer"]
-
             if "descriptor_type" in p:
                 self.params.descriptor_type = p["descriptor_type"]
 
             if self.params.model_type == "RF":
                 if self.params.rfe:
-                    self.params.rf_estimators =  p["rf_estimators"]
+                    self.params.rf_estimators = p["rf_estimators"]
                 if self.params.rfd:
                     self.params.rf_max_depth = p["rf_max_depth"]
                 if self.params.rff:
@@ -1435,7 +1499,7 @@ class OptunaSearch():
                         self.params.layer_sizes = ",".join([str(p[e]) for e in p if e[:2] == "ls"])
                     else:
                         list_layer_sizes = [p["ls"]]
-                        for i in range(1,len([e for e in p if e[:5] == "ratio"])+1):
+                        for i in range(1, len([e for e in p if e[:5] == "ratio"]) + 1):
                             list_layer_sizes.append(int(list_layer_sizes[-1] * p[f"ratio{i}"]))
                         self.params.layer_sizes = ",".join([str(e) for e in list_layer_sizes])
                 hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}_{self.params.weight_decay_penalty_type}_{self.params.weight_decay_penalty}'
@@ -1488,7 +1552,7 @@ class OptunaSearch():
 
             tparam = parse.wrapper(self.params.__dict__)
             print(f"{self.params.model_type} model with {self.params.featurizer} and {self.params.descriptor_type}")
-            # make sure classification model has uncertainty as False. 
+            # make sure classification model has uncertainty as False.
             if tparam.prediction_type != "regression":
                 tparam.uncertainty = False
             pl = mp.ModelPipeline(tparam)
@@ -1497,7 +1561,7 @@ class OptunaSearch():
             try:
                 pl.train_model()
             except Exception:
-                self.log.exception('Exception found during hyperopt training')
+                self.log.exception('Exception found during Optuna training')
                 model_failed = True
 
             subsets = ["train", "valid", "test"]
@@ -1518,26 +1582,37 @@ class OptunaSearch():
                 else:
                     pred_results[subset]["roc_auc"] = sub_pred_results["roc_auc_score"]
                     pred_results[subset]["acc"] = sub_pred_results["accuracy_score"]
+
+            # Store per-trial extras as user attributes; return the scalar loss for Optuna.
+            trial.set_user_attr("model", tparam.model_tarball_path)
+            trial.set_user_attr("featurizer", tparam.featurizer)
+            trial.set_user_attr("desc", tparam.descriptor_type)
+            trial.set_user_attr("hp_params", hp_params)
             if tparam.prediction_type == "regression":
-                res_dict = {'loss': 1-pred_results["valid"]["r2"], 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+                loss = 1 - pred_results["valid"]["r2"]
                 for subset in subsets:
-                    res_dict[f"{subset}_r2"] = pred_results[subset]["r2"]
-                    res_dict[f"{subset}_rms"] = pred_results[subset]["rms"]
+                    trial.set_user_attr(f"{subset}_r2", pred_results[subset]["r2"])
+                    trial.set_user_attr(f"{subset}_rms", pred_results[subset]["rms"])
             else:
-                res_dict = {'loss': 100-pred_results["valid"]["roc_auc"], 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+                loss = 100 - pred_results["valid"]["roc_auc"]
                 for subset in subsets:
-                    res_dict[f"{subset}_roc_auc"] = pred_results[subset]["roc_auc"]
-                    res_dict[f"{subset}_acc"] = pred_results[subset]["acc"]
-            res_dict["hp_params"] = hp_params
+                    trial.set_user_attr(f"{subset}_roc_auc", pred_results[subset]["roc_auc"])
+                    trial.set_user_attr(f"{subset}_acc", pred_results[subset]["acc"])
 
             # print the model metrics as logs
             print()
             if tparam.prediction_type == "regression":
-                print(f'model_performance|{res_dict["train_r2"]:.3f}|{res_dict["train_rms"]:.3f}|{res_dict["valid_r2"]:.3f}|{res_dict["valid_rms"]:.3f}|{res_dict["test_r2"]:.3f}|{res_dict["test_rms"]:.3f}|{res_dict["hp_params"]}|{res_dict["model"]}\n')
+                print(f'model_performance|{pred_results["train"]["r2"]:.3f}|{pred_results["train"]["rms"]:.3f}'
+                      f'|{pred_results["valid"]["r2"]:.3f}|{pred_results["valid"]["rms"]:.3f}'
+                      f'|{pred_results["test"]["r2"]:.3f}|{pred_results["test"]["rms"]:.3f}'
+                      f'|{hp_params}|{tparam.model_tarball_path}\n')
             else:
-                print(f'model_performance|{res_dict["train_roc_auc"]:.3f}|{res_dict["train_acc"]:.3f}|{res_dict["valid_roc_auc"]:.3f}|{res_dict["valid_acc"]:.3f}|{res_dict["test_roc_auc"]:.3f}|{res_dict["test_acc"]:.3f}|{res_dict["hp_params"]}|{res_dict["model"]}\n')
+                print(f'model_performance|{pred_results["train"]["roc_auc"]:.3f}|{pred_results["train"]["acc"]:.3f}'
+                      f'|{pred_results["valid"]["roc_auc"]:.3f}|{pred_results["valid"]["acc"]:.3f}'
+                      f'|{pred_results["test"]["roc_auc"]:.3f}|{pred_results["test"]["acc"]:.3f}'
+                      f'|{hp_params}|{tparam.model_tarball_path}\n')
 
-            return res_dict
+            return loss
 
         if self.params.prediction_type == "regression":
             print('model_performance|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms|model_params|model\n')
@@ -1545,58 +1620,57 @@ class OptunaSearch():
             print('model_performance|train_roc_auc|train_acc|valid_roc_auc|valid_acc|test_roc_auc|test_acc|model_params|model\n')
 
         if self.params.hp_checkpoint_load is not None and os.path.isfile(self.params.hp_checkpoint_load):
-            print(f"load hpo trial object from {self.params.hp_checkpoint_load}")
+            print(f"load hpo study object from {self.params.hp_checkpoint_load}")
             with open(self.params.hp_checkpoint_load, "rb") as f:
-                trials = pickle.load(f)
+                study = pickle.load(f)
         else:
-            trials = Trials()
+            study = optuna.create_study(direction='minimize')
 
         if self.params.hp_checkpoint_save is not None:
             print("hp_checkpoint_save provided, save a checkpoint file every 5 trials.")
-            max_evals = 5
             while True:
                 if os.path.isfile(self.params.hp_checkpoint_save):
-                    print(f"load hpo trial object from {self.params.hp_checkpoint_save}")
+                    print(f"load hpo study object from {self.params.hp_checkpoint_save}")
                     with open(self.params.hp_checkpoint_save, "rb") as f:
-                        trials = pickle.load(f)
-                    max_evals = min(len(trials) + 5, self.max_eval)
-                else:
-                    max_evals = min(max_evals, self.max_eval)
+                        study = pickle.load(f)
+                n_done = len(study.trials)
+                n_new = min(5, self.max_eval - n_done)
 
-                _best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=max_evals, trials=trials)
+                study.optimize(objective, n_trials=n_new)
 
-                print(f"Save HPO trial object to {self.params.hp_checkpoint_save}")
+                print(f"Save HPO study object to {self.params.hp_checkpoint_save}")
                 with open(self.params.hp_checkpoint_save, "wb") as f:
-                    pickle.dump(trials, f)
+                    pickle.dump(study, f)
 
-                if max_evals == self.max_eval:
+                if len(study.trials) >= self.max_eval:
                     break
         else:
-            _best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
+            study.optimize(objective, n_trials=self.max_eval)
 
         print("Generating the performance -- iteration table and Copy the best model tarball.")
 
-        feat_list = [trials.trials[i]["result"]["featurizer"] for i in range(len(trials.trials))]
-        desc_list = [trials.trials[i]["result"]["desc"] for i in range(len(trials.trials))]
-        hp_params_list = [trials.trials[i]["result"]["hp_params"] for i in range(len(trials.trials))]
-        trial_data = {"trial": list(range(len(trials.trials))), "featurizer": feat_list, "descriptor": desc_list, "model_params": hp_params_list}
+        n_trials = len(study.trials)
+        feat_list = [study.trials[i].user_attrs["featurizer"] for i in range(n_trials)]
+        desc_list = [study.trials[i].user_attrs["desc"] for i in range(n_trials)]
+        hp_params_list = [study.trials[i].user_attrs["hp_params"] for i in range(n_trials)]
+        trial_data = {"trial": list(range(n_trials)), "featurizer": feat_list, "descriptor": desc_list, "model_params": hp_params_list}
         subsets = ["train", "valid", "test"]
         for subset in subsets:
             if self.params.prediction_type == "regression":
-                trial_data[f"{subset}_r2"] = [trials.trials[i]["result"][f"{subset}_r2"] for i in range(len(trials.trials))]
-                trial_data[f"{subset}_rms"] = [trials.trials[i]["result"][f"{subset}_rms"] for i in range(len(trials.trials))]
+                trial_data[f"{subset}_r2"] = [study.trials[i].user_attrs[f"{subset}_r2"] for i in range(n_trials)]
+                trial_data[f"{subset}_rms"] = [study.trials[i].user_attrs[f"{subset}_rms"] for i in range(n_trials)]
             else:
-                trial_data[f"{subset}_roc_auc"] = [trials.trials[i]["result"][f"{subset}_roc_auc"] for i in range(len(trials.trials))]
-                trial_data[f"{subset}_acc"] = [trials.trials[i]["result"][f"{subset}_acc"] for i in range(len(trials.trials))]
+                trial_data[f"{subset}_roc_auc"] = [study.trials[i].user_attrs[f"{subset}_roc_auc"] for i in range(n_trials)]
+                trial_data[f"{subset}_acc"] = [study.trials[i].user_attrs[f"{subset}_acc"] for i in range(n_trials)]
         perf = pd.DataFrame(trial_data)
 
         if self.params.prediction_type == "regression":
             best_trial = perf.sort_values(by="valid_r2", ascending=False)["trial"].iloc[0]
-            best_model = trials.trials[best_trial]["result"]["model"]
+            best_model = study.trials[best_trial].user_attrs["model"]
             print(f'Best model: {best_model}, valid R2: {perf.sort_values(by="valid_r2", ascending=False)["valid_r2"].iloc[0]}')
         else:
             best_trial = perf.sort_values(by="valid_roc_auc", ascending=False)["trial"].iloc[0]
-            best_model = trials.trials[best_trial]["result"]["model"]
+            best_model = study.trials[best_trial].user_attrs["model"]
             print(f'Best model: {best_model}, valid ROC_AUC: {perf.sort_values(by="valid_roc_auc", ascending=False)["valid_roc_auc"].iloc[0]}')
 
         bmodel_prefix = "_".join(os.path.basename(best_model).split("_")[:-1])
@@ -1606,7 +1680,7 @@ class OptunaSearch():
         if os.path.isfile(best_model):
             # if the model tracker is used, the model won't be saved to the result_dir
             shutil.copy2(best_model, os.path.join(self.final_dir,
-                                              f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{fd}_{bmodel_uuid}.tar.gz"))
+                                                   f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{fd}_{bmodel_uuid}.tar.gz"))
 
 def parse_params(param_list):
     """Parse paramters
