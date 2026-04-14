@@ -27,6 +27,7 @@ In addition to our written tutorials, we now provide a series of video tutorials
 ## Table of contents
 - [Installation](#installation)
   - [What is `uv`?](#what-is-uv)
+  - [Repository helper scripts](#repository-helper-scripts)
   - [Requirements](#requirements)
   - [Install `uv`](#install-uv)
   - [Clone the repository](#clone-the-repository)
@@ -61,10 +62,6 @@ For installation on Apple Silicon M Chips, please see the Docker container instr
 
 AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependency management.
 
-## Installation
-
-AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependency management.
-
 ### What is `uv`?
 
 `uv` is a fast Python tool used in this project to:
@@ -75,14 +72,32 @@ AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependen
 | Sync dependencies from `pyproject.toml` | `uv sync` |
 | Install packages into the environment | `uv pip install` |
 
-AMPL environments are created from:
+### Repository helper scripts
 
-- `pyproject.toml`
-- platform-specific lockfiles:
-  - `uv.lock.cpu`
-  - `uv.lock.cuda`
-  - `uv.lock.rocm`
-  - `uv.lock.mchip`
+This repository includes two helper scripts that wrap the `uv` workflow for each supported platform.
+
+| Script | Purpose | What it does |
+|---|---|---|
+| `update_uv_lock.sh` | Regenerate a platform lockfile | Creates a fresh `uv` virtual environment, installs platform-specific packages, runs `uv sync`, then saves the result as `uv.lock.<platform>` |
+| `sync_uv_env.sh` | Recreate a platform environment from a lockfile | Copies `uv.lock.<platform>` to `uv.lock`, creates a fresh `uv` virtual environment, installs platform-specific packages, then runs `uv sync --locked` |
+
+These scripts tie directly to the `uv` virtual environment workflow:
+
+| Platform | Virtual environment | Lockfile |
+|---|---|---|
+| CPU | `.venv-cpu` | `uv.lock.cpu` |
+| CUDA | `.venv-cuda` | `uv.lock.cuda` |
+| ROCm | `.venv-rocm` | `uv.lock.rocm` |
+| Apple Silicon / M chip | `.venv-mchip` | `uv.lock.mchip` |
+
+In practice:
+
+- run `./update_uv_lock.sh <platform>` when dependencies change and a lockfile needs to be refreshed
+- run `./sync_uv_env.sh <platform>` when you want to create a local environment from the saved lockfile
+- activate the created environment with `source .venv-<platform>/bin/activate`
+
+-**Note:** `./update_uv_lock.sh` is for internal admin/support use only. Do not run it unless `pyproject.toml` has changed. When it does change, update and quick-test on all supported platforms, then push uv.lock.<platform> to the AMPL git repo.`
+
 
 ### Requirements
 
@@ -133,7 +148,7 @@ The following settings may be useful depending on your platform and runtime envi
 | Platform | Optional setup | Useful environment variables |
 |---|---|---|
 | CPU | none | `export OPENBLAS_NUM_THREADS=1` |
-| CUDA | load site CUDA module if required | `export CUDA_HOME=/usr/local/cuda`<br>`export PATH="$CUDA_HOME/bin:$PATH"`<br>`export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$LD_LIBRARY_PATH"`|
+| CUDA | load site CUDA module if required | `module load cuda`<br>`export CUDA_HOME=/usr/local/cuda`<br>`export PATH="$CUDA_HOME/bin:$PATH"`<br>`export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$LD_LIBRARY_PATH"`|
 | ROCm | site-specific ROCm setup if required | `module load rocm`<br>`export ROCM_HOME="$(dirname "$(dirname "$(readlink -f "$(which hipcc)")")")"`<br>`export PATH="$ROCM_HOME/bin:$PATH"`|
 | Apple Silicon / M chip | none | usually none required |
 
@@ -147,8 +162,6 @@ If `pyproject.toml` dependencies are updated, regenerate the lockfile for the ap
 | CUDA | `./update_uv_lock.sh cuda` | `uv.lock.cuda` |
 | ROCm | `./update_uv_lock.sh rocm` | `uv.lock.rocm` |
 | Apple Silicon / M chip | `./update_uv_lock.sh mchip` | `uv.lock.mchip` |
-
-**Note:** This is for administrative, internal support. Please don't run this if `pyproject.toml` hasn't been changed. Ideally we want to retest on all supported platforms when `pyproject.toml` configuration changes. After the quick tests, push `uv.lock.<platform>` to AMPL's git repo.
 
 ## Troubleshooting
 
@@ -181,7 +194,7 @@ which pytest
 
 They should come from the virtual env, like '.venv-cpu/bin/python', '.venv-cpu/bin/pytest'
 
-If fails, refer to [Package import fails](#package-import-fails), use `uv sync ...` command shown there to get your VM sync up.
+If fails, refer to [Package import fails](#package-import-fails), use `uv sync --active --group dev --extra <platform>` command shown there to get your VM sync up.
 
 ### Library not found after activation
 
@@ -195,7 +208,7 @@ If needed, set:
 export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH
 ```
 
-If fails, refer to [Package import fails](#package-import-fails), use `uv sync ...` command shown there to get your VM sync up.
+If fails, refer to [Package import fails](#package-import-fails), use `uv sync --active --group dev --extra <platform>` command shown there to get your VM sync up.
 
 ### Package import fails
 
