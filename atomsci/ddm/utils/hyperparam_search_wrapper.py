@@ -1332,12 +1332,12 @@ def build_optuna_suggest(trial, label, method, param_list):
     else:
         raise ValueError(f"Method {method} is not supported, choose from 'choice, uniform, loguniform, uniformint'.")
 
-class HyperOptSearch():
-    """Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)
+class OptunaSearch():
+    """Perform hyperparameter search with Bayesian Optimization (Tree Parzen Estimator) using Optuna.
 
-    To use HyperOptSearch, modify the config json file as follows:
+    To use OptunaSearch, modify the config json file as follows:
 
-        serach_type: use "hyperopt"
+        search_type: use "hyperopt"
 
         result_dir: use two directories (recommended), separated by comma, 1st one will be used to save the best model tarball, 2nd one will be used to store all models during the process.  e.g. "result_dir": "/path/of/the/final/dir,/path/of/the/temp/dir"
 
@@ -1346,7 +1346,7 @@ class HyperOptSearch():
         lr: specify learning rate searching method and related parameters as the following scheme.
             method|parameter1,parameter2...
 
-            method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, and uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
+            method: supported searching schemes include: choice, uniform, loguniform, and uniformint. See Optuna documentation for details.
 
     parameters:
         choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
