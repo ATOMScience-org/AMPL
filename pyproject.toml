@@ -63,7 +63,7 @@ cpu = [
   "torch==2.1.2",
   "torchdata==0.7.1",
   "tensorflow-cpu~=2.14.0; platform_system == 'Linux'",
-  "tensorflow~=2.14.0; platform_system == 'Darwin'",
+  "tensorflow-macos~=2.14.0; platform_system == 'Darwin'",
   "dgl==2.1.0",
   "dgllife==0.3.2",
   "torch-geometric==2.7.0",
@@ -90,7 +90,7 @@ rocm = [
 mchip = [
   "torch==2.1.2",
   "torchdata==0.7.1",
-  "tensorflow~=2.14.0",
+  "tensorflow-macos~=2.14.0",
   "dgl==2.1.0",
   "dgllife==0.3.2",
   "torch-geometric==2.7.0",
