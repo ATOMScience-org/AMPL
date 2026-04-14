@@ -1753,7 +1753,7 @@ def build_search(params):
     elif params.search_type == 'user_specified':
         hs = UserSpecifiedSearch(params)
     elif params.search_type == 'hyperopt':
-        hs = HyperOptSearch(params)
+        hs = OptunaSearch(params)
     else:
         print("Incorrect search type specified")
         sys.exit(1)
