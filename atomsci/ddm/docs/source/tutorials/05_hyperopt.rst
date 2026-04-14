@@ -41,7 +41,7 @@ functions:
 
 -  `parse_params <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.parse_params>`_
 -  `build_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.build_search>`_
--  `run_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.HyperOptSearch.run_search>`_
+-  `run_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.OptunaSearch.run_search>`_
 -  `get_filesystem_perf_results <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.compare_models.get_filesystem_perf_results>`_
 
 The first three functions in the above list come from the
@@ -250,7 +250,7 @@ Below are some parameters that can be used for **neural networks**,
 set of parameters can be used to replace the parameters above. Trying
 them out is left as an exercise for the reader.
 
-Neural Network Hyperopt Search
+Neural Network Optuna Search
 ------------------------------
 
 .. list-table::

@@ -1088,7 +1088,7 @@ in the same way as model parameters.
 ## Bayesian Optimization  
 ### Search Domain Specifications
 The following parameters are used to specify the search domains for certain model parameters in a Bayesian hyperparameter optimization. Each search domain parameter is
-tied to a specific model parameter. Only a subset of model parameters may be optimized in this way, but more will be supported in future releases. See the hyperopt package documentation at https://github.com/hyperopt/hyperopt/wiki/FMin#2-defining-a-search-space to learn more about the search domain format.
+tied to a specific model parameter. Only a subset of model parameters may be optimized in this way, but more will be supported in future releases. See the Optuna documentation at https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html to learn more about the search domain format.
 
 - **lr**  
   
