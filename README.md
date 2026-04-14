@@ -25,11 +25,20 @@ In addition to our written tutorials, we now provide a series of video tutorials
 
 ---
 ## Table of contents
-- [Install](#install)
-   - [Quick Install](#installation-quick-summary)
-   - [Jupyter kernel](#create-jupyter-notebook-kernel-optional)
-   - [Docker](#install-with-docker)
-   - [Uninstall](#uninstall)
+- [Installation](#installation)
+  - [What is `uv`?](#what-is-uv)
+  - [Requirements](#requirements)
+  - [Install `uv`](#install-uv)
+  - [Clone the repository](#clone-the-repository)
+- [Create and activate an environment](#create-and-activate-an-environment)
+- [Platform-specific setup](#platform-specific-setup)
+- [Update lockfiles](#update-lockfiles)
+- [Troubleshooting](#troubleshooting)
+  - [`uv` not found](#uv-not-found)
+  - [Missing lockfile](#missing-lockfile)
+  - [Wrong Python/Pytest](#wrong-python-pytest)
+  - [Library not found after activation](#library-not-found-after-activation)
+  - [Package import fails](#package-import-fails)
 - [AMPL Features](#ampl-features)
 - [Running AMPL](#running-ampl)
 - [Tests](#tests)
@@ -44,85 +53,171 @@ In addition to our written tutorials, we now provide a series of video tutorials
 - [Pipeline parameters (options)](atomsci/ddm/docs/PARAMETERS.md)
 - [Library documentation](https://ampl.readthedocs.io/en/latest/index.html)
 ---
-## Install
-AMPL 1.8 supports Python 3.10 CPU or CUDA-enabled machines using CUDA 11.8 on Linux. All other systems are experimental. For a quick install summary, see [here](#install-summary). We do not support other CUDA versions because there are multiple ML package dependency conflicts that can occur. For more information you can look at [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), [DGL](https://www.dgl.ai/pages/start.html).
+
+## Installation
+AMPL 1.8 supports Python 3.10 CPU or CUDA-enabled machines using CUDA 11.8 on Linux. All other systems are experimental. For a quick install summary, see [here](#install-summary). For more information you can look at [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), [DGL](https://www.dgl.ai/pages/start.html).
 
 For installation on Apple Silicon M Chips, please see the Docker container instructions.
 
-### Create pip environment
+AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependency management.
 
-#### 1. Create a virtual env with Python 3.10
-Make sure to create your virtual env in a convenient directory that has at least 12Gb space.
+## Installation
 
-Go to the directory where the new environment directory be installed in. Define an environment variable - "ENVROOT".
+AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependency management.
 
+### What is `uv`?
+
+`uv` is a fast Python tool used in this project to:
+
+| Use | Command |
+|---|---|
+| Create virtual environments | `uv venv` |
+| Sync dependencies from `pyproject.toml` | `uv sync` |
+| Install packages into the environment | `uv pip install` |
+
+AMPL environments are created from:
+
+- `pyproject.toml`
+- platform-specific lockfiles:
+  - `uv.lock.cpu`
+  - `uv.lock.cuda`
+  - `uv.lock.rocm`
+  - `uv.lock.mchip`
+
+### Requirements
+
+| Item | Requirement |
+|---|---|
+| Python | 3.10 |
+| Supported range | `>=3.10,<3.11` |
+| Platforms | `cpu`, `cuda`, `rocm`, `mchip` |
+
+### Install `uv`
+
+Install `uv` using one of the following methods:
 ```bash
-export ENVROOT=~/workspace # for LLNL LC users, use your workspace
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 or
-export ENVROOT=~ # or the directory as your environment root
-```
-
-> *We use "workspace" and "atomsci-env" as an example here.*
-
 ```bash
-# LLNL only:
-# module load python/3.10.8
-cd $ENVROOT
-python3.10 -m venv atomsci-env
+pip install uv
 ```
-
-#### 2. Activate the environment
+Verify installation:
 ```bash
-source $ENVROOT/atomsci-env/bin/activate
+uv --version
 ```
-
-#### 3. Update pip
-```bash
-pip install pip --upgrade
-```
-
-#### 4. Clone AMPL repository
+### Clone the repository
 ```bash
 git clone https://github.com/ATOMScience-org/AMPL.git
+cd AMPL
 ```
+## Create and activate an environment
 
-#### 5. Install pip requirements
-Depending on system performance, creating the environment can take some time.
-> ***Note:*** *Based on which environment (CPU or CUDA) to run on, only run one of the following:*
+Use the provided sync script for your target platform.
 
-- CPU-only installation:
+| Platform | Sync command | Environment | Activate command |
+|---|---|---|---|
+| CPU | `./sync_uv_env.sh cpu` | `.venv-cpu` | `source .venv-cpu/bin/activate` |
+| CUDA | `./sync_uv_env.sh cuda` | `.venv-cuda` | `source .venv-cuda/bin/activate` |
+| ROCm | `./sync_uv_env.sh rocm` | `.venv-rocm` | `source .venv-rocm/bin/activate` |
+| Apple Silicon / M chip | `./sync_uv_env.sh mchip` | `.venv-mchip` | `source .venv-mchip/bin/activate` |
+
+After activating the environment, install AMPL in editable mode:
 ```bash
-cd AMPL/pip
-pip install -r cpu_requirements.txt
+uv pip install -e .
+```
+## Platform-specific setup
+
+The following settings may be useful depending on your platform and runtime environment.
+
+| Platform | Optional setup | Useful environment variables |
+|---|---|---|
+| CPU | none | `export OPENBLAS_NUM_THREADS=1` |
+| CUDA | load site CUDA module if required | `export CUDA_HOME=/usr/local/cuda`<br>`export PATH="$CUDA_HOME/bin:$PATH"`<br>`export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$LD_LIBRARY_PATH"`|
+| ROCm | site-specific ROCm setup if required | `module load rocm`<br>`export ROCM_HOME="$(dirname "$(dirname "$(readlink -f "$(which hipcc)")")")"`<br>`export PATH="$ROCM_HOME/bin:$PATH"`|
+| Apple Silicon / M chip | none | usually none required |
+
+## Update lockfiles
+
+If `pyproject.toml` dependencies are updated, regenerate the lockfile for the appropriate target platform.
+
+| Platform | Command | Lockfile |
+|---|---|---|
+| CPU | `./update_uv_lock.sh cpu` | `uv.lock.cpu` |
+| CUDA | `./update_uv_lock.sh cuda` | `uv.lock.cuda` |
+| ROCm | `./update_uv_lock.sh rocm` | `uv.lock.rocm` |
+| Apple Silicon / M chip | `./update_uv_lock.sh mchip` | `uv.lock.mchip` |
+
+**Note:** This is for administrative, internal support. Please don't run this if `pyproject.toml` hasn't been changed. Ideally we want to retest on all supported platforms when `pyproject.toml` configuration changes. After the quick tests, push `uv.lock.<platform>` to AMPL's git repo.
+
+## Troubleshooting
+
+### `uv` not found
+
+Install `uv`, then verify:
+```bash
+uv --version
+```
+If needed, start a new shell session or update your `PATH`.
+
+### Missing lockfile
+
+If you see:
+```bash
+Missing lockfile: uv.lock.<platform>
+```
+run:
+```bash
+./update_uv_lock.sh <platform>
+```
+### Wrong Python, Pytest
+
+Check that Python 3.10 is being used:
+```bash
+which python
+python --version
+which pytest
 ```
 
-- CUDA installation:
+They should come from the virtual env, like '.venv-cpu/bin/python', '.venv-cpu/bin/pytest'
 
-First load the CUDA module. Then run cuda specific package install.
+If fails, refer to [Package import fails](#package-import-fails), use `uv sync ...` command shown there to get your VM sync up.
+
+### Library not found after activation
+
+Confirm the correct environment is active:
+```bash
+which python
+echo $VIRTUAL_ENV
+```
+If needed, set:
+```bash
+export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH
+```
+
+If fails, refer to [Package import fails](#package-import-fails), use `uv sync ...` command shown there to get your VM sync up.
+
+### Package import fails
+
+Try:
+```bash
+python -c "import torch; print(torch.__version__)"
+python -c "import tensorflow as tf; print(tf.__version__)"
+python -c "import rdkit; print('rdkit ok')"
+```
+If imports fail, rerun:
 
 ```bash
-cd AMPL/pip
-# LLNL only:
-# module load cuda/11.8
-pip install -r cuda_requirements.txt
-```
-If you get `out of memory` errors, try setting these environment variables:
-```
-export LD_LIBRARY_PATH=<your_env>/lib:$LD_LIBRARY_PATH
-export PYTHONUSERBASE=<your_env>
-export OPENBLAS_NUM_THREADS=1
-export OMP_NUM_THREADS=48
-export PYTORCH_HIP_ALLOC_CONF=gargage_collection_threshold:0.9,max_split_size_mb:128
-export TF_FORCE_GPU_ALLOW_GROWTH=true
+./sync_uv_env.sh <platform>
 ```
 
-- Install pytest, plotting packages for development, test use.
+If still not finding the packages, from your current .venv-<platform>, then run this:
 
-```bash
-cd AMPL/pip
-pip install -r dev_requirements.txt
 ```
-#### 6. *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
+uv sync --active --group dev --extra <platform>
+```
+
+#### *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
 ```bash
 # LLNL only: required for ATOM model_tracker
 pip install -r clients_requirements.txt
@@ -133,32 +228,6 @@ Run the following to build the "atomsci" modules. This is required.
 
 ```bash
 # return to AMPL parent directory
-cd ..
-./build.sh
-pip install -e .
-```
----
-## Installation Quick Summary
-```bash
-export ENVROOT=~/workspace           # set ENVROOT example
-# LLNL only:
-# module load python/3.10.8
-
-python3.10 -m venv atomsci-env        # create environment with Python 3.10
-source $ENVROOT/atomsci-env/bin/activate
-pip install pip --upgrade
-
-git clone https://github.com/ATOMScience-org/AMPL.git # clone AMPL
-cd AMPL/pip
-# LLNL only:
-# If use CUDA:
-# module load cuda/11.8
-pip install -r cpu_requirements.txt    # install cpu_requirements.txt OR cuda_requirements.txt
-pip install -r dev_requirements.txt    # install pytest, plotting packages.
-
-# LLNL only: required for ATOM model_tracker
-# pip install -r clients_requirements.txt
-
 cd ..
 ./build.sh
 pip install -e .
