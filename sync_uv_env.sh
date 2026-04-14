@@ -46,22 +46,22 @@ case "$platform" in
     uv pip install --python "$venv_dir/bin/python" \
       --index-url https://download.pytorch.org/whl/cpu \
       torch==2.1.2 torchdata==0.7.1
-    VIRTUAL_ENV="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cpu --group dev --locked
+    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cpu --group dev --locked
     ;;
   cuda)
     uv pip install --python "$venv_dir/bin/python" \
       --index-url https://download.pytorch.org/whl/cu121 \
       torch==2.1.2 torchdata==0.7.1
-    VIRTUAL_ENV="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cuda --group dev --locked
+    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cuda --group dev --locked
     ;;
   rocm)
     uv pip install --python "$venv_dir/bin/python" \
       --index-url https://download.pytorch.org/whl/rocm5.6 \
       torch==2.1.2 torchdata==0.7.1
-    VIRTUAL_ENV="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra rocm --group dev --locked
+    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra rocm --group dev --locked
     ;;
   mchip)
-    VIRTUAL_ENV="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra mchip --group dev --locked
+    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra mchip --group dev --locked
     ;;
   *)
     echo "Invalid platform: $platform"
@@ -69,4 +69,7 @@ case "$platform" in
     ;;
 esac
 
-echo "Synced $venv_dir from $lockfile"
+# Install AMPL in editable mode without re-resolving dependencies.
+uv pip install --python "$venv_dir/bin/python" -e . --no-deps
+
+echo "Synced $venv_dir from $lockfile and installed AMPL editable (--no-deps)"
