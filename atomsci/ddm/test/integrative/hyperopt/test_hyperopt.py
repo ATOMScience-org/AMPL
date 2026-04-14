@@ -28,8 +28,8 @@ def test():
     # -----
     clean()
 
-    # Run HyperOpt
-    # ------------
+    # Run Optuna search
+    # -----------------
     with open("H1_RF_hyperopt.json", "r") as f:
         hp_params = json.load(f)
 
