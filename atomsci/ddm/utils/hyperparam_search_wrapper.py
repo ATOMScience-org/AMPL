@@ -28,7 +28,6 @@ import pickle
 import math
 
 import optuna
-optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import model_pipeline as mp
@@ -36,8 +35,9 @@ from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import model_tracker as trkr
-logging.basicConfig(format='%(asctime)-15s %(message)s')
 
+logging.basicConfig(format='%(asctime)-15s %(message)s')
+optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 
 def run_command(shell_script, python_path, script_dir, params):
