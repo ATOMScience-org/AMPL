@@ -182,10 +182,11 @@ def _build_optuna_params(tmpdir, prediction_type):
 def test_optuna_objective_sanitizes_non_finite_regression_metrics(monkeypatch):
     with tempfile.TemporaryDirectory() as td:
         params = _build_optuna_params(td, 'regression')
+        study = _FakeStudy()
 
         monkeypatch.setattr(hsw.mp, 'ModelPipeline', _FakeModelPipeline)
         monkeypatch.setattr(hsw.parse, 'wrapper', lambda d: SimpleNamespace(**d, model_tarball_path='/tmp/fake_reg_model.tar.gz'))
-        monkeypatch.setattr(hsw.optuna, 'create_study', lambda direction='minimize': _FakeStudy())
+        monkeypatch.setattr(hsw.optuna, 'create_study', lambda direction='minimize': study)
 
         search = hsw.OptunaSearch(params)
         search.run_search()
@@ -195,15 +196,18 @@ def test_optuna_objective_sanitizes_non_finite_regression_metrics(monkeypatch):
         perf_df = pd.read_csv(os.path.join(td, perf_files[0]))
         assert perf_df['valid_r2'].iloc[0] == 0
         assert perf_df['valid_rms'].iloc[0] == 100
+        assert len(study.trials) > 0
+        assert all(np.isfinite([trial.value for trial in study.trials]))
 
 
 def test_optuna_objective_sanitizes_non_finite_classification_metrics(monkeypatch):
     with tempfile.TemporaryDirectory() as td:
         params = _build_optuna_params(td, 'classification')
+        study = _FakeStudy()
 
         monkeypatch.setattr(hsw.mp, 'ModelPipeline', _FakeModelPipeline)
         monkeypatch.setattr(hsw.parse, 'wrapper', lambda d: SimpleNamespace(**d, model_tarball_path='/tmp/fake_cls_model.tar.gz'))
-        monkeypatch.setattr(hsw.optuna, 'create_study', lambda direction='minimize': _FakeStudy())
+        monkeypatch.setattr(hsw.optuna, 'create_study', lambda direction='minimize': study)
 
         search = hsw.OptunaSearch(params)
         search.run_search()
@@ -213,3 +217,5 @@ def test_optuna_objective_sanitizes_non_finite_classification_metrics(monkeypatc
         perf_df = pd.read_csv(os.path.join(td, perf_files[0]))
         assert perf_df['valid_roc_auc'].iloc[0] == 0
         assert perf_df['valid_acc'].iloc[0] == 0
+        assert len(study.trials) > 0
+        assert all(np.isfinite([trial.value for trial in study.trials]))

@@ -7,6 +7,7 @@ Edited by AKP, 2025-02-22
 import os
 import json
 import tarfile
+import shutil
 import pytest
 import pandas as pd
 from glob import glob
@@ -28,7 +29,7 @@ def sample_result_dir():
     assert result_dir.exists(), f"Directory {result_dir} does not exist."
     return result_dir
 
-# @pytest.fixture
+@pytest.fixture
 def unpack_tar_files(sample_result_dir):
     """Fixture to create a model directories with unpacked tar files"""
 
@@ -49,33 +50,25 @@ def unpack_tar_files(sample_result_dir):
         with tarfile.open(tar_file, mode='r:gz') as tar:
             futils.safe_extract(tar, path=extract_location)
 
-    return delete_dirs
+    yield delete_dirs
 
-# @pytest.fixture
-def delete_model_dirs(delete_dirs):
-    """Fixture to clean up model directories after tests"""
-    yield
-    # Cleanup
+    # Cleanup extracted trees even when they contain files.
     for dir in delete_dirs:
         if os.path.exists(dir):
-            os.rmdir(dir)
+            shutil.rmtree(dir, ignore_errors=True)
 
 
 # --------------------------
 # Core Functionality Tests
 # --------------------------
 
-def test_basic_directory_processing(sample_result_dir):
+def test_basic_directory_processing(sample_result_dir, unpack_tar_files):
     """Test basic JSON model discovery and processing"""
-
-    delete_dirs=unpack_tar_files(sample_result_dir)
 
     df = compare_models.get_multitask_perf_from_files_new(
         str(sample_result_dir),
         pred_type='regression'
     )
-
-    delete_model_dirs(delete_dirs)
 
     assert df.model_uuid.nunique() == 5, f"Expected 5 unique models, but got {df.model_uuid.nunique()}"
     assert all(df.prediction_type == 'regression'), "Not all rows have 'regression' as prediction_type"
@@ -211,6 +204,90 @@ def test_get_multitask_perf_from_files_new_returns_empty_df_for_non_matching_dat
     )
     assert isinstance(df, pd.DataFrame)
     assert df.empty
+
+
+def test_get_multitask_perf_from_files_new_handles_missing_seed_and_time_built(tmp_path):
+    model_dir = tmp_path / 'model_missing_fields'
+    model_dir.mkdir()
+
+    metadata = {
+        'model_uuid': 'm-1',
+        'splitting_parameters': {
+            'splitter': 'random',
+            'split_strategy': 'train_valid_test',
+            'split_valid_frac': 0.1,
+            'split_test_frac': 0.1,
+            'split_uuid': 'split-1',
+        },
+        'model_parameters': {
+            'ampl_version': '0.0.0-test',
+            'model_type': 'RF',
+            'prediction_type': 'regression',
+            'featurizer': 'ecfp',
+            'descriptor_type': 'none',
+            'num_model_tasks': 1,
+            'production': False,
+            'model_choice_score_type': 'r2',
+        },
+        'training_dataset': {
+            'dataset_key': 'toy.csv',
+            'response_cols': ['y'],
+            'feature_transform_type': 'none',
+            'response_transform_type': 'none',
+            'weight_transform_type': 'none',
+            'smiles_col': 'smiles',
+        },
+        'training_metrics': [
+            {
+                'label': 'best',
+                'subset': 'train',
+                'prediction_results': {
+                    'r2_score': 0.1,
+                    'rms_score': 1.0,
+                    'mae_score': 1.0,
+                    'num_compounds': 4,
+                    'model_choice_score': 0.1,
+                },
+            },
+            {
+                'label': 'best',
+                'subset': 'valid',
+                'prediction_results': {
+                    'r2_score': 0.1,
+                    'rms_score': 1.0,
+                    'mae_score': 1.0,
+                    'num_compounds': 4,
+                    'model_choice_score': 0.1,
+                },
+            },
+            {
+                'label': 'best',
+                'subset': 'test',
+                'prediction_results': {
+                    'r2_score': 0.1,
+                    'rms_score': 1.0,
+                    'mae_score': 1.0,
+                    'num_compounds': 4,
+                    'model_choice_score': 0.1,
+                },
+            },
+        ],
+    }
+
+    metadata_path = model_dir / 'model_metadata.json'
+    with open(metadata_path, 'w') as f:
+        json.dump(metadata, f)
+
+    tar_path = tmp_path / 'model_missing_fields.tar.gz'
+    with tarfile.open(tar_path, mode='w:gz') as tar:
+        tar.add(metadata_path, arcname='model_metadata.json')
+
+    df = compare_models.get_multitask_perf_from_files_new(str(tmp_path), pred_type='regression', tar=True)
+    assert len(df) == 1
+    assert 'seed' in df.columns
+    assert 'time_built' in df.columns
+    assert pd.isna(df['seed'].iloc[0])
+    assert pd.isna(df['time_built'].iloc[0])
 
 # --------------------------
 # main

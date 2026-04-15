@@ -343,6 +343,20 @@ def test_safe_regression_score_penalizes_when_invalid_fraction_exceeds_threshold
     assert score == -1.0e12
 
 
+@pytest.mark.parametrize(
+    'score_type,expected_penalty',
+    [('mae', 1.0e12), ('rmse', 1.0e12)],
+)
+def test_safe_regression_score_penalty_direction_for_loss_metrics(score_type, expected_penalty):
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=0.10))
+
+    y_real = np.array([0.0, 1.0, 2.0, 3.0], dtype=float)
+    y_pred = np.array([0.0, np.nan, np.nan, 3.0], dtype=float)
+    score = perf_data._safe_regression_score(score_type, y_real, y_pred)
+
+    assert score == expected_penalty
+
+
 def test_safe_classification_score_filters_when_invalid_fraction_within_threshold():
     perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=0.50))
 
@@ -360,6 +374,57 @@ def test_safe_classification_score_penalizes_when_invalid_fraction_exceeds_thres
     y_pred = np.array([0, 1, np.nan, 0], dtype=float)
     score = perf_data._safe_classification_score('accuracy', y_real, y_pred)
 
+    assert score == 0.0
+
+
+@pytest.mark.parametrize(
+    'score_type,y_real,y_pred,expected_value',
+    [
+        ('roc_auc', np.array([0, 1, 0, 1], dtype=int), np.array([0.1, 0.9, np.nan, 0.8], dtype=float), 1.0),
+        ('avg_precision', np.array([0, 1, 0, 1], dtype=int), np.array([0.1, 0.9, np.nan, 0.8], dtype=float), 1.0),
+    ],
+)
+def test_safe_classification_probability_metrics_filter_small_invalid_fraction(score_type, y_real, y_pred, expected_value):
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=0.50))
+
+    score = perf_data._safe_classification_score(score_type, y_real, y_pred)
+    assert np.isclose(score, expected_value)
+
+
+def test_safe_classification_cross_entropy_filter_small_invalid_fraction():
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=0.50))
+
+    y_real = np.array([0, 1, 0, 1], dtype=int)
+    y_pred = np.array([0.2, 0.8, np.nan, 0.7], dtype=float)
+    score = perf_data._safe_classification_score('cross_entropy', y_real, y_pred)
+    expected = perf_data.log_loss(np.array([0, 1, 1]), np.array([0.2, 0.8, 0.7]))
+    assert np.isclose(score, expected)
+
+
+def test_safe_classification_cross_entropy_penalty_when_invalid_fraction_exceeds_threshold():
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=0.10))
+
+    y_real = np.array([0, 1, 0, 1], dtype=int)
+    y_pred = np.array([0.2, np.nan, np.nan, 0.7], dtype=float)
+    score = perf_data._safe_classification_score('cross_entropy', y_real, y_pred)
+    assert score == 1.0e12
+
+
+def test_safe_regression_score_returns_penalty_for_all_invalid_rows():
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=0.99))
+
+    y_real = np.array([np.nan, np.nan], dtype=float)
+    y_pred = np.array([np.nan, np.nan], dtype=float)
+    score = perf_data._safe_regression_score('r2', y_real, y_pred)
+    assert score == -1.0e12
+
+
+def test_safe_classification_score_returns_penalty_for_shape_mismatch():
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=0.50))
+
+    y_real = np.array([0, 1, 0], dtype=int)
+    y_pred = np.array([0.1, np.nan], dtype=float)
+    score = perf_data._safe_classification_score('accuracy', y_real, y_pred)
     assert score == 0.0
 
 
@@ -390,21 +455,28 @@ def test_max_invalid_pred_frac_clamps_out_of_range_values():
 
 
 def test_simple_regression_prediction_results_include_invalid_prediction_fields():
-    res_dir, tmp_dskey = setup_paths()
+    class _RegDataset:
+        def __init__(self):
+            self.ids = np.array([0, 1, 2, 3])
+            self.y = np.array([[0.0], [1.0], [2.0], [3.0]], dtype=float)
+            self.w = np.ones((4, 1), dtype=float)
 
-    params = read_params(
-        make_relative_to_file('config_perf_data_SimpleRegressionPerfData.json'),
-        res_dir, tmp_dskey)
+    class _RegModelDataset:
+        def __init__(self):
+            dset = _RegDataset()
+            self.train_valid_dsets = [(dset, dset)]
+            self.dataset = dset
+            self.test_dset = dset
+            self._responses = dset.y
 
-    pparams = parse.wrapper(params)
-    mp = model_pipeline.ModelPipeline(pparams)
-    mp.train_model()
+        def get_untransformed_responses(self, ids):
+            return self._responses[np.array(ids, dtype=int)]
 
-    perf = perf_data.create_perf_data(mp.params.prediction_type, mp.data, 'train')
-
+    model_dataset = _RegModelDataset()
+    perf = perf_data.SimpleRegressionPerfData(model_dataset, subset='train')
     real_vals = perf.get_real_values()
-    ids = np.array(range(len(real_vals)))
-    pred_vals = np.asarray(real_vals).copy()
+    ids = model_dataset.train_valid_dsets[0][0].ids
+    pred_vals = real_vals.copy()
     pred_vals[0, 0] = np.nan
 
     perf.accumulate_preds(pred_vals, ids)
@@ -419,8 +491,99 @@ def test_simple_regression_prediction_results_include_invalid_prediction_fields(
     ]:
         assert key in pred_results
 
-    assert pred_results['invalid_prediction_count'] >= 1
+    assert pred_results['invalid_prediction_count'] == 1
+    assert np.isclose(pred_results['invalid_prediction_fraction'], 1.0 / len(real_vals))
     assert len(pred_results['task_invalid_prediction_counts']) == perf.num_tasks
+
+
+def test_simple_classification_prediction_results_include_invalid_prediction_fields():
+    class _ClsDataset:
+        def __init__(self):
+            self.ids = np.array([0, 1, 2, 3])
+            self.y = np.array([[0], [1], [0], [1]], dtype=int)
+            self.w = np.ones((4, 1), dtype=float)
+
+    class _ClsModelDataset:
+        def __init__(self):
+            dset = _ClsDataset()
+            self.train_valid_dsets = [(dset, dset)]
+            self.dataset = dset
+            self.test_dset = dset
+            self._responses = dset.y
+
+        def get_untransformed_responses(self, ids):
+            return self._responses[np.array(ids, dtype=int)]
+
+    model_dataset = _ClsModelDataset()
+    perf = perf_data.SimpleClassificationPerfData(model_dataset, subset='train')
+    ids = model_dataset.train_valid_dsets[0][0].ids
+
+    pred_vals = np.array([
+        [[1.0, 0.0]],
+        [[0.0, 1.0]],
+        [[1.0, 0.0]],
+        [[0.0, 1.0]],
+    ], dtype=float)
+    pred_vals[0, 0, 1] = np.nan
+
+    perf.accumulate_preds(pred_vals, ids=ids)
+    pred_results = perf.get_prediction_results()
+
+    for key in [
+        'invalid_prediction_count',
+        'invalid_prediction_fraction',
+        'invalid_prediction_threshold',
+        'task_invalid_prediction_counts',
+        'task_invalid_prediction_fractions',
+    ]:
+        assert key in pred_results
+
+    assert pred_results['invalid_prediction_count'] == 1
+    assert np.isclose(pred_results['invalid_prediction_fraction'], 0.25)
+
+
+def test_simple_hybrid_prediction_results_include_invalid_prediction_fields():
+    class _HybridDataset:
+        def __init__(self):
+            self.ids = np.array([0, 1, 2, 3])
+            self.y = np.array([
+                [7.0, np.nan],
+                [6.5, np.nan],
+                [0.8, 50.0],
+                [0.2, 50.0],
+            ], dtype=float)
+            self.w = np.ones((4, 2), dtype=float)
+
+    class _HybridModelDataset:
+        def __init__(self):
+            dset = _HybridDataset()
+            self.train_valid_dsets = [(dset, dset)]
+            self.dataset = dset
+            self.test_dset = dset
+            self._responses = dset.y
+
+        def get_untransformed_responses(self, ids):
+            return self._responses[np.array(ids, dtype=int)]
+
+    model_dataset = _HybridModelDataset()
+    perf = perf_data.SimpleHybridPerfData(model_dataset, subset='train', is_ki=False)
+    pred_vals = model_dataset._responses.copy()
+    pred_vals[0, 0] = np.nan
+
+    perf.accumulate_preds(pred_vals, ids=model_dataset.train_valid_dsets[0][0].ids)
+    pred_results = perf.get_prediction_results()
+
+    for key in [
+        'invalid_prediction_count',
+        'invalid_prediction_fraction',
+        'invalid_prediction_threshold',
+        'task_invalid_prediction_counts',
+        'task_invalid_prediction_fractions',
+    ]:
+        assert key in pred_results
+
+    assert pred_results['invalid_prediction_count'] == 1
+    assert np.isclose(pred_results['invalid_prediction_fraction'], 0.25)
 
 
 if __name__ == "__main__":
