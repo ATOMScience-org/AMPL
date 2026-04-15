@@ -380,6 +380,7 @@ class ModelPipeline:
             featurizer=self.params.featurizer,
             prediction_type=self.params.prediction_type,
             model_choice_score_type=self.params.model_choice_score_type,
+            max_invalid_pred_frac=self.params.max_invalid_pred_frac,
             num_model_tasks=self.params.num_model_tasks,
             class_number=self.params.class_number,
             transformers=self.params.transformers,
