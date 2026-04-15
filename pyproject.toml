@@ -29,6 +29,7 @@ dependencies = [
   "setuptools",
 ]
 
+# local developer tools
 [dependency-groups]
 dev = [
   "ipykernel",
@@ -42,7 +43,22 @@ dev = [
   "ruff",
 ]
 
+docker = [
+  "networkx==2.8.8",
+]
+
 [project.optional-dependencies]
+# RTD-installable docs deps
+docs = [
+  "ipython",
+  "joblib",
+  "pandas",
+  "pygments",
+  "sphinx",
+  "sphinx_rtd_theme",
+]
+
+# hardware/runtime variants
 cpu = [
   "torch==2.1.2",
   "torchdata==0.7.1",
