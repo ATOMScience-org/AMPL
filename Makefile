@@ -46,7 +46,7 @@ VENV ?= atomsci-env
 # Work Directory
 WORK_DIR ?= work
 
-.PHONY: sync-cpu sync-cuda sync-rocm sync-mps test-cpu test-gpu test-rocm test-mps \
+.PHONY: sync-cpu sync-cuda sync-rocm sync-mchip test-cpu test-gpu test-rocm test-mchip \
         build-docker install install-dev install-system install-venv jupyter-notebook jupyter-lab \
 	pytest ruff ruff-fix setup uninstall uninstall-dev uninstall-system uninstall-venv
 
@@ -160,16 +160,16 @@ uninstall: uninstall-system
 
 # for uv env
 sync-cpu:
-	UV_PROJECT_ENVIRONMENT=.venv-cpu uv sync --extra cpu
+	UV_PROJECT_ENVIRONMENT=.venv-cpu uv sync --group dev --extra cpu
 
 sync-cuda:
-	UV_PROJECT_ENVIRONMENT=.venv-cuda uv sync --extra cuda
+	UV_PROJECT_ENVIRONMENT=.venv-cuda uv sync --group dev --extra cuda
 
 sync-rocm:
-	UV_PROJECT_ENVIRONMENT=.venv-rocm uv sync --extra rocm
+	UV_PROJECT_ENVIRONMENT=.venv-rocm uv sync --group dev --extra rocm
 
-sync-mps:
-	UV_PROJECT_ENVIRONMENT=.venv-mps uv sync --extra mps
+sync-mchip:
+	UV_PROJECT_ENVIRONMENT=.venv-mchip uv sync --group dev --extra mchip
 
 test-cpu:
 	UV_PROJECT_ENVIRONMENT=.venv-cpu uv run pytest
@@ -180,8 +180,8 @@ test-gpu:
 test-rocm:
 	UV_PROJECT_ENVIRONMENT=.venv-rocm uv run pytest
 
-test-mps:
-	UV_PROJECT_ENVIRONMENT=.venv-mps uv run pytest
+test-mchip:
+	UV_PROJECT_ENVIRONMENT=.venv-mchip uv run pytest
 
 # Uninstall atomsci-ampl from user space
 uninstall-dev:
