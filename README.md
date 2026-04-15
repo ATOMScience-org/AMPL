@@ -77,11 +77,12 @@ AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependen
 
 This repository includes helper commands for managing platform-specific `uv` environments and lockfiles.
 
-| Command | Purpose | What it does |
+| Command | Purpose | When to use it |
 |---|---|---|
-| `make sync-<platform>` | Preferred way to create or refresh a local environment | Uses the checked-in platform lockfile to create or update `.venv-<platform>` |
-| `sync_uv_env.sh` | Internal helper used by the Makefile sync targets | Applies `uv.lock.<platform>` and runs `uv sync --locked` for the selected platform |
-| `update_uv_lock.sh` | Regenerate a platform-specific lockfile | Creates a fresh `uv` environment, resolves platform-specific dependencies, and writes the result to `uv.lock.<platform>` |
+| `./update_uv_lock.sh <platform>` | Regenerate a platform-specific lockfile | Run when dependencies change, for example after editing `pyproject.toml` |
+| `./sync_uv_env.sh <platform>` | Create or rebuild a local platform environment from an existing platform lockfile | Run the first time you set up `.venv-<platform>`, or anytime you want a clean rebuild |
+| `make sync-<platform>` | Sync an existing local environment | Run when `.venv-<platform>` already exists and you want to refresh it for local work |
+| `source .venv-<platform>/bin/activate` | Activate the virtual environment in your shell | Run after the environment has been created or synced |
 
 These commands map to the platform-specific environments and lockfiles below:
 
@@ -94,11 +95,12 @@ These commands map to the platform-specific environments and lockfiles below:
 
 In practice:
 
-- Run `make sync-<platform>` to create or refresh your local environment.
-- Activate the environment with `source .venv-<platform>/bin/activate`.
-- Only run `./update_uv_lock.sh <platform>` when `pyproject.toml` dependencies change and the corresponding lockfile must be regenerated.
+- Run `./update_uv_lock.sh <platform>` only when dependency definitions change and the platform lockfile must be regenerated.
+- Run `./sync_uv_env.sh <platform>` when creating a platform environment for the first time, or when rebuilding it from scratch.
+- Run `make sync-<platform>` only for routine syncing of an existing local environment.
+- Run `source .venv-<platform>/bin/activate` to use the environment in your shell.
 
-> **Note:** `update_uv_lock.sh` is intended for internal system support use. Most users should use `make sync-<platform>` and should not need to run `sync_uv_env.sh` directly.
+> **Note:** Most users should start with `./sync_uv_env.sh <platform>`. `update_uv_lock.sh` is mainly for maintainers updating lockfiles.
 
 ### Requirements
 
@@ -129,16 +131,32 @@ cd AMPL
 ```
 ## Create and activate an environment
 
-Use the Makefile to create or sync the environment for your target platform.
+Use `sync_uv_env.sh` to create or rebuild the environment for your target platform from the committed platform lockfile.
 
-| Platform | Environment | Sync command | Activate command |
+| Platform | Environment | Create or rebuild | Activate command |
 |---|---|---|---|
-| CPU | `.venv-cpu` | `make sync-cpu` | `source .venv-cpu/bin/activate` |
-| CUDA | `.venv-cuda` | `make sync-cuda` | `source .venv-cuda/bin/activate` |
-| ROCm | `.venv-rocm` | `make sync-rocm` | `source .venv-rocm/bin/activate` |
-| Apple Silicon / M chip | `.venv-mchip` | `make sync-mchip` | `source .venv-mchip/bin/activate` |
+| CPU | `.venv-cpu` | `./sync_uv_env.sh cpu` | `source .venv-cpu/bin/activate` |
+| CUDA | `.venv-cuda` | `./sync_uv_env.sh cuda` | `source .venv-cuda/bin/activate` |
+| ROCm | `.venv-rocm` | `./sync_uv_env.sh rocm` | `source .venv-rocm/bin/activate` |
+| Apple Silicon / M chip | `.venv-mchip` | `./sync_uv_env.sh mchip` | `source .venv-mchip/bin/activate` |
 
-Example:
+If you already have the environment and only want to refresh it, you may use:
+
+| Platform | Environment | Refresh command |
+|---|---|---|
+| CPU | `.venv-cpu` | `make sync-cpu` |
+| CUDA | `.venv-cuda` | `make sync-cuda` |
+| ROCm | `.venv-rocm` | `make sync-rocm` |
+| Apple Silicon / M chip | `.venv-mchip` | `make sync-mchip` |
+
+Example, first-time setup:
+
+```bash
+./sync_uv_env.sh cpu
+source .venv-cpu/bin/activate
+```
+
+If `.venv-cpu` already exists and you only want to refresh it:
 ```bash
 make sync-cpu
 source .venv-cpu/bin/activate
@@ -151,7 +169,7 @@ The following settings may be useful depending on your platform and runtime envi
 |---|---|---|
 | CPU | none | `export OPENBLAS_NUM_THREADS=1` |
 | CUDA | load site CUDA module if required | `module load cuda`, <br>`export CUDA_HOME=/usr/local/cuda`, <br>`export PATH="$CUDA_HOME/bin:$PATH"`, <br>`export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$LD_LIBRARY_PATH"` |
-| ROCm | site-specific ROCm setup if required | `module load rocm`, <br>`export ROCM_HOME="$(dirname "$(dirname "$(readlink -f "$(which hipcc)")")")"`, <br>`export PATH="$ROCM_HOME/bin:$PATH"` |
+| ROCm | site-specific ROCm setup if required | `module load rocm`,<br> `export ROCM_HOME="$(dirname "$(dirname "$(readlink -f "$(which hipcc)")")")"`, <br>`export PATH="$ROCM_HOME/bin:$PATH"` |
 | Apple Silicon / M chip | none | usually none required |
 
 ## Troubleshooting
@@ -166,7 +184,8 @@ If needed, start a new shell session or update your `PATH`.
 
 ### Missing lockfile
 
-After `make sync-<platform>`, if you see:
+After `uv sync`, if you see:
+
 ```bash
 Missing lockfile: uv.lock.<platform>
 ```
@@ -187,7 +206,6 @@ They should come from the virtual environment, for example:
 .venv-cpu/bin/python
 .venv-cpu/bin/pytest
 ```
-
 ### Library not found after activation
 
 Confirm the correct environment is active:
@@ -207,13 +225,26 @@ python -c "import torch; print(torch.__version__)"
 python -c "import tensorflow as tf; print(tf.__version__)"
 python -c "import rdkit; print('rdkit ok')"
 ```
-
 If imports fail, resync the environment:
 ```bash
 make sync-<platform>
 source .venv-<platform>/bin/activate
 ```
+---
+#### *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install `atomsci.clients`
+```bash
+# LLNL only: required for ATOM model_tracker
+pip install -r clients_requirements.txt
+```
+---
 
+## Create jupyter notebook kernel (optional)
+
+To run AMPL from Jupyter Notebook, first activate your environment and then run:
+```bash
+python -m ipykernel install --user --name atomsci-env
+```
+---
 #### *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
 ```bash
 # LLNL only: required for ATOM model_tracker
