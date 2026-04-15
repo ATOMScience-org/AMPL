@@ -161,6 +161,57 @@ def test_mixed_model_types(sample_result_dir):
     assert len(df.multitask.unique()) > 1, "Expected multiple multitask types"
     assert df.multitask.max() == 1, "Expected at least one multitask model"
 
+
+def test_filesystem_perf_results_include_invalid_prediction_columns(sample_result_dir):
+    df = compare_models.get_filesystem_perf_results(
+        str(sample_result_dir),
+        pred_type='regression'
+    )
+
+    expected_cols = {
+        'best_train_invalid_prediction_count',
+        'best_train_invalid_prediction_fraction',
+        'best_train_invalid_prediction_threshold',
+        'best_valid_invalid_prediction_count',
+        'best_valid_invalid_prediction_fraction',
+        'best_valid_invalid_prediction_threshold',
+        'best_test_invalid_prediction_count',
+        'best_test_invalid_prediction_fraction',
+        'best_test_invalid_prediction_threshold',
+    }
+    assert expected_cols.issubset(df.columns)
+
+
+def test_get_multitask_perf_from_files_new_includes_invalid_prediction_columns(sample_result_dir):
+    fs_df = compare_models.get_filesystem_perf_results(
+        str(sample_result_dir),
+        pred_type='regression'
+    )
+    with_invalid = fs_df[~fs_df['best_valid_invalid_prediction_count'].isna()]
+    if with_invalid.empty:
+        pytest.skip('No regression fixture models with invalid prediction metrics available.')
+    dataset_key = with_invalid['dataset_key'].dropna().iloc[0]
+
+    df = compare_models.get_multitask_perf_from_files_new(
+        str(sample_result_dir),
+        pred_type='regression',
+        dataset_key=dataset_key,
+    )
+
+    assert 'best_train_invalid_prediction_count' in df.columns
+    assert 'best_valid_invalid_prediction_fraction' in df.columns
+    assert 'best_test_invalid_prediction_threshold' in df.columns
+
+
+def test_get_multitask_perf_from_files_new_returns_empty_df_for_non_matching_dataset_key(sample_result_dir):
+    df = compare_models.get_multitask_perf_from_files_new(
+        str(sample_result_dir),
+        pred_type='regression',
+        dataset_key='__definitely_not_a_real_dataset_key__.csv',
+    )
+    assert isinstance(df, pd.DataFrame)
+    assert df.empty
+
 # --------------------------
 # main
 # --------------------------

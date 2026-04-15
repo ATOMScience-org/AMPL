@@ -8,6 +8,9 @@ import numpy as np
 import shutil
 import pandas as pd
 import json
+from types import SimpleNamespace
+
+import pytest
 
 def copy_to_temp(dskey, res_dir):
     """
@@ -318,6 +321,106 @@ def test_SimpleClassificationPerfData():
     assert all(res_classes==real_vals)
     # perfect score every time
     assert roc_auc_mean==1
+
+
+def test_safe_regression_score_filters_when_invalid_fraction_within_threshold():
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=0.50))
+
+    y_real = np.array([0.0, 1.0, 2.0, 3.0], dtype=float)
+    y_pred = np.array([0.0, 1.0, np.nan, 3.0], dtype=float)
+    score = perf_data._safe_regression_score('r2', y_real, y_pred)
+
+    assert np.isclose(score, 1.0)
+
+
+def test_safe_regression_score_penalizes_when_invalid_fraction_exceeds_threshold():
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=0.10))
+
+    y_real = np.array([0.0, 1.0, 2.0, 3.0], dtype=float)
+    y_pred = np.array([0.0, 1.0, np.nan, 3.0], dtype=float)
+    score = perf_data._safe_regression_score('r2', y_real, y_pred)
+
+    assert score == -1.0e12
+
+
+def test_safe_classification_score_filters_when_invalid_fraction_within_threshold():
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=0.50))
+
+    y_real = np.array([0, 1, 1, 0], dtype=int)
+    y_pred = np.array([0, 1, np.nan, 0], dtype=float)
+    score = perf_data._safe_classification_score('accuracy', y_real, y_pred)
+
+    assert np.isclose(score, 1.0)
+
+
+def test_safe_classification_score_penalizes_when_invalid_fraction_exceeds_threshold():
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=0.10))
+
+    y_real = np.array([0, 1, 1, 0], dtype=int)
+    y_pred = np.array([0, 1, np.nan, 0], dtype=float)
+    score = perf_data._safe_classification_score('accuracy', y_real, y_pred)
+
+    assert score == 0.0
+
+
+def test_coerce_invalid_pred_classes_binary_sets_wrong_class_for_invalid_rows():
+    y_real = np.array([0, 1, 1, 0], dtype=int)
+    y_pred = np.array([0, 1, 0, 0], dtype=int)
+    class_probs = np.array([0.1, np.inf, 0.8, np.nan], dtype=float)
+
+    coerced = perf_data._coerce_invalid_pred_classes(y_real, y_pred, class_probs, 2)
+
+    assert np.array_equal(coerced, np.array([0, 0, 0, 1]))
+
+
+def test_safe_confusion_matrix_uses_coerced_classes_not_zeroed_when_real_is_finite():
+    y_real = np.array([0, 1, 1, 0], dtype=int)
+    y_pred = np.array([0, 0, 0, 1], dtype=int)
+
+    cm = perf_data._safe_confusion_matrix(y_real, y_pred, 2)
+    assert cm == [[1, 1], [2, 0]]
+
+
+def test_max_invalid_pred_frac_clamps_out_of_range_values():
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=2.5))
+    assert perf_data._get_active_invalid_pred_frac_threshold() == 1.0
+
+    perf_data._configure_invalid_pred_frac_threshold(SimpleNamespace(max_invalid_pred_frac=-0.2))
+    assert perf_data._get_active_invalid_pred_frac_threshold() == 0.0
+
+
+def test_simple_regression_prediction_results_include_invalid_prediction_fields():
+    res_dir, tmp_dskey = setup_paths()
+
+    params = read_params(
+        make_relative_to_file('config_perf_data_SimpleRegressionPerfData.json'),
+        res_dir, tmp_dskey)
+
+    pparams = parse.wrapper(params)
+    mp = model_pipeline.ModelPipeline(pparams)
+    mp.train_model()
+
+    perf = perf_data.create_perf_data(mp.params.prediction_type, mp.data, 'train')
+
+    real_vals = perf.get_real_values()
+    ids = np.array(range(len(real_vals)))
+    pred_vals = np.asarray(real_vals).copy()
+    pred_vals[0, 0] = np.nan
+
+    perf.accumulate_preds(pred_vals, ids)
+    pred_results = perf.get_prediction_results()
+
+    for key in [
+        'invalid_prediction_count',
+        'invalid_prediction_fraction',
+        'invalid_prediction_threshold',
+        'task_invalid_prediction_counts',
+        'task_invalid_prediction_fractions',
+    ]:
+        assert key in pred_results
+
+    assert pred_results['invalid_prediction_count'] >= 1
+    assert len(pred_results['task_invalid_prediction_counts']) == perf.num_tasks
 
 
 if __name__ == "__main__":
