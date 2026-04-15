@@ -1944,8 +1944,32 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
 
             # get task scores - long form and rename columns
             taskcols=['response_cols']
-            taskcols.extend([x for x in pred.columns if 'task' in x])    
-            task_preds=pred[['model_uuid']+taskcols].set_index('model_uuid').explode(taskcols).reset_index()
+            taskcols.extend([x for x in pred.columns if 'task' in x])
+
+            task_preds = pred[['model_uuid'] + taskcols].copy()
+
+            def _num_tasks_for_row(resp_cols):
+                if isinstance(resp_cols, list):
+                    return len(resp_cols)
+                return 1
+
+            def _normalize_task_col_value(value, n_tasks):
+                if isinstance(value, list):
+                    if len(value) == n_tasks:
+                        return value
+                    if len(value) == 1 and n_tasks > 1:
+                        return value * n_tasks
+                    return value[:n_tasks] + [np.nan] * max(0, n_tasks - len(value))
+                if pd.isna(value):
+                    return [np.nan] * n_tasks
+                return [value] * n_tasks
+
+            for ridx in task_preds.index:
+                n_tasks = _num_tasks_for_row(task_preds.at[ridx, 'response_cols'])
+                for tcol in [c for c in taskcols if c != 'response_cols']:
+                    task_preds.at[ridx, tcol] = _normalize_task_col_value(task_preds.at[ridx, tcol], n_tasks)
+
+            task_preds = task_preds.set_index('model_uuid').explode(taskcols).reset_index()
         
             # get full model scores and rename columns
             predcols=[x for x in pred.columns if 'task' not in x]
