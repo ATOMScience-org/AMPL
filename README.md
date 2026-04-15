@@ -33,13 +33,12 @@ In addition to our written tutorials, we now provide a series of video tutorials
   - [Clone the repository](#clone-the-repository)
 - [Create and activate an environment](#create-and-activate-an-environment)
 - [Platform-specific setup](#platform-specific-setup)
-- [Update lockfiles](#update-lockfiles)
 - [Troubleshooting](#troubleshooting)
   - [`uv` not found](#uv-not-found)
   - [Missing lockfile](#missing-lockfile)
-  - [Wrong Python/Pytest](#wrong-python-pytest)
+  - [Wrong Python/Pytest](#wrong-pythonpytest)
   - [Library not found after activation](#library-not-found-after-activation)
-  - [Package import fails](#package-import-fails)
+  - [Package import fails or environment out of sync](#package-import-fails-or-environment-out-of-sync)
 - [AMPL Features](#ampl-features)
 - [Running AMPL](#running-ampl)
 - [Tests](#tests)
@@ -53,12 +52,14 @@ In addition to our written tutorials, we now provide a series of video tutorials
 ## Useful links
 - [Pipeline parameters (options)](atomsci/ddm/docs/PARAMETERS.md)
 - [Library documentation](https://ampl.readthedocs.io/en/latest/index.html)
+
 ---
 
 ## Installation
-AMPL 1.8 supports Python 3.10 CPU or CUDA-enabled machines using CUDA 11.8 on Linux. All other systems are experimental. For a quick install summary, see [here](#install-summary). For more information you can look at [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), [DGL](https://www.dgl.ai/pages/start.html).
 
-For installation on Apple Silicon M Chips, please see the Docker container instructions.
+AMPL 1.8 supports Python 3.10 on CPU systems and CUDA-enabled Linux systems using CUDA 11.8. All other systems are experimental. For a quick install summary, see [here](#install-summary). For more information, see [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), and [DGL](https://www.dgl.ai/pages/start.html).
+
+For installation on Apple Silicon M chips, see the Docker container instructions.
 
 AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependency management.
 
@@ -74,14 +75,15 @@ AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependen
 
 ### Repository helper scripts
 
-This repository includes two helper scripts that wrap the `uv` workflow for each supported platform.
+This repository includes helper commands for managing platform-specific `uv` environments and lockfiles.
 
-| Script | Purpose | What it does |
+| Command | Purpose | What it does |
 |---|---|---|
-| `update_uv_lock.sh` | Regenerate a platform lockfile | Creates a fresh `uv` virtual environment, installs platform-specific packages, runs `uv sync`, then saves the result as `uv.lock.<platform>` |
-| `sync_uv_env.sh` | Recreate a platform environment from a lockfile | Copies `uv.lock.<platform>` to `uv.lock`, creates a fresh `uv` virtual environment, installs platform-specific packages, then runs `uv sync --locked` |
+| `make sync-<platform>` | Preferred way to create or refresh a local environment | Uses the checked-in platform lockfile to create or update `.venv-<platform>` |
+| `sync_uv_env.sh` | Internal helper used by the Makefile sync targets | Applies `uv.lock.<platform>` and runs `uv sync --locked` for the selected platform |
+| `update_uv_lock.sh` | Regenerate a platform-specific lockfile | Creates a fresh `uv` environment, resolves platform-specific dependencies, and writes the result to `uv.lock.<platform>` |
 
-These scripts tie directly to the `uv` virtual environment workflow:
+These commands map to the platform-specific environments and lockfiles below:
 
 | Platform | Virtual environment | Lockfile |
 |---|---|---|
@@ -92,12 +94,11 @@ These scripts tie directly to the `uv` virtual environment workflow:
 
 In practice:
 
-- run `./update_uv_lock.sh <platform>` when dependencies change and a lockfile needs to be refreshed
-- run `./sync_uv_env.sh <platform>` when you want to create a local environment from the saved lockfile
-- activate the created environment with `source .venv-<platform>/bin/activate`
+- Run `make sync-<platform>` to create or refresh your local environment.
+- Activate the environment with `source .venv-<platform>/bin/activate`.
+- Only run `./update_uv_lock.sh <platform>` when `pyproject.toml` dependencies change and the corresponding lockfile must be regenerated.
 
--**Note:** `./update_uv_lock.sh` is for internal admin/support use only. Do not run it unless `pyproject.toml` has changed. When it does change, update and quick-test on all supported platforms, then push uv.lock.<platform> to the AMPL git repo.`
-
+> **Note:** `update_uv_lock.sh` is intended for internal system support use. Most users should use `make sync-<platform>` and should not need to run `sync_uv_env.sh` directly.
 
 ### Requirements
 
@@ -128,16 +129,20 @@ cd AMPL
 ```
 ## Create and activate an environment
 
-Use the provided sync script for your target platform.
+Use the Makefile to create or sync the environment for your target platform.
 
-| Platform | Sync command | Environment | Activate command |
+| Platform | Environment | Sync command | Activate command |
 |---|---|---|---|
-| CPU | `./sync_uv_env.sh cpu` | `.venv-cpu` | `source .venv-cpu/bin/activate` |
-| CUDA | `./sync_uv_env.sh cuda` | `.venv-cuda` | `source .venv-cuda/bin/activate` |
-| ROCm | `./sync_uv_env.sh rocm` | `.venv-rocm` | `source .venv-rocm/bin/activate` |
-| Apple Silicon / M chip | `./sync_uv_env.sh mchip` | `.venv-mchip` | `source .venv-mchip/bin/activate` |
+| CPU | `.venv-cpu` | `make sync-cpu` | `source .venv-cpu/bin/activate` |
+| CUDA | `.venv-cuda` | `make sync-cuda` | `source .venv-cuda/bin/activate` |
+| ROCm | `.venv-rocm` | `make sync-rocm` | `source .venv-rocm/bin/activate` |
+| Apple Silicon / M chip | `.venv-mchip` | `make sync-mchip` | `source .venv-mchip/bin/activate` |
 
-The sync script installs AMPL in editable mode with `--no-deps`, so no additional install step is needed.
+Example:
+```bash
+make sync-cpu
+source .venv-cpu/bin/activate
+```
 ## Platform-specific setup
 
 The following settings may be useful depending on your platform and runtime environment.
@@ -145,20 +150,9 @@ The following settings may be useful depending on your platform and runtime envi
 | Platform | Optional setup | Useful environment variables |
 |---|---|---|
 | CPU | none | `export OPENBLAS_NUM_THREADS=1` |
-| CUDA | load site CUDA module if required | `module load cuda`<br>`export CUDA_HOME=/usr/local/cuda`<br>`export PATH="$CUDA_HOME/bin:$PATH"`<br>`export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$LD_LIBRARY_PATH"`|
-| ROCm | site-specific ROCm setup if required | `module load rocm`<br>`export ROCM_HOME="$(dirname "$(dirname "$(readlink -f "$(which hipcc)")")")"`<br>`export PATH="$ROCM_HOME/bin:$PATH"`|
+| CUDA | load site CUDA module if required | `module load cuda`, <br>`export CUDA_HOME=/usr/local/cuda`, <br>`export PATH="$CUDA_HOME/bin:$PATH"`, <br>`export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$LD_LIBRARY_PATH"` |
+| ROCm | site-specific ROCm setup if required | `module load rocm`, <br>`export ROCM_HOME="$(dirname "$(dirname "$(readlink -f "$(which hipcc)")")")"`, <br>`export PATH="$ROCM_HOME/bin:$PATH"` |
 | Apple Silicon / M chip | none | usually none required |
-
-## Update lockfiles
-
-If `pyproject.toml` dependencies are updated, regenerate the lockfile for the appropriate target platform.
-
-| Platform | Command | Lockfile |
-|---|---|---|
-| CPU | `./update_uv_lock.sh cpu` | `uv.lock.cpu` |
-| CUDA | `./update_uv_lock.sh cuda` | `uv.lock.cuda` |
-| ROCm | `./update_uv_lock.sh rocm` | `uv.lock.rocm` |
-| Apple Silicon / M chip | `./update_uv_lock.sh mchip` | `uv.lock.mchip` |
 
 ## Troubleshooting
 
@@ -172,15 +166,15 @@ If needed, start a new shell session or update your `PATH`.
 
 ### Missing lockfile
 
-If you see:
+After `make sync-<platform>`, if you see:
 ```bash
 Missing lockfile: uv.lock.<platform>
 ```
-run:
-```bash
-./update_uv_lock.sh <platform>
-```
-### Wrong Python, Pytest
+the platform lockfile is not present in your checkout. Confirm that you are on the correct branch and that the lockfile has been committed.
+
+If the lockfile is genuinely missing, contact the maintainers or regenerate it only if you are updating dependencies.
+
+### Wrong Python/Pytest
 
 Check that Python 3.10 is being used:
 ```bash
@@ -188,10 +182,11 @@ which python
 python --version
 which pytest
 ```
-
-They should come from the virtual env, like '.venv-cpu/bin/python', '.venv-cpu/bin/pytest'
-
-If fails, refer to [Package import fails](#package-import-fails), use `uv sync --active --group dev --extra <platform>` command shown there to get your VM sync up.
+They should come from the virtual environment, for example:
+```bash
+.venv-cpu/bin/python
+.venv-cpu/bin/pytest
+```
 
 ### Library not found after activation
 
@@ -204,10 +199,7 @@ If needed, set:
 ```bash
 export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH
 ```
-
-If fails, refer to [Package import fails](#package-import-fails), use `uv sync --active --group dev --extra <platform>` command shown there to get your VM sync up.
-
-### Package import fails
+### Package import fails or environment out of sync
 
 Try:
 ```bash
@@ -215,16 +207,11 @@ python -c "import torch; print(torch.__version__)"
 python -c "import tensorflow as tf; print(tf.__version__)"
 python -c "import rdkit; print('rdkit ok')"
 ```
-If imports fail, rerun:
 
+If imports fail, resync the environment:
 ```bash
-./sync_uv_env.sh <platform>
-```
-
-If still not finding the packages, from your current .venv-<platform>, then run this:
-
-```
-uv sync --active --group dev --extra <platform>
+make sync-<platform>
+source .venv-<platform>/bin/activate
 ```
 
 #### *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
@@ -233,15 +220,6 @@ uv sync --active --group dev --extra <platform>
 pip install -r clients_requirements.txt
 ```
 
-### Install AMPL
-Run the following to build the "atomsci" modules. This is required.
-
-```bash
-# return to AMPL parent directory
-cd ..
-./build.sh
-pip install -e .
-```
 ---
 ## Create jupyter notebook kernel (optional)
 To run AMPL from Jupyter Notebook. To setup a new kernel, first activate your environment and then run the following command:
@@ -318,7 +296,6 @@ pip cache purge
 - Test set selection
 - Cross-validation
 - Uncertainty quantification
-- Hyperparameter optimization
 
 ### 4. Supported models
 - scikit-learn random forest models
