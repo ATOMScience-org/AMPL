@@ -156,37 +156,37 @@ def train_and_predict(train_json_f, prefix='delaney-processed'):
 
 def verify_saved_params(original_json_f, tar_f, keep_seed=False):
     """compares saved params in a tar file with original json"""
-    reload_dir = tempfile.mkdtemp()
-    with tarfile.open(tar_f, mode='r:gz') as tar:
-        futils.safe_extract(tar, path=reload_dir)
+    with tempfile.TemporaryDirectory() as reload_dir:
+        with tarfile.open(tar_f, mode='r:gz') as tar:
+            futils.safe_extract(tar, path=reload_dir)
 
-    # read config from tar file
-    config_file_path = os.path.join(reload_dir, 'model_metadata.json')
-    with open(config_file_path) as f:
-        tar_config = json.loads(f.read())
+        # read config from tar file
+        config_file_path = os.path.join(reload_dir, 'model_metadata.json')
+        with open(config_file_path) as f:
+            tar_config = json.loads(f.read())
 
-    # read original config
-    with open(original_json_f) as f:
-        original_config = json.loads(f.read())
-    
-    original_pp = parse.wrapper(original_config)
-    original_model_params = parse.extract_model_params(original_pp)
-    original_feat_params = parse.extract_featurizer_params(original_pp)
+        # read original config
+        with open(original_json_f) as f:
+            original_config = json.loads(f.read())
+        
+        original_pp = parse.wrapper(original_config)
+        original_model_params = parse.extract_model_params(original_pp)
+        original_feat_params = parse.extract_featurizer_params(original_pp)
 
-    tar_pp = parse.wrapper(tar_config)
-    tar_model_params = parse.extract_model_params(tar_pp)
-    tar_feat_params = parse.extract_featurizer_params(tar_pp)
+        tar_pp = parse.wrapper(tar_config)
+        tar_model_params = parse.extract_model_params(tar_pp)
+        tar_feat_params = parse.extract_featurizer_params(tar_pp)
 
-    print('-----------------------------------')
-    print('model params')
-    print(original_model_params)
-    print(tar_model_params)
-    assert original_model_params == tar_model_params
-    print('-----------------------------------')
-    print('feat params')
-    print(original_feat_params)
-    print(tar_feat_params)
-    assert original_feat_params == tar_feat_params
+        print('-----------------------------------')
+        print('model params')
+        print(original_model_params)
+        print(tar_model_params)
+        assert original_model_params == tar_model_params
+        print('-----------------------------------')
+        print('feat params')
+        print(original_feat_params)
+        print(tar_feat_params)
+        assert original_feat_params == tar_feat_params
 
     print('-----------------------------------')
     print('seeds')

@@ -91,73 +91,74 @@ def test():
     integrative_utilities.clean_fit_predict()
     clean()
 
-    # Check for data
-    # --------
-    check_for_data_zip()
+    try:
+        # Check for data
+        # --------
+        check_for_data_zip()
 
-    # Curate
-    # ------
-    curate()
+        # Curate
+        # ------
+        curate()
 
-    # Train model
-    # -----------
-    # Read parameter JSON file
-    with open('config_wenzel_fit_NN.json') as f:
-        config = json.loads(f.read())
+        # Train model
+        # -----------
+        # Read parameter JSON file
+        with open('config_wenzel_fit_NN.json') as f:
+            config = json.loads(f.read())
 
-    # Parse parameters
-    params = parse.wrapper(config)
+        # Parse parameters
+        params = parse.wrapper(config)
 
-    # Create model pipeline
-    model = mp.ModelPipeline(params)
+        # Create model pipeline
+        model = mp.ModelPipeline(params)
 
-    # Train model
-    model.train_model()
+        # Train model
+        model.train_model()
 
-    # Get uuid and reload directory
-    # -----------------------------
-    uuid = integrative_utilities.get_subdirectory('result/hlm_clearance_curated_fit/NN_computed_descriptors_scaffold_regression')
-    reload_dir = 'result/hlm_clearance_curated_fit/NN_computed_descriptors_scaffold_regression/'+uuid
+        # Get uuid and reload directory
+        # -----------------------------
+        uuid = integrative_utilities.get_subdirectory('result/hlm_clearance_curated_fit/NN_computed_descriptors_scaffold_regression')
+        reload_dir = 'result/hlm_clearance_curated_fit/NN_computed_descriptors_scaffold_regression/'+uuid
 
-    # Check training statistics
-    # -------------------------
-    integrative_utilities.training_statistics_file(reload_dir, 'valid', 0.1)
+        # Check training statistics
+        # -------------------------
+        integrative_utilities.training_statistics_file(reload_dir, 'valid', 0.1)
 
-    # Make prediction using the trained model
-    # -------------------------
-    result_df = cm.get_filesystem_perf_results('result', pred_type='regression')
+        # Make prediction using the trained model
+        # -------------------------
+        result_df = cm.get_filesystem_perf_results('result', pred_type='regression')
 
-    # There should only be one model trained
-    # -------------------------
-    assert len(result_df) == 1
-    model_path = result_df.model_path[0] # this is the path to a tar file
+        # There should only be one model trained
+        # -------------------------
+        assert len(result_df) == 1
+        model_path = result_df.model_path[0] # this is the path to a tar file
 
-    # Load second test set
-    # --------------------
-    data = pd.read_csv('hlm_clearance_curated_external.csv')
-    # Make prediction pipeline
-    # ------------------------
-    predict = pfm.predict_from_model_file(model_path, data,
-                                id_col=params.id_col,
-                                smiles_col=params.smiles_col,
-                                response_col=params.response_cols,
-                                is_featurized=False)
+        # Load second test set
+        # --------------------
+        data = pd.read_csv('hlm_clearance_curated_external.csv')
+        # Make prediction pipeline
+        # ------------------------
+        predict = pfm.predict_from_model_file(model_path, data,
+                                    id_col=params.id_col,
+                                    smiles_col=params.smiles_col,
+                                    response_col=params.response_cols,
+                                    is_featurized=False)
 
-    # Check predictions
-    # -----------------
-    assert (predict['VALUE_NUM_mean_pred'].shape[0] == 348), 'Error: Incorrect number of predictions'
-    assert (np.all(np.isfinite(predict['VALUE_NUM_mean_pred'].values))), 'Error: Predictions are not numbers'
+        # Check predictions
+        # -----------------
+        assert (predict['VALUE_NUM_mean_pred'].shape[0] == 348), 'Error: Incorrect number of predictions'
+        assert (np.all(np.isfinite(predict['VALUE_NUM_mean_pred'].values))), 'Error: Predictions are not numbers'
 
-    # Save predictions with experimental values
-    # -----------------------------------------
-    predict.reset_index(level=0, inplace=True)
-    combined = pd.merge(data, predict, on=params.id_col, how='inner')
-    combined.to_csv('hlm_clearance_curated_predict.csv')
-    assert (os.path.isfile('hlm_clearance_curated_predict.csv')
-            and os.path.getsize('hlm_clearance_curated_predict.csv') > 0), 'Error: Prediction file not created'
-
-    clean()
-    integrative_utilities.clean_fit_predict()
+        # Save predictions with experimental values
+        # -----------------------------------------
+        predict.reset_index(level=0, inplace=True)
+        combined = pd.merge(data, predict, on=params.id_col, how='inner')
+        combined.to_csv('hlm_clearance_curated_predict.csv')
+        assert (os.path.isfile('hlm_clearance_curated_predict.csv')
+                and os.path.getsize('hlm_clearance_curated_predict.csv') > 0), 'Error: Prediction file not created'
+    finally:
+        clean()
+        integrative_utilities.clean_fit_predict()
 
 if __name__ == '__main__':
     test()

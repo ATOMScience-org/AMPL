@@ -194,19 +194,17 @@ def test():
 
 def extract_split_uuid(tar_file):
     """Given a tar file, return split uuid used to train the model."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with tarfile.open(tar_file, mode='r:gz') as tar:
+            futils.safe_extract(tar, path=tmpdir)
 
-    tmpdir = tempfile.mkdtemp()
+        # make metadata path
+        metadata_path = os.path.join(tmpdir, 'model_metadata.json')
 
-    with tarfile.open(tar_file, mode='r:gz') as tar:
-        futils.safe_extract(tar, path=tmpdir)
+        with open(metadata_path, 'r') as json_file:
+            json_dat = json.load(json_file)
 
-    # make metadata path
-    metadata_path = os.path.join(tmpdir, 'model_metadata.json')
-
-    with open(metadata_path, 'r') as json_file:
-        json_dat = json.load(json_file)
-
-    split_uuid = json_dat['splitting_parameters']['split_uuid']
+        split_uuid = json_dat['splitting_parameters']['split_uuid']
 
     return split_uuid
 
