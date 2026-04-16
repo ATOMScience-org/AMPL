@@ -9,6 +9,8 @@ import tarfile
 import tempfile
 from contextlib import contextmanager
 import pytest
+import tensorflow as tf
+import torch
 
 import rdkit.Chem as rdC
 import rdkit.Chem.Descriptors as rdCD
@@ -35,6 +37,18 @@ def _in_test_dir():
         yield
     finally:
         os.chdir(prev_cwd)
+
+
+def _skip_if_unsupported_apple_backend(model_type):
+    if sys.platform != 'darwin':
+        return
+
+    if model_type in {'AttentiveFPModel', 'GCNModel'}:
+        if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+            pytest.skip(f"{model_type} retrain is unsupported on Apple MPS backends")
+
+    if model_type == 'GraphConvModel' and tf.config.list_physical_devices('GPU'):
+        pytest.skip("GraphConvModel retrain is unsupported on TensorFlow Metal backends")
 
 
 def clean(prefix='delaney-processed'):
@@ -240,6 +254,7 @@ def H1_init():
 # -----
 @pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_AttentiveFPModel(keep_seed):
+    _skip_if_unsupported_apple_backend('AttentiveFPModel')
     with _in_test_dir():
         H1_init()
         json_f = 'reg_config_H1_fit_AttentiveFPModel.json'
@@ -256,6 +271,7 @@ def test_reg_config_H1_fit_AttentiveFPModel():
 # -----
 @pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_GCNModel(keep_seed):
+    _skip_if_unsupported_apple_backend('GCNModel')
     with _in_test_dir():
         H1_init()
         json_f = 'reg_config_H1_fit_GCNModel.json'
@@ -290,6 +306,7 @@ def test_reg_config_H1_fit_MPNNModel():
     run_test_reg_config_H1_fit_MPNNModel(False)
 
 def run_test_reg_config_H1_fit_GraphConvModel(keep_seed):
+    _skip_if_unsupported_apple_backend('GraphConvModel')
     with _in_test_dir():
         H1_init()
         json_f = 'reg_config_H1_fit_GraphConvModel.json'
