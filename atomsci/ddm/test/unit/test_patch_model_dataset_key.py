@@ -98,7 +98,13 @@ def test_check_data_accessibility_folder():
     )
 
     dataset_info = pmdk.check_data_accessibility(model_path=model_path)
-    assert len(dataset_info) == 4
+    expected_tar_count = len([
+        entry for entry in os.scandir(model_path)
+        if entry.is_file() and entry.name.endswith('.tar.gz')
+    ])
+
+    assert expected_tar_count > 0
+    assert len(dataset_info) == expected_tar_count
 
 def test_check_data_accessibility_bad():
     # directory with bad tarball
