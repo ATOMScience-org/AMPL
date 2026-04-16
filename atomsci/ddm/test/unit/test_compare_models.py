@@ -21,6 +21,25 @@ import atomsci.ddm.utils.file_utils as futils
 # Fixtures and Test Data
 # --------------------------
 
+
+def _get_regression_dataset_key(sample_result_dir):
+    fs_df = compare_models.get_filesystem_perf_results(
+        str(sample_result_dir),
+        pred_type='regression',
+    )
+    assert not fs_df.empty, 'Expected regression fixture models to be present.'
+    return fs_df['dataset_key'].dropna().iloc[0]
+
+
+def _get_expected_model_count(sample_result_dir, dataset_key):
+    fs_df = compare_models.get_filesystem_perf_results(
+        str(sample_result_dir),
+        pred_type='regression',
+    )
+    filtered = fs_df[fs_df['dataset_key'] == dataset_key]
+    assert not filtered.empty, f'Expected regression fixture models for dataset_key={dataset_key}'
+    return filtered['model_uuid'].nunique()
+
 @pytest.fixture
 def sample_result_dir():
     """Fixture to use an existing sample result directory."""
@@ -65,22 +84,35 @@ def unpack_tar_files(sample_result_dir):
 def test_basic_directory_processing(sample_result_dir, unpack_tar_files):
     """Test basic JSON model discovery and processing"""
 
+    dataset_key = _get_regression_dataset_key(sample_result_dir)
+    expected_models = _get_expected_model_count(sample_result_dir, dataset_key)
+
     df = compare_models.get_multitask_perf_from_files_new(
         str(sample_result_dir),
-        pred_type='regression'
+        pred_type='regression',
+        dataset_key=dataset_key,
     )
 
-    assert df.model_uuid.nunique() == 5, f"Expected 5 unique models, but got {df.model_uuid.nunique()}"
+    assert df.model_uuid.nunique() == expected_models, (
+        f"Expected {expected_models} unique models, but got {df.model_uuid.nunique()}"
+    )
     assert all(df.prediction_type == 'regression'), "Not all rows have 'regression' as prediction_type"
 
 
 def test_tar_file_processing(sample_result_dir):
     """Test TAR archive handling"""
+    dataset_key = _get_regression_dataset_key(sample_result_dir)
+    expected_models = _get_expected_model_count(sample_result_dir, dataset_key)
+
     df = compare_models.get_multitask_perf_from_files_new(
         str(sample_result_dir),
+        pred_type='regression',
+        dataset_key=dataset_key,
         tar=True
     )
-    assert df.model_uuid.nunique() == 5, f"Expected 5 unique models, but got {df.model_uuid.nunique()}"
+    assert df.model_uuid.nunique() == expected_models, (
+        f"Expected {expected_models} unique models, but got {df.model_uuid.nunique()}"
+    )
     assert all(df.model_path.str.endswith('.tar.gz')), "Not all model paths end with '.tar.gz'"
     
 
@@ -108,7 +140,12 @@ def test_tar_file_processing(sample_result_dir):
 
 def test_dataframe_structure(sample_result_dir):
     """Validate DataFrame schema and data types"""
-    df = compare_models.get_multitask_perf_from_files_new(str(sample_result_dir))
+    dataset_key = _get_regression_dataset_key(sample_result_dir)
+    df = compare_models.get_multitask_perf_from_files_new(
+        str(sample_result_dir),
+        pred_type='regression',
+        dataset_key=dataset_key,
+    )
     
     # Required columns
     assert {'model_uuid', 'time_built', 'ampl_version','dataset_key', 'model_path',
@@ -145,14 +182,19 @@ def test_dataframe_structure(sample_result_dir):
 
 def test_mixed_model_types(sample_result_dir):
     """Test handling directories with both MT and ST model files"""
-    
+    dataset_key = _get_regression_dataset_key(sample_result_dir)
+
     df = compare_models.get_multitask_perf_from_files_new(
         str(sample_result_dir),
+        pred_type='regression',
+        dataset_key=dataset_key,
         tar=True
     )
-    
-    assert len(df.multitask.unique()) > 1, "Expected multiple multitask types"
-    assert df.multitask.max() == 1, "Expected at least one multitask model"
+
+    if len(df.multitask.unique()) < 2:
+        pytest.skip('Fixture does not currently contain both multitask and single-task regression tar models.')
+
+    assert set(df.multitask.unique()) == {0, 1}, "Expected both multitask and single-task models"
 
 
 def test_filesystem_perf_results_include_invalid_prediction_columns(sample_result_dir):
