@@ -6,6 +6,7 @@ import subprocess
 import os
 import time
 import pandas as pd
+from contextlib import contextmanager
 
 import tempfile
 import tarfile
@@ -15,6 +16,19 @@ import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm
 from atomsci.ddm.utils import llnl_utils
 import atomsci.ddm.utils.file_utils as futils
+
+
+TEST_DIR = os.path.dirname(os.path.realpath(__file__))
+
+
+@contextmanager
+def _in_test_dir():
+    prev_cwd = os.getcwd()
+    os.chdir(TEST_DIR)
+    try:
+        yield
+    finally:
+        os.chdir(prev_cwd)
 
 def init_data():
     """Copy files necessary for running tests"""
@@ -171,26 +185,27 @@ def wait_to_finish(split_json, search_json, max_time=1200):
 def test():
     """Test full model pipeline: Split data, featurize data, fit model, get results"""
 
-    # Clean
-    # -----
-    clean()
+    with _in_test_dir():
+        # Clean
+        # -----
+        clean()
 
-    # Init Data
-    # -----
-    init_data()
+        # Init Data
+        # -----
+        init_data()
 
-    # Run shortlist hyperparam search
-    # ------------
-    if llnl_utils.is_lc_system():
-        result_df = wait_to_finish("test_shortlist_split_config.json",
-            "test_shortlist_RF-NN-XG_hyperconfig.json", max_time=-1)
-        assert len(result_df) == 18 # Timed out
-    else:
-        assert True
+        # Run shortlist hyperparam search
+        # ------------
+        if llnl_utils.is_lc_system():
+            result_df = wait_to_finish("test_shortlist_split_config.json",
+                "test_shortlist_RF-NN-XG_hyperconfig.json", max_time=-1)
+            assert len(result_df) == 18 # Timed out
+        else:
+            assert True
 
-    # Clean
-    # -----
-    clean()
+        # Clean
+        # -----
+        clean()
 
 def extract_split_uuid(tar_file):
     """Given a tar file, return split uuid used to train the model."""
