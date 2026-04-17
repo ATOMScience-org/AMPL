@@ -308,14 +308,14 @@ To get more info on an AMPL config file, please refer to:
   - [AMPL Tutorials](atomsci/ddm/examples/tutorials)
 
 ### Hyperparameter optimization
-<details><summary>Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.</summary>
+<details><summary>Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [Optuna](https://optuna.readthedocs.io/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.</summary>
 
-1. (Optional) Install HyperOpt with "pip install hyperopt"
+1. (Optional) Install Optuna with "pip install optuna"
 2. Pre-split your dataset with computed_descriptors if you want to use Mordred/MOE/RDKit descriptors.
 3. In the config JSON file, set the following parameters.
 
    - "hyperparam": "True"
-   - "search_type": "hyperopt"
+   - "search_type": "optuna"
    - "descriptor_type": "mordred_filtered,rdkit_raw" (use comma to separate multiple values)
    - "model_type": "RF|20" (the number after | is the number of evaluations of Bayesian Optimization)
    - "featurizer": "ecfp,computed_descriptors" (use comma if you want to try multiple featurizers, note the RF and graphconv are not compatible)
@@ -330,13 +330,14 @@ To get more info on an AMPL config file, please refer to:
 
     method|parameter1,parameter2...
 
-    method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
+    method: supported searching schemes in Optuna include: choice, uniform, loguniform, uniformint. For details, see the [Optuna documentation](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html).
 
     parameters:
       - choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
-      - uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
-      - loguniform: low and high bound (in natural log) of the interval to serach, e.g. uniform|-13.8,-6.9
-      - uniformint: low and high bound of the interval as integers, e.g. uniforming|8,256
+      - uniform: low and high bound of the interval to search, e.g. uniform|0.00001,0.001
+      - loguniform: low and high bound (in natural log) of the interval to search, e.g. loguniform|-13.8,-6.9
+        - **Note**: For backwards compatibility, loguniform values are submitted to Optuna in log scale. Although Optuna supports non-log-scaled value ranges for log-uniform distributions, we maintain the original log-scaled specification format to ensure consistency with existing configurations.
+      - uniformint: low and high bound of the interval as integers, e.g. uniformint|8,256
 
     NN model specific parameters:
      - "lr": "loguniform|-13.8,-6.9", (learning rate)
