@@ -10,7 +10,7 @@ dependencies = [
   "numpy<2",
   "scipy>=1.10",
   "scikit-learn==1.2.2",
-  "hyperopt",
+  "optuna",
   "xgboost",
   "lightgbm",
   "umap-learn",

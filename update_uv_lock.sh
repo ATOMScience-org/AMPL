@@ -4,7 +4,7 @@
 #     regenerates uv.lock.<platform>
 #     generates the righ lockfile for the specified platform
 #
-# Use when: 
+# Use when:
 #     dependencies changed, pyproject.toml changed, or lockfile mismatch happens. refresh the commited lockfile.
 #
 # Usage:
@@ -13,57 +13,63 @@
 set -euo pipefail
 
 platform="${1:-}"
+venv_dir=".venv-${platform}"
+temp_lock="uv.lock"
+
+usage() {
+  echo "Usage: $0 <cpu|cuda|rocm|mchip>"
+}
 
 case "$platform" in
-  cpu|cuda|rocm|mchip)
+  cpu)
+    extra="cpu"
+    torch_index="https://download.pytorch.org/whl/cpu"
+    bootstrap_torch="yes"
+    ;;
+  cuda)
+    extra="cuda"
+    torch_index="https://download.pytorch.org/whl/cu121"
+    bootstrap_torch="yes"
+    ;;
+  rocm)
+    extra="rocm"
+    torch_index="https://download.pytorch.org/whl/rocm5.6"
+    bootstrap_torch="yes"
+    ;;
+  mchip)
+    extra="mchip"
+    torch_index=""
+    bootstrap_torch="no"
     ;;
   "")
-    echo "Usage: $0 <cpu|cuda|rocm|mchip>"
+    usage
     exit 1
     ;;
   *)
     echo "Invalid platform: $platform"
-    echo "Supported platforms: cpu cuda rocm mchip"
-    echo "Usage: $0 <cpu|cuda|rocm|mchip>"
+    usage
     exit 1
     ;;
 esac
 
 lockfile="uv.lock.${platform}"
-venv_dir=".venv-${platform}"
 
-rm -f uv.lock
+cleanup() {
+  rm -f "$temp_lock"
+}
+trap cleanup EXIT
+
 rm -rf "$venv_dir"
-
 uv venv --python 3.10 "$venv_dir"
 
-case "$platform" in
-  cpu)
-    uv pip install --python "$venv_dir/bin/python" \
-      --index-url https://download.pytorch.org/whl/cpu \
-      torch==2.1.2 torchdata==0.7.1
-    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cpu --group dev
-    ;;
-  cuda)
-    uv pip install --python "$venv_dir/bin/python" \
-      --index-url https://download.pytorch.org/whl/cu121 \
-      torch==2.1.2 torchdata==0.7.1
-    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cuda --group dev
-    ;;
-  rocm)
-    uv pip install --python "$venv_dir/bin/python" \
-      --index-url https://download.pytorch.org/whl/rocm5.6 \
-      torch==2.1.2 torchdata==0.7.1
-    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra rocm --group dev
-    ;;
-  mchip)
-    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra mchip --group dev
-    ;;
-  *)
-    echo "Invalid platform: $platform"
-    exit 1
-    ;;
-esac
+if [[ "$bootstrap_torch" == "yes" ]]; then
+  uv pip install --python "$venv_dir/bin/python" \
+    --index-url "$torch_index" \
+    torch==2.1.2 torchdata==0.7.1
+fi
 
-cp uv.lock "$lockfile"
+UV_PROJECT_ENVIRONMENT="$venv_dir" \
+  uv sync --python "$venv_dir/bin/python" --extra "$extra" --group dev
+
+cp "$temp_lock" "$lockfile"
 echo "Updated $lockfile"
