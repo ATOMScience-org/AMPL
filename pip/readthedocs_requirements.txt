@@ -1,6 +1,6 @@
 bravado
 deepchem
-hyperopt
+optuna
 IPython
 joblib
 matplotlib
