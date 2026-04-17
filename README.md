@@ -168,8 +168,8 @@ The following settings may be useful depending on your platform and runtime envi
 | Platform | Optional setup | Useful environment variables |
 |---|---|---|
 | CPU | none | `export OPENBLAS_NUM_THREADS=1` |
-| CUDA | load site CUDA module if required | `module load cuda`, <br>`export CUDA_HOME=/usr/local/cuda`, <br>`export PATH="$CUDA_HOME/bin:$PATH"`, <br>`export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$LD_LIBRARY_PATH"` |
-| ROCm | site-specific ROCm setup if required | `module load rocm`,<br> `export ROCM_HOME="$(dirname "$(dirname "$(readlink -f "$(which hipcc)")")")"`, <br>`export PATH="$ROCM_HOME/bin:$PATH"` |
+| CUDA | load site CUDA module if required | `module load cuda`<br>`export CUDA_HOME=/usr/local/cuda`<br>`export PATH="$CUDA_HOME/bin:$PATH"`<br>`export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$LD_LIBRARY_PATH"` |
+| ROCm | site-specific ROCm setup if required | `module load rocm`<br> `export ROCM_HOME="$(dirname "$(dirname "$(readlink -f "$(which hipcc)")")")"`<br>`export PATH="$ROCM_HOME/bin:$PATH"` |
 | Apple Silicon / M chip | none | usually none required |
 
 ## Troubleshooting
@@ -337,7 +337,7 @@ pip cache purge
 ### 5. Visualization and analysis
 - Visualization and analysis tools
 </details>
-Details of running specific features are within the [parameter (options) documentation](#Pipeline-parameters). More detailed documentation is in the [library documentation](#Library-documentation).
+Details of running specific features are within the [parameter (options) documentation](#pipeline-parameters). More detailed documentation is in the [library documentation](#library-documentation).
 
 ---
 ## Running AMPL

@@ -8,68 +8,71 @@
 # Usage:
 #    ./sync_uv_env.sh <cpu|cuda|rocm|mchip>
 
-set -euo pipefail
+usage() {
+  echo "Usage: $0 <cpu|cuda|rocm|mchip>"
+}
 
 platform="${1:-}"
+[[ -n "$platform" ]] || { usage; exit 1; }
 
 case "$platform" in
-  cpu|cuda|rocm|mchip)
+  cpu)
+    extra="cpu"
+    torch_index="https://download.pytorch.org/whl/cpu"
+    bootstrap_torch=true
     ;;
-  "")
-    echo "Usage: $0 <cpu|cuda|rocm|mchip>"
-    exit 1
+  cuda)
+    extra="cuda"
+    torch_index="https://download.pytorch.org/whl/cu121"
+    bootstrap_torch=true
+    ;;
+  rocm)
+    extra="rocm"
+    torch_index="https://download.pytorch.org/whl/rocm5.6"
+    bootstrap_torch=true
+    ;;
+  mchip)
+    extra="mchip"
+    torch_index=""
+    bootstrap_torch=false
     ;;
   *)
     echo "Invalid platform: $platform"
-    echo "Supported platforms: cpu cuda rocm mchip"
-    echo "Usage: $0 <cpu|cuda|rocm|mchip>"
+    usage
     exit 1
     ;;
 esac
 
-lockfile="uv.lock.${platform}"
 venv_dir=".venv-${platform}"
+lockfile="uv.lock.${platform}"
+temp_lock="uv.lock"
 
-if [[ ! -f "$lockfile" ]]; then
+[[ -f "$lockfile" ]] || {
   echo "Missing lockfile: $lockfile"
   echo "Run ./update_uv_lock.sh $platform first"
   exit 1
-fi
+}
 
-cp "$lockfile" uv.lock
+cleanup() {
+  rm -f "$temp_lock"
+}
+trap cleanup EXIT
+
+cp "$lockfile" "$temp_lock"
 rm -rf "$venv_dir"
 
 uv venv --python 3.10 "$venv_dir"
 
-case "$platform" in
-  cpu)
-    uv pip install --python "$venv_dir/bin/python" \
-      --index-url https://download.pytorch.org/whl/cpu \
-      torch==2.1.2 torchdata==0.7.1
-    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cpu --group dev --locked
-    ;;
-  cuda)
-    uv pip install --python "$venv_dir/bin/python" \
-      --index-url https://download.pytorch.org/whl/cu121 \
-      torch==2.1.2 torchdata==0.7.1
-    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra cuda --group dev --locked
-    ;;
-  rocm)
-    uv pip install --python "$venv_dir/bin/python" \
-      --index-url https://download.pytorch.org/whl/rocm5.6 \
-      torch==2.1.2 torchdata==0.7.1
-    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra rocm --group dev --locked
-    ;;
-  mchip)
-    UV_PROJECT_ENVIRONMENT="$venv_dir" uv sync --python "$venv_dir/bin/python" --extra mchip --group dev --locked
-    ;;
-  *)
-    echo "Invalid platform: $platform"
-    exit 1
-    ;;
-esac
+if [[ "$bootstrap_torch" == true ]]; then
+  uv pip install --python "$venv_dir/bin/python" \
+    --index-url "$torch_index" \
+    torch==2.1.2 torchdata==0.7.1
+fi
 
-# Install AMPL in editable mode without re-resolving dependencies.
+UV_PROJECT_ENVIRONMENT="$venv_dir" \
+  uv sync --python "$venv_dir/bin/python" --group dev --extra "$extra" --locked
+
 uv pip install --python "$venv_dir/bin/python" -e . --no-deps
 
-echo "Synced $venv_dir from $lockfile and installed AMPL editable (--no-deps)"
+echo "Refreshed $venv_dir from $lockfile"
+echo "Activate with: source $venv_dir/bin/activate"
