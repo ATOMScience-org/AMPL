@@ -40,20 +40,15 @@ def _get_expected_model_count(sample_result_dir, dataset_key):
     assert not filtered.empty, f'Expected regression fixture models for dataset_key={dataset_key}'
     return filtered['model_uuid'].nunique()
 
-@pytest.fixture
-def sample_result_dir():
-    """Fixture to use an existing sample result directory."""
+@pytest.fixture(scope="module")
+def unpack_tar_files_module_scope():
+    """Module-level fixture to create model directories with unpacked tar files"""
     # Resolve the path to the existing directory
     result_dir = Path(__file__).parent / "../../examples/tutorials/dataset/"
     assert result_dir.exists(), f"Directory {result_dir} does not exist."
-    return result_dir
-
-@pytest.fixture
-def unpack_tar_files(sample_result_dir):
-    """Fixture to create a model directories with unpacked tar files"""
-
+    
     # get .tar.gz files
-    tar_list=glob(f'{sample_result_dir}/**/*.tar.gz', recursive=True)
+    tar_list=glob(f'{result_dir}/**/*.tar.gz', recursive=True)
 
     # unpack tar files into model directories
     delete_dirs = []
@@ -77,11 +72,20 @@ def unpack_tar_files(sample_result_dir):
             shutil.rmtree(dir, ignore_errors=True)
 
 
+@pytest.fixture
+def sample_result_dir(unpack_tar_files_module_scope):
+    """Fixture to use an existing sample result directory with unpacked tar files."""
+    # Resolve the path to the existing directory
+    result_dir = Path(__file__).parent / "../../examples/tutorials/dataset/"
+    assert result_dir.exists(), f"Directory {result_dir} does not exist."
+    return result_dir
+
+
 # --------------------------
 # Core Functionality Tests
 # --------------------------
 
-def test_basic_directory_processing(sample_result_dir, unpack_tar_files):
+def test_basic_directory_processing(sample_result_dir):
     """Test basic JSON model discovery and processing"""
 
     dataset_key = _get_regression_dataset_key(sample_result_dir)
