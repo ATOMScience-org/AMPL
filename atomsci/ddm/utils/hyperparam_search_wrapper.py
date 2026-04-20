@@ -25,8 +25,9 @@ import time
 import traceback
 import copy
 import pickle
+import math
 
-from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
+import optuna
 
 from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import model_pipeline as mp
@@ -34,8 +35,9 @@ from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import model_tracker as trkr
-logging.basicConfig(format='%(asctime)-15s %(message)s')
 
+logging.basicConfig(format='%(asctime)-15s %(message)s')
+optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 
 def run_command(shell_script, python_path, script_dir, params):
@@ -1288,27 +1290,51 @@ class UserSpecifiedSearch(HyperparameterSearch):
                 new_dict[key] = value
         return new_dict
 
-def build_hyperopt_search_domain(label, method, param_list):
-    """Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.
-    This function is used by the HyperOptSearch class, not intended for standalone usage.
+def build_optuna_suggest(trial, label, method, param_list):
+    """Sample a hyperparameter value from an Optuna trial using the specified distribution.
+
+    Translates the same ``method|params`` format used across AMPL config files into the
+    corresponding ``trial.suggest_*`` call.  This function is used by the OptunaSearch class
+    and is not intended for standalone usage.
+
+    Note: ``loguniform`` param_list values must be in natural-log scale (matching the legacy
+    hyperopt convention), e.g. ``[-13.8, -6.9]``.  They are converted to actual-scale bounds
+    via ``math.exp()`` before being passed to Optuna.
+
+    Args:
+        trial: An :class:`optuna.trial.Trial` object.
+        label (str): Name of the hyperparameter (used as the Optuna parameter name).
+        method (str): Sampling method — one of ``'choice'``, ``'uniform'``,
+            ``'loguniform'``, or ``'uniformint'``.
+        param_list (list): Parameters for the chosen method:
+            - ``choice``: list of candidate values.
+            - ``uniform``/``loguniform``/``uniformint``: ``[low, high]``.
+
+    Returns:
+        The sampled value.
+
+    Raises:
+        ValueError: If *method* is not one of the supported options.
     """
     if method == "choice":
-        return hp.choice(label, param_list)
+        return trial.suggest_categorical(label, param_list)
     elif method == "uniform":
-        return hp.uniform(label, param_list[0], param_list[1])
+        return trial.suggest_float(label, param_list[0], param_list[1])
     elif method == "loguniform":
-        return hp.loguniform(label, param_list[0], param_list[1])
+        # param_list values are in natural-log scale (legacy hyperopt convention);
+        # Optuna expects actual-scale bounds with log=True.
+        return trial.suggest_float(label, math.exp(param_list[0]), math.exp(param_list[1]), log=True)
     elif method == "uniformint":
-        return hp.uniformint(label, param_list[0], param_list[1])
+        return trial.suggest_int(label, int(param_list[0]), int(param_list[1]))
     else:
-        raise Exception(f"Method {method} is not supported, choose from 'choice, uniform, loguniform, uniformint'.")
+        raise ValueError(f"Method {method} is not supported, choose from 'choice, uniform, loguniform, uniformint'.")
 
-class HyperOptSearch():
-    """Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)
+class OptunaSearch():
+    """Perform hyperparameter search with Bayesian Optimization (Tree Parzen Estimator) using Optuna.
 
-    To use HyperOptSearch, modify the config json file as follows:
+    To use OptunaSearch, modify the config json file as follows:
 
-        serach_type: use "hyperopt"
+        search_type: use "hyperopt"
 
         result_dir: use two directories (recommended), separated by comma, 1st one will be used to save the best model tarball, 2nd one will be used to store all models during the process.  e.g. "result_dir": "/path/of/the/final/dir,/path/of/the/temp/dir"
 
@@ -1317,7 +1343,7 @@ class HyperOptSearch():
         lr: specify learning rate searching method and related parameters as the following scheme.
             method|parameter1,parameter2...
 
-            method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, and uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
+            method: supported searching schemes include: choice, uniform, loguniform, and uniformint. See Optuna documentation for details.
 
     parameters:
         choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
@@ -1362,136 +1388,9 @@ class HyperOptSearch():
         else:
             self.max_eval = 100
 
-        #define the searching space
-        self.space = {}
-        if isinstance(self.params.featurizer, list):
-            self.space["featurizer"] = build_hyperopt_search_domain("featurizer", "choice", self.params.featurizer)
-        if isinstance(self.params.descriptor_type, list):
-            self.space["descriptor_type"] = build_hyperopt_search_domain("descriptor_type", "choice", self.params.descriptor_type)
-        if self.params.model_type == "RF":
-            #build searching domain for RF parameters
-            if self.params.rfe:
-                domain_list = self.params.rfe.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["rf_estimators"] = build_hyperopt_search_domain("rf_estimators", method, par_list)
-
-            if self.params.rfd:
-                domain_list = self.params.rfd.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["rf_max_depth"] = build_hyperopt_search_domain("rf_max_depth", method, par_list)
-
-            if self.params.rff:
-                domain_list = self.params.rff.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["rf_max_features"] = build_hyperopt_search_domain("rf_max_features", method, par_list)
-        elif self.params.model_type == "NN":
-            #build searching domain for NN parameters
-            if self.params.lr:
-                domain_list = self.params.lr.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["learning_rate"] = build_hyperopt_search_domain("learning_rate", method, par_list)
-
-            # for layer sizes, use a different method if the ls_ratio is provided
-            if self.params.ls:
-                domain_list = self.params.ls.split("|")
-                method = domain_list[0]
-                num_layer = int(domain_list[1])
-                par_list = [float(e) for e in domain_list[2].split(",")]
-                if not self.params.ls_ratio:
-                    for i in range(num_layer):
-                        self.space[f"ls{i}"] = build_hyperopt_search_domain(f"ls{i}", method, par_list)
-                else:
-                    self.space["ls"] = build_hyperopt_search_domain("ls", method, par_list)
-                    domain_list = self.params.ls_ratio.split("|")
-                    method = domain_list[0]
-                    par_list = [float(e) for e in domain_list[-1].split(",")]
-                    for i in range(1,num_layer):
-                        self.space[f"ratio{i}"] = build_hyperopt_search_domain(f"ratio{i}", method, par_list)
-
-            # dropouts
-            if self.params.dp:
-                domain_list = self.params.dp.split("|")
-                method = domain_list[0]
-                num_layer = int(domain_list[1])
-                par_list = [float(e) for e in domain_list[2].split(",")]
-                for i in range(num_layer):
-                    self.space[f"dp{i}"] = build_hyperopt_search_domain(f"dp{i}", method, par_list)
-
-            # weight decay penalty
-            if self.params.wdp:
-                domain_list = self.params.wdp.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["weight_decay_penalty"] = build_hyperopt_search_domain("weight_decay_penalty", method, par_list)
-
-            # weight decay penalty type
-            if self.params.wdt:
-                domain_list = self.params.wdt.split("|")
-                method = domain_list[0]
-                par_list = domain_list[1].split(",")
-                self.space["weight_decay_penalty_type"] = build_hyperopt_search_domain("weight_decay_penalty_type", method, par_list)
-
-        elif self.params.model_type == "xgboost":
-            #build searching domain for XGBoost parameters
-            if self.params.xgbg:
-                domain_list = self.params.xgbg.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["xgbg"] = build_hyperopt_search_domain("xgbg", method, par_list)
-
-            if self.params.xgba:
-                domain_list = self.params.xgba.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["xgba"] = build_hyperopt_search_domain("xgba", method, par_list)
-
-            if self.params.xgbb:
-                domain_list = self.params.xgbb.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["xgbb"] = build_hyperopt_search_domain("xgbb", method, par_list)
-
-            if self.params.xgbl:
-                domain_list = self.params.xgbl.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["xgbl"] = build_hyperopt_search_domain("xgbl", method, par_list)
-
-            if self.params.xgbd:
-                domain_list = self.params.xgbd.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["xgbd"] = build_hyperopt_search_domain("xgbd", method, par_list)
-
-            if self.params.xgbc:
-                domain_list = self.params.xgbc.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["xgbc"] = build_hyperopt_search_domain("xgbc", method, par_list)
-
-            if self.params.xgbs:
-                domain_list = self.params.xgbs.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["xgbs"] = build_hyperopt_search_domain("xgbs", method, par_list)
-
-            if self.params.xgbn:
-                domain_list = self.params.xgbn.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["xgbn"] = build_hyperopt_search_domain("xgbn", method, par_list)
-
-            if self.params.xgbw:
-                domain_list = self.params.xgbw.split("|")
-                method = domain_list[0]
-                par_list = [float(e) for e in domain_list[1].split(",")]
-                self.space["xgbw"] = build_hyperopt_search_domain("xgbw", method, par_list)
-
-        self.log = logging.getLogger("hyperopt_search")
+        # The search space is now built inside the objective() function at call time,
+        # using trial.suggest_* calls rather than a pre-built space dictionary.
+        self.log = logging.getLogger("optuna_search")
 
 
     def run_search(self):
@@ -1503,16 +1402,80 @@ class HyperOptSearch():
         else:
             fd = f"{feat}_{desc}"
 
-        def lossfn(p):
+        def objective(trial):
+            # Build a local param dict by sampling from the trial using build_optuna_suggest.
+            # This mirrors the old hyperopt approach where fmin populated a dict p for lossfn.
+            p = {}
+            if isinstance(self.params.featurizer, list):
+                p["featurizer"] = trial.suggest_categorical("featurizer", self.params.featurizer)
+            if isinstance(self.params.descriptor_type, list):
+                p["descriptor_type"] = trial.suggest_categorical("descriptor_type", self.params.descriptor_type)
+
+            if self.params.model_type == "RF":
+                if self.params.rfe:
+                    dl = self.params.rfe.split("|")
+                    p["rf_estimators"] = build_optuna_suggest(trial, "rf_estimators", dl[0], [float(e) for e in dl[1].split(",")])
+                if self.params.rfd:
+                    dl = self.params.rfd.split("|")
+                    p["rf_max_depth"] = build_optuna_suggest(trial, "rf_max_depth", dl[0], [float(e) for e in dl[1].split(",")])
+                if self.params.rff:
+                    dl = self.params.rff.split("|")
+                    p["rf_max_features"] = build_optuna_suggest(trial, "rf_max_features", dl[0], [float(e) for e in dl[1].split(",")])
+            elif self.params.model_type == "NN":
+                if self.params.lr:
+                    dl = self.params.lr.split("|")
+                    p["learning_rate"] = build_optuna_suggest(trial, "learning_rate", dl[0], [float(e) for e in dl[1].split(",")])
+                # for layer sizes, use a different method if the ls_ratio is provided
+                if self.params.ls:
+                    dl = self.params.ls.split("|")
+                    ls_method = dl[0]
+                    num_layer = int(dl[1])
+                    ls_par_list = [float(e) for e in dl[2].split(",")]
+                    if not self.params.ls_ratio:
+                        for i in range(num_layer):
+                            p[f"ls{i}"] = build_optuna_suggest(trial, f"ls{i}", ls_method, ls_par_list)
+                    else:
+                        p["ls"] = build_optuna_suggest(trial, "ls", ls_method, ls_par_list)
+                        ratio_dl = self.params.ls_ratio.split("|")
+                        ratio_par_list = [float(e) for e in ratio_dl[-1].split(",")]
+                        for i in range(1, num_layer):
+                            p[f"ratio{i}"] = build_optuna_suggest(trial, f"ratio{i}", ratio_dl[0], ratio_par_list)
+                # dropouts
+                if self.params.dp:
+                    dl = self.params.dp.split("|")
+                    dp_method = dl[0]
+                    num_layer = int(dl[1])
+                    dp_par_list = [float(e) for e in dl[2].split(",")]
+                    for i in range(num_layer):
+                        p[f"dp{i}"] = build_optuna_suggest(trial, f"dp{i}", dp_method, dp_par_list)
+                # weight decay penalty
+                if self.params.wdp:
+                    dl = self.params.wdp.split("|")
+                    p["weight_decay_penalty"] = build_optuna_suggest(trial, "weight_decay_penalty", dl[0], [float(e) for e in dl[1].split(",")])
+                # weight decay penalty type
+                if self.params.wdt:
+                    dl = self.params.wdt.split("|")
+                    p["weight_decay_penalty_type"] = build_optuna_suggest(trial, "weight_decay_penalty_type", dl[0], dl[1].split(","))
+            elif self.params.model_type == "xgboost":
+                xgb_map = [
+                    ("xgbg", "xgbg"), ("xgba", "xgba"), ("xgbb", "xgbb"), ("xgbl", "xgbl"),
+                    ("xgbd", "xgbd"), ("xgbc", "xgbc"), ("xgbs", "xgbs"), ("xgbn", "xgbn"), ("xgbw", "xgbw"),
+                ]
+                for short, label in xgb_map:
+                    val_str = getattr(self.params, short, None)
+                    if val_str:
+                        dl = val_str.split("|")
+                        p[label] = build_optuna_suggest(trial, label, dl[0], [float(e) for e in dl[1].split(",")])
+
+            # Assign sampled values back to self.params — logic identical to the old lossfn(p)
             if "featurizer" in p:
                 self.params.featurizer = p["featurizer"]
-
             if "descriptor_type" in p:
                 self.params.descriptor_type = p["descriptor_type"]
 
             if self.params.model_type == "RF":
                 if self.params.rfe:
-                    self.params.rf_estimators =  p["rf_estimators"]
+                    self.params.rf_estimators = p["rf_estimators"]
                 if self.params.rfd:
                     self.params.rf_max_depth = p["rf_max_depth"]
                 if self.params.rff:
@@ -1533,7 +1496,7 @@ class HyperOptSearch():
                         self.params.layer_sizes = ",".join([str(p[e]) for e in p if e[:2] == "ls"])
                     else:
                         list_layer_sizes = [p["ls"]]
-                        for i in range(1,len([e for e in p if e[:5] == "ratio"])+1):
+                        for i in range(1, len([e for e in p if e[:5] == "ratio"]) + 1):
                             list_layer_sizes.append(int(list_layer_sizes[-1] * p[f"ratio{i}"]))
                         self.params.layer_sizes = ",".join([str(e) for e in list_layer_sizes])
                 hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}_{self.params.weight_decay_penalty_type}_{self.params.weight_decay_penalty}'
@@ -1586,7 +1549,7 @@ class HyperOptSearch():
 
             tparam = parse.wrapper(self.params.__dict__)
             print(f"{self.params.model_type} model with {self.params.featurizer} and {self.params.descriptor_type}")
-            # make sure classification model has uncertainty as False. 
+            # make sure classification model has uncertainty as False.
             if tparam.prediction_type != "regression":
                 tparam.uncertainty = False
             pl = mp.ModelPipeline(tparam)
@@ -1595,7 +1558,7 @@ class HyperOptSearch():
             try:
                 pl.train_model()
             except Exception:
-                self.log.exception('Exception found during hyperopt training')
+                self.log.exception('Exception found during Optuna training')
                 model_failed = True
 
             subsets = ["train", "valid", "test"]
@@ -1616,26 +1579,37 @@ class HyperOptSearch():
                 else:
                     pred_results[subset]["roc_auc"] = sub_pred_results["roc_auc_score"]
                     pred_results[subset]["acc"] = sub_pred_results["accuracy_score"]
+
+            # Store per-trial extras as user attributes; return the scalar loss for Optuna.
+            trial.set_user_attr("model", tparam.model_tarball_path)
+            trial.set_user_attr("featurizer", tparam.featurizer)
+            trial.set_user_attr("desc", tparam.descriptor_type)
+            trial.set_user_attr("hp_params", hp_params)
             if tparam.prediction_type == "regression":
-                res_dict = {'loss': 1-pred_results["valid"]["r2"], 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+                loss = 1 - pred_results["valid"]["r2"]
                 for subset in subsets:
-                    res_dict[f"{subset}_r2"] = pred_results[subset]["r2"]
-                    res_dict[f"{subset}_rms"] = pred_results[subset]["rms"]
+                    trial.set_user_attr(f"{subset}_r2", pred_results[subset]["r2"])
+                    trial.set_user_attr(f"{subset}_rms", pred_results[subset]["rms"])
             else:
-                res_dict = {'loss': 100-pred_results["valid"]["roc_auc"], 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+                loss = 100 - pred_results["valid"]["roc_auc"]
                 for subset in subsets:
-                    res_dict[f"{subset}_roc_auc"] = pred_results[subset]["roc_auc"]
-                    res_dict[f"{subset}_acc"] = pred_results[subset]["acc"]
-            res_dict["hp_params"] = hp_params
+                    trial.set_user_attr(f"{subset}_roc_auc", pred_results[subset]["roc_auc"])
+                    trial.set_user_attr(f"{subset}_acc", pred_results[subset]["acc"])
 
             # print the model metrics as logs
             print()
             if tparam.prediction_type == "regression":
-                print(f'model_performance|{res_dict["train_r2"]:.3f}|{res_dict["train_rms"]:.3f}|{res_dict["valid_r2"]:.3f}|{res_dict["valid_rms"]:.3f}|{res_dict["test_r2"]:.3f}|{res_dict["test_rms"]:.3f}|{res_dict["hp_params"]}|{res_dict["model"]}\n')
+                print(f'model_performance|{pred_results["train"]["r2"]:.3f}|{pred_results["train"]["rms"]:.3f}'
+                      f'|{pred_results["valid"]["r2"]:.3f}|{pred_results["valid"]["rms"]:.3f}'
+                      f'|{pred_results["test"]["r2"]:.3f}|{pred_results["test"]["rms"]:.3f}'
+                      f'|{hp_params}|{tparam.model_tarball_path}\n')
             else:
-                print(f'model_performance|{res_dict["train_roc_auc"]:.3f}|{res_dict["train_acc"]:.3f}|{res_dict["valid_roc_auc"]:.3f}|{res_dict["valid_acc"]:.3f}|{res_dict["test_roc_auc"]:.3f}|{res_dict["test_acc"]:.3f}|{res_dict["hp_params"]}|{res_dict["model"]}\n')
+                print(f'model_performance|{pred_results["train"]["roc_auc"]:.3f}|{pred_results["train"]["acc"]:.3f}'
+                      f'|{pred_results["valid"]["roc_auc"]:.3f}|{pred_results["valid"]["acc"]:.3f}'
+                      f'|{pred_results["test"]["roc_auc"]:.3f}|{pred_results["test"]["acc"]:.3f}'
+                      f'|{hp_params}|{tparam.model_tarball_path}\n')
 
-            return res_dict
+            return loss
 
         if self.params.prediction_type == "regression":
             print('model_performance|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms|model_params|model\n')
@@ -1643,58 +1617,57 @@ class HyperOptSearch():
             print('model_performance|train_roc_auc|train_acc|valid_roc_auc|valid_acc|test_roc_auc|test_acc|model_params|model\n')
 
         if self.params.hp_checkpoint_load is not None and os.path.isfile(self.params.hp_checkpoint_load):
-            print(f"load hpo trial object from {self.params.hp_checkpoint_load}")
+            print(f"load hpo study object from {self.params.hp_checkpoint_load}")
             with open(self.params.hp_checkpoint_load, "rb") as f:
-                trials = pickle.load(f)
+                study = pickle.load(f)
         else:
-            trials = Trials()
+            study = optuna.create_study(direction='minimize')
 
         if self.params.hp_checkpoint_save is not None:
             print("hp_checkpoint_save provided, save a checkpoint file every 5 trials.")
-            max_evals = 5
             while True:
                 if os.path.isfile(self.params.hp_checkpoint_save):
-                    print(f"load hpo trial object from {self.params.hp_checkpoint_save}")
+                    print(f"load hpo study object from {self.params.hp_checkpoint_save}")
                     with open(self.params.hp_checkpoint_save, "rb") as f:
-                        trials = pickle.load(f)
-                    max_evals = min(len(trials) + 5, self.max_eval)
-                else:
-                    max_evals = min(max_evals, self.max_eval)
+                        study = pickle.load(f)
+                n_done = len(study.trials)
+                n_new = min(5, self.max_eval - n_done)
 
-                _best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=max_evals, trials=trials)
+                study.optimize(objective, n_trials=n_new)
 
-                print(f"Save HPO trial object to {self.params.hp_checkpoint_save}")
+                print(f"Save HPO study object to {self.params.hp_checkpoint_save}")
                 with open(self.params.hp_checkpoint_save, "wb") as f:
-                    pickle.dump(trials, f)
+                    pickle.dump(study, f)
 
-                if max_evals == self.max_eval:
+                if len(study.trials) >= self.max_eval:
                     break
         else:
-            _best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
+            study.optimize(objective, n_trials=self.max_eval)
 
         print("Generating the performance -- iteration table and Copy the best model tarball.")
 
-        feat_list = [trials.trials[i]["result"]["featurizer"] for i in range(len(trials.trials))]
-        desc_list = [trials.trials[i]["result"]["desc"] for i in range(len(trials.trials))]
-        hp_params_list = [trials.trials[i]["result"]["hp_params"] for i in range(len(trials.trials))]
-        trial_data = {"trial": list(range(len(trials.trials))), "featurizer": feat_list, "descriptor": desc_list, "model_params": hp_params_list}
+        n_trials = len(study.trials)
+        feat_list = [study.trials[i].user_attrs["featurizer"] for i in range(n_trials)]
+        desc_list = [study.trials[i].user_attrs["desc"] for i in range(n_trials)]
+        hp_params_list = [study.trials[i].user_attrs["hp_params"] for i in range(n_trials)]
+        trial_data = {"trial": list(range(n_trials)), "featurizer": feat_list, "descriptor": desc_list, "model_params": hp_params_list}
         subsets = ["train", "valid", "test"]
         for subset in subsets:
             if self.params.prediction_type == "regression":
-                trial_data[f"{subset}_r2"] = [trials.trials[i]["result"][f"{subset}_r2"] for i in range(len(trials.trials))]
-                trial_data[f"{subset}_rms"] = [trials.trials[i]["result"][f"{subset}_rms"] for i in range(len(trials.trials))]
+                trial_data[f"{subset}_r2"] = [study.trials[i].user_attrs[f"{subset}_r2"] for i in range(n_trials)]
+                trial_data[f"{subset}_rms"] = [study.trials[i].user_attrs[f"{subset}_rms"] for i in range(n_trials)]
             else:
-                trial_data[f"{subset}_roc_auc"] = [trials.trials[i]["result"][f"{subset}_roc_auc"] for i in range(len(trials.trials))]
-                trial_data[f"{subset}_acc"] = [trials.trials[i]["result"][f"{subset}_acc"] for i in range(len(trials.trials))]
+                trial_data[f"{subset}_roc_auc"] = [study.trials[i].user_attrs[f"{subset}_roc_auc"] for i in range(n_trials)]
+                trial_data[f"{subset}_acc"] = [study.trials[i].user_attrs[f"{subset}_acc"] for i in range(n_trials)]
         perf = pd.DataFrame(trial_data)
 
         if self.params.prediction_type == "regression":
             best_trial = perf.sort_values(by="valid_r2", ascending=False)["trial"].iloc[0]
-            best_model = trials.trials[best_trial]["result"]["model"]
+            best_model = study.trials[best_trial].user_attrs["model"]
             print(f'Best model: {best_model}, valid R2: {perf.sort_values(by="valid_r2", ascending=False)["valid_r2"].iloc[0]}')
         else:
             best_trial = perf.sort_values(by="valid_roc_auc", ascending=False)["trial"].iloc[0]
-            best_model = trials.trials[best_trial]["result"]["model"]
+            best_model = study.trials[best_trial].user_attrs["model"]
             print(f'Best model: {best_model}, valid ROC_AUC: {perf.sort_values(by="valid_roc_auc", ascending=False)["valid_roc_auc"].iloc[0]}')
 
         bmodel_prefix = "_".join(os.path.basename(best_model).split("_")[:-1])
@@ -1704,7 +1677,7 @@ class HyperOptSearch():
         if os.path.isfile(best_model):
             # if the model tracker is used, the model won't be saved to the result_dir
             shutil.copy2(best_model, os.path.join(self.final_dir,
-                                              f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{fd}_{bmodel_uuid}.tar.gz"))
+                                                   f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{fd}_{bmodel_uuid}.tar.gz"))
 
 def parse_params(param_list):
     """Parse paramters
@@ -1777,7 +1750,7 @@ def build_search(params):
     elif params.search_type == 'user_specified':
         hs = UserSpecifiedSearch(params)
     elif params.search_type == 'hyperopt':
-        hs = HyperOptSearch(params)
+        hs = OptunaSearch(params)
     else:
         print("Incorrect search type specified")
         sys.exit(1)

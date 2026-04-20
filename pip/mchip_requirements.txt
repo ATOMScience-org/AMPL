@@ -1,4 +1,4 @@
-# Minimal pip requirement list for AMPL with CPU support only for MacOS ARM chip. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development. 
+# Minimal pip requirement list for AMPL with CPU support only for MacOS ARM chip. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development.
 -i https://download.pytorch.org/whl/cpu
 --find-links https://data.dgl.ai/wheels/repo.html
 --extra-index-url  https://pypi.python.org/simple
@@ -16,7 +16,7 @@ dgl==1.1.2
 dgllife
 
 scikit-learn==1.2.2
-hyperopt
+optuna
 
 xgboost
 
@@ -35,10 +35,9 @@ imblearn
 # optional for home users: prettier images in RDKit
 # requires pkg-config to build: sudo apt-get pkg-config
 # requires Cairo: sudo apt-get install libcairo2-dev
-# pycairo 
+# pycairo
 
 maestrowf
-MolVS
 mordred
 
 pytest
@@ -48,4 +47,4 @@ jupyterlab
 
 deepchem==2.7.1
 rdkit==2024.3.5
-pyyaml==5.4.1
+pyyaml>=6.0

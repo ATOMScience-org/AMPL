@@ -32,7 +32,7 @@ parameter_synonyms = {'mode':'prediction_type',
                       'model_dir':'result_dir',
                     }
 
-model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel, 
+model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel,
             'GCNModel':dcm.GCNModel,
             'MPNNModel':dcm.MPNNModel,
             'GraphConvModel':dcm.GraphConvModel,
@@ -139,7 +139,7 @@ def all_auto_lists():
 def extract_model_params(params, strip_prefix=True):
     """Extract parameters specific to a model.
 
-    This function extracts parameters intended for a specific model. It should only be used 
+    This function extracts parameters intended for a specific model. It should only be used
     for arguments automatically added by an AutoArgumentAdder.
 
     Args:
@@ -148,7 +148,7 @@ def extract_model_params(params, strip_prefix=True):
             For example, 'AttentiveFP_mode' becomes 'mode'.
 
     Returns:
-        dict: A dictionary containing a subset of parameters from `params` that are relevant 
+        dict: A dictionary containing a subset of parameters from `params` that are relevant
             to the specified model.
     """
     assert params.model_type in model_wl
@@ -159,7 +159,7 @@ def extract_model_params(params, strip_prefix=True):
 def extract_featurizer_params(params, strip_prefix=True):
     """Extract parameters specific to a featurizer.
 
-    This function extracts parameters intended for a specific featurizer. It should only be used 
+    This function extracts parameters intended for a specific featurizer. It should only be used
     for arguments automatically added by an AutoArgumentAdder.
 
     Args:
@@ -168,7 +168,7 @@ def extract_featurizer_params(params, strip_prefix=True):
             For example, 'MolGraphConvFeaturizer_use_edges' becomes 'use_edges'.
 
     Returns:
-        dict: A dictionary containing a subset of parameters from `params` that are relevant 
+        dict: A dictionary containing a subset of parameters from `params` that are relevant
             to the specified featurizer.
     """
     assert params.featurizer in featurizer_wl
@@ -298,7 +298,7 @@ def is_list(p, type_annotation):
         return str(type_annotation).startswith('typing.List') or str(type_annotation) == "<class 'list'>"
 
 def strip_optional(type_annotation):
-    """In the upgrade to python 3.9 type_annotaions now use
+    """In the upgrade to python 3.10 type_annotaions now use
         typeing.Optional and we need to strip that off.
 
     Args:
@@ -783,9 +783,9 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
 
     # Special case handling for arguments that are False or True by default
     default_false = ['previously_split','use_shortlist','datastore', 
-                     'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production',
-                     'embedding_and_features', 
-                     'robustscaler_unit_variance'] 
+                    'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production', 
+                    'embedding_and_features', 
+                    'robustscaler_unit_variance']
     default_true = ['transformers','previously_featurized','uncertainty', 'rerun',
                     'robustscaler_with_centering', 'robustscaler_with_scaling',
                     'powertransformer_standardize']
@@ -1251,7 +1251,7 @@ def get_parser():
     parser.add_argument(
         '--sampling_method', dest='sampling_method', type=str, default=None,
         help='Method for sampling to address class imbalance (e.g., \'undersampling\', \'SMOTE\')')
-    
+
     parser.add_argument(
         '--sampling_ratio', dest='sampling_ratio', type=str, default='auto',
         help='The "sampling_ratio" parameter of SMOTE must be a float in the range (0.0, 1.0], a str '
@@ -1510,9 +1510,9 @@ def get_parser():
             help='Scaling factor for constraining network size based on number of parameters in the network for '
                  'hyperparam search')
     parser.add_argument(
-        '--python_path', dest='python_path', required=False, 
+        '--python_path', dest='python_path', required=False,
         # default to the version of python used to run this script
-        default=sys.executable, 
+        default=sys.executable,
         help='Path to desired python version')
     parser.add_argument(
             '--rerun', dest= 'rerun', required=False, action='store_false',
@@ -1520,14 +1520,14 @@ def get_parser():
                  'already been built')
     parser.set_defaults(rerun=True)
     parser.add_argument(
-        '--script_dir', dest='script_dir', required=False, 
+        '--script_dir', dest='script_dir', required=False,
         # use location of this file to generate script dir
         default=os.path.abspath(os.path.join(__file__, '../..')),
         help='Path where pipeline file you want to run hyperparam search from is located')
 
     parser.add_argument(
         '--search_type', dest='search_type', required=False, default='grid',
-        help='Type of hyperparameter search to do. Options = [grid, random, geometric, and user_specified]')
+        help='Type of hyperparameter search to do. Options = [grid, random, geometric, user_specified, and hyperopt (Optuna Bayesian search)]')
 
     parser.add_argument(
         '--split_only', dest='split_only', required=False, action='store_true',
@@ -1568,64 +1568,64 @@ def get_parser():
         help='Time limit in minutes for hyperparameter search batch jobs.'
              'If set to None then this parameter will not be used.')
 
-    # HyperOptSearch specific parameters
+    # OptunaSearch specific parameters
     # NN model
     parser.add_argument(
         '--lr', dest='lr', required=False, default=None,
-        help='learning rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
+        help='learning rate shown in Optuna domain format, e.g. --lr=uniform|0.00001,0.001')
     parser.add_argument(
         '--ls', dest='ls', required=False, default=None,
-        help='layer sizes shown in HyperOpt domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
+        help='layer sizes shown in Optuna domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
     parser.add_argument(
         '--ls_ratio', dest='ls_ratio', required=False, default=None,
-        help='layer size ratios (layer size / previous layer size) shown in HyperOpt domain format, the number of layers is not needed here, taken from ls, e.g. --ls_ratio=uniform|0.1,0.9')
+        help='layer size ratios (layer size / previous layer size) shown in Optuna domain format, the number of layers is not needed here, taken from ls, e.g. --ls_ratio=uniform|0.1,0.9')
     parser.add_argument(
         '--dp', dest='dp', required=False, default=None,
-        help='dropouts shown in HyperOpt domain format, e.g. --dp=uniform|3|0,0.4')
+        help='dropouts shown in Optuna domain format, e.g. --dp=uniform|3|0,0.4')
     parser.add_argument(
         '--wdp', dest='wdp', required=False, default=None,
-        help='weight_decay_penalty shown in HyperOpt domain format, e.g. --wdp=loguniform|-6.908,-4.605')
+        help='weight_decay_penalty shown in Optuna domain format, e.g. --wdp=loguniform|-6.908,-4.605')
     parser.add_argument(
         '--wdt', dest='wdt', required=False, default=None,
-        help='weight_decay_penalty_type shown in HyperOpt domain format, e.g. --wdt=choice|l1,l2')
+        help='weight_decay_penalty_type shown in Optuna domain format, e.g. --wdt=choice|l1,l2')
     # RF model
     parser.add_argument(
         '--rfe', dest='rfe', required=False, default=None,
-        help='rf_estimators shown in HyperOpt domain format, e.g. --rfe=uniformint|64,512')
+        help='rf_estimators shown in Optuna domain format, e.g. --rfe=uniformint|64,512')
     parser.add_argument(
         '--rfd', dest='rfd', required=False, default=None,
-        help='rf_max_depth shown in HyperOpt domain format, e.g. --rfd=uniformint|64,512')
+        help='rf_max_depth shown in Optuna domain format, e.g. --rfd=uniformint|64,512')
     parser.add_argument(
         '--rff', dest='rff', required=False, default=None,
-        help='rf_max_features shown in HyperOpt domain format, e.g. --rff=uniformint|64,512')
+        help='rf_max_features shown in Optuna domain format, e.g. --rff=uniformint|64,512')
     # XGBoost model
     parser.add_argument(
         '--xgbg', dest='xgbg', required=False, default=None,
-        help='xgb_gamma shown in HyperOpt domain format, e.g. --xgbg=uniform|0,0.4')
+        help='xgb_gamma shown in Optuna domain format, e.g. --xgbg=uniform|0,0.4')
     parser.add_argument(
         '--xgba', dest='xgba', required=False, default=None,
-        help='xgb_alpha shown in HyperOpt domain format, e.g. --xgba=uniform|0,0.4')
+        help='xgb_alpha shown in Optuna domain format, e.g. --xgba=uniform|0,0.4')
     parser.add_argument(
         '--xgbb', dest='xgbb', required=False, default=None,
-        help='xgb_lambda shown in HyperOpt domain format, e.g. --xgbb=uniform|0,0.4')
+        help='xgb_lambda shown in Optuna domain format, e.g. --xgbb=uniform|0,0.4')
     parser.add_argument(
         '--xgbl', dest='xgbl', required=False, default=None,
-        help='xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
+        help='xgb_learning_rate shown in Optuna domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
     parser.add_argument(
         '--xgbd', dest='xgbd', required=False, default=None,
-        help='xgb_max_depth shown in HyperOpt domain format, e.g. --xgbd=uniformint|3,10')
+        help='xgb_max_depth shown in Optuna domain format, e.g. --xgbd=uniformint|3,10')
     parser.add_argument(
         '--xgbc', dest='xgbc', required=False, default=None,
-        help='xgb_colsample_bytree shown in HyperOpt domain format, e.g. --xgbc=uniform|0.1,1.0')
+        help='xgb_colsample_bytree shown in Optuna domain format, e.g. --xgbc=uniform|0.1,1.0')
     parser.add_argument(
         '--xgbs', dest='xgbs', required=False, default=None,
-        help='xgb_subsample shown in HyperOpt domain format, e.g. --xgbs=uniform|0.1,1.0')
+        help='xgb_subsample shown in Optuna domain format, e.g. --xgbs=uniform|0.1,1.0')
     parser.add_argument(
         '--xgbn', dest='xgbn', required=False, default=None,
-        help='xgb_n_estimators shown in HyperOpt domain format, e.g. --xgbn=choice|200,500,1000')
+        help='xgb_n_estimators shown in Optuna domain format, e.g. --xgbn=choice|200,500,1000')
     parser.add_argument(
         '--xgbw', dest='xgbw', required=False, default=None,
-        help='xgb_min_child_weight shown in HyperOpt domain format, e.g. --xgbw=uniform|1.0,1.2')
+        help='xgb_min_child_weight shown in Optuna domain format, e.g. --xgbw=uniform|1.0,1.2')
     # checkpoint
     parser.add_argument(
         '--hp_checkpoint_save', dest='hp_checkpoint_save', required=False, default=None,
@@ -1828,7 +1828,7 @@ def postprocess_args(parsed_args):
 #***********************************************************************************************************
 def validate_sampling_strategy_argument(value):
     """Validates sampling_strategy parameter for SMOTE and undersampling.
-    Validates that the input value is either a float in the range (0.0, 1.0] or a string among 
+    Validates that the input value is either a float in the range (0.0, 1.0] or a string among
     {'auto', 'not majority', 'minority', 'all', 'not minority'}. Raises a ValueError if the validation fails.
 
     Args:
@@ -1838,7 +1838,7 @@ def validate_sampling_strategy_argument(value):
         ValueError: If the value is not a float in the range (0.0, 1.0] or a valid string.
     """
     valid_strings = {"auto", "not majority", "minority", "all", "not minority"}
-    
+
     try:
         float_value = float(value)
         if float_value <= 0.0 or float_value > 1.0:

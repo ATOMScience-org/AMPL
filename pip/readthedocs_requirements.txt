@@ -1,10 +1,9 @@
 bravado
 deepchem
-hyperopt
+optuna
 IPython
 joblib
 matplotlib
-molvs
 numpy
 pandas
 pygments

@@ -41,7 +41,7 @@ for folder in "${folders[@]}"; do
         if [[ -f "$file" && "$folder" != "__pycache__/" ]]; then
             cd "$folder"
             echo "Testing $folder"
-            pytest -m "not moe_required" --capture=sys --capture=fd --cov=atomsci -vv
+            pytest -m "not moe_required" --capture=fd --cov=atomsci -vv --durations=8 --durations-min=0.05
             cd ..
         else
           echo "Skipping folder: $folder. Not a test directory."
