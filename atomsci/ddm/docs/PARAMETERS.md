@@ -903,6 +903,14 @@ in the same way as model parameters.
 |*Description:*|Computational system you are running on, LC or twintron-blue. LLNL system specific|
 |*Default:*|twintron-blue|
 |*Type:*|str|
+
+- **max_invalid_pred_frac**  
+  
+|||
+|-|-|
+|*Description:*|The amount of invalid (NaN/Inf) predictions acceptable for filtering out of the dataset before calculating model performance metrics, as a fraction from 0-1.|
+|*Default:*|0.01|
+|*Type:*|float|
   
 ---
 
