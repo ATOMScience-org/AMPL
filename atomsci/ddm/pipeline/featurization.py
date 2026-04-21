@@ -24,6 +24,7 @@ from rdkit.Chem import Descriptors
 from rdkit.ML.Descriptors import MoleculeDescriptors
 
 from sklearn.preprocessing import RobustScaler, PowerTransformer
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 subclassed_mordred_classes = ['EState', 'MolecularDistanceEdge']
@@ -1653,7 +1654,9 @@ class DescriptorFeaturization(PersistentFeaturization):
                         quantile_range=quartiles,
                         unit_variance=params.robustscaler_unit_variance
                     )
-            pipeline = Pipeline([('SimpleImputer', imputer), ('RobustScaler', robust_scaler)])
+            pipeline = Pipeline([('SimpleImputer', imputer), 
+                                 ('VarianceThreshold', VarianceThreshold(threshold=0.0)),
+                                 ('RobustScaler', robust_scaler)])
             transformers_x = [
                 trans.SklearnPipelineWrapper(transform_X=True, dataset=dataset,
                     sklearn_pipeline=pipeline)
@@ -1665,7 +1668,9 @@ class DescriptorFeaturization(PersistentFeaturization):
                         method=params.powertransformer_method,
                         standardize=params.powertransformer_standardize
             )
-            pipeline = Pipeline([('SimpleImputer', imputer), ('PowerTransformer', power_transformer)])
+            pipeline = Pipeline([('SimpleImputer', imputer), 
+                                 ('VarianceThreshold', VarianceThreshold(threshold=0.0)),
+                                 ('PowerTransformer', power_transformer)])
             transformers_x = [
                 trans.SklearnPipelineWrapper(transform_X=True, dataset=dataset,
                     sklearn_pipeline=pipeline)

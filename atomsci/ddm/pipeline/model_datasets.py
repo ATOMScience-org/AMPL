@@ -1424,7 +1424,6 @@ class FileDataset(ModelDataset):
             self.dataset_key = self.params.dataset_key
             return dset_df
 
-
         # Otherwise, generate the expected path for the featurized dataset
         featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
         dataset_dir = os.path.dirname(self.params.dataset_key)

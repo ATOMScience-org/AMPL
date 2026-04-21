@@ -14,6 +14,7 @@ import json
 
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import RobustScaler, PowerTransformer
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.pipeline import Pipeline
 
 import sys
@@ -30,6 +31,7 @@ def test_balancing_transformer():
     """
     dset_key = make_relative_to_file('../../test_datasets/MRP3_dataset.csv')
 
+    print(dset_key)
     res_dir = tempfile.mkdtemp()
 
     print('-=======normal balancing===================================')
@@ -393,6 +395,8 @@ def test_sklearn_pipelines():
     imputer = transformers_x[0][0].sklearn_pipeline.named_steps['SimpleImputer']
     assert isinstance(imputer, SimpleImputer)
     assert imputer.strategy == 'median'
+    thresholder = transformers_x[0][0].sklearn_pipeline.named_steps['VarianceThreshold']
+    assert isinstance(thresholder, VarianceThreshold)
 
     tar_path = cm.get_filesystem_perf_results(res_dir)['model_path'].values[0]
     reader = mfr.ModelFileReader(tar_path)
@@ -459,8 +463,8 @@ def test_sklearn_pipelines():
 
 
 if __name__ == '__main__':
-    test_sklearn_pipelines()
+    #test_sklearn_pipelines()
     #test_kfold_regression_transformers()
     #test_kfold_transformers()
     #test_all_transformers()
-    #test_balancing_transformer()
+    test_balancing_transformer()
