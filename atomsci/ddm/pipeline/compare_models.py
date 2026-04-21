@@ -966,10 +966,16 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
     subsets = ['train', 'valid', 'test']
 
     if pred_type == 'regression':
-        metrics = ['r2_score', 'rms_score', 'mae_score', 'num_compounds']
+        metrics = [
+            'r2_score', 'rms_score', 'mae_score', 'num_compounds',
+            'invalid_prediction_count', 'invalid_prediction_fraction', 'invalid_prediction_threshold'
+        ]
     else:
-        metrics = ['roc_auc_score', 'prc_auc_score', 'precision', 'recall_score', 'num_compounds',
-                   'accuracy_score', 'bal_accuracy', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix']
+        metrics = [
+            'roc_auc_score', 'prc_auc_score', 'precision', 'recall_score', 'num_compounds',
+            'accuracy_score', 'bal_accuracy', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix',
+            'invalid_prediction_count', 'invalid_prediction_fraction', 'invalid_prediction_threshold'
+        ]
     score_dict = {}
     for subset in subsets:
         score_dict[subset] = {}
@@ -1864,9 +1870,22 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
                     model_list.append(meta)
 
     print(f'Found data for {len(model_list)} {pred_type} models under {result_dir}')
+    if len(model_list) == 0:
+        logger.warning(
+            "No %s models found under %s for dataset_key=%s",
+            pred_type,
+            result_dir,
+            dataset_key,
+        )
+        return pd.DataFrame()
     
     # unpack metadata dicts
     metadata=pd.DataFrame(model_list)
+
+    # Ensure optional columns are present for backward compatibility with older metadata.
+    for req_col in ['model_uuid', 'time_built', 'model_path', 'training_metrics', 'seed']:
+        if req_col not in metadata.columns:
+            metadata[req_col] = np.nan
     
     # establish initial unpacked models df
     dropcols=['model_uuid','time_built','model_path','training_metrics','seed']
@@ -1876,13 +1895,13 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     dict_cols=['model_uuid','splitting_parameters']
     dict_cols.extend([x for x in metadata.columns if 'specific' in x and (x!='descriptor_specific')])
     dropcols.extend([x for x in metadata.columns if ('specific' in x) and (x!='descriptor_specific')])
-    keep_dicts=metadata[dict_cols]       
+    keep_dicts=metadata[[c for c in dict_cols if c in metadata.columns]]       
     
     # extract training data
     training_metrics=metadata[['model_uuid','training_metrics']]
     
     # drop info from metadata
-    metadata=metadata.drop(columns=dropcols)
+    metadata=metadata.drop(columns=dropcols, errors='ignore')
     
     # unpack and re-merge simple dicts into models df
     for col in metadata.columns:
@@ -1925,8 +1944,32 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
 
             # get task scores - long form and rename columns
             taskcols=['response_cols']
-            taskcols.extend([x for x in pred.columns if 'task' in x])    
-            task_preds=pred[['model_uuid']+taskcols].set_index('model_uuid').explode(taskcols).reset_index()
+            taskcols.extend([x for x in pred.columns if 'task' in x])
+
+            task_preds = pred[['model_uuid'] + taskcols].copy()
+
+            def _num_tasks_for_row(resp_cols):
+                if isinstance(resp_cols, list):
+                    return len(resp_cols)
+                return 1
+
+            def _normalize_task_col_value(value, n_tasks):
+                if isinstance(value, list):
+                    if len(value) == n_tasks:
+                        return value
+                    if len(value) == 1 and n_tasks > 1:
+                        return value * n_tasks
+                    return value[:n_tasks] + [np.nan] * max(0, n_tasks - len(value))
+                if pd.isna(value):
+                    return [np.nan] * n_tasks
+                return [value] * n_tasks
+
+            for ridx in task_preds.index:
+                n_tasks = _num_tasks_for_row(task_preds.at[ridx, 'response_cols'])
+                for tcol in [c for c in taskcols if c != 'response_cols']:
+                    task_preds.at[ridx, tcol] = _normalize_task_col_value(task_preds.at[ridx, tcol], n_tasks)
+
+            task_preds = task_preds.set_index('model_uuid').explode(taskcols).reset_index()
         
             # get full model scores and rename columns
             predcols=[x for x in pred.columns if 'task' not in x]
@@ -1937,9 +1980,44 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
         
             # rename task_pred columns to match full model names
             coldict={}
+            task_to_full_overrides = {
+                'task_r2_scores': 'r2_score',
+                'task_rms_scores': 'rms_score',
+                'task_mae_scores': 'mae_score',
+                'task_roc_auc_scores': 'roc_auc_score',
+                'task_roc_auc_stds': 'roc_auc_std',
+                'task_prc_auc_scores': 'prc_auc_score',
+                'task_cross_entropies': 'cross_entropy',
+                'task_precisions': 'precision',
+                'task_recalls': 'recall_score',
+                'task_npvs': 'npv',
+                'task_accuracies': 'accuracy_score',
+                'task_bal_accuracies': 'bal_accuracy',
+                'task_kappas': 'kappa',
+                'task_matthews_ccs': 'matthews_cc',
+                'task_invalid_prediction_counts': 'invalid_prediction_count',
+                'task_invalid_prediction_fractions': 'invalid_prediction_fraction',
+            }
             for task_col in task_preds.columns:
                 if task_col not in ['model_uuid','response_cols']:
-                    coldict[task_col]=[predcol for predcol in pred.columns if predcol.replace(metlabel+'_','').startswith(task_col.replace('task_','')[0:3])][0]
+                    if task_col in task_to_full_overrides:
+                        target_metric = task_to_full_overrides[task_col]
+                    else:
+                        target_metric = task_col.replace('task_', '')
+
+                    pred_col = metlabel + '_' + target_metric
+                    if pred_col not in pred.columns:
+                        # Fallback to original prefix matching for unexpected/new metric naming.
+                        prefix = task_col.replace('task_', '')[0:3]
+                        candidates = [
+                            pcol for pcol in pred.columns
+                            if pcol.replace(metlabel + '_', '').startswith(prefix)
+                        ]
+                        if len(candidates) == 0:
+                            continue
+                        pred_col = candidates[0]
+
+                    coldict[task_col] = pred_col
             task_preds=task_preds.rename(columns=coldict)
         
             # concatenate all scores

@@ -7,7 +7,10 @@ import os
 import sys
 import tarfile
 import tempfile
+from contextlib import contextmanager
 import pytest
+import tensorflow as tf
+import torch
 
 import rdkit.Chem as rdC
 import rdkit.Chem.Descriptors as rdCD
@@ -21,6 +24,31 @@ from atomsci.ddm.utils import llnl_utils
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import integrative_utilities
+
+
+TEST_DIR = os.path.dirname(os.path.realpath(__file__))
+
+
+@contextmanager
+def _in_test_dir():
+    prev_cwd = os.getcwd()
+    os.chdir(TEST_DIR)
+    try:
+        yield
+    finally:
+        os.chdir(prev_cwd)
+
+
+def _skip_if_unsupported_apple_backend(model_type):
+    if sys.platform != 'darwin':
+        return
+
+    if model_type in {'AttentiveFPModel', 'GCNModel'}:
+        if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+            pytest.skip(f"{model_type} retrain is unsupported on Apple MPS backends")
+
+    if model_type == 'GraphConvModel' and tf.config.list_physical_devices('GPU'):
+        pytest.skip("GraphConvModel retrain is unsupported on TensorFlow Metal backends")
 
 
 def clean(prefix='delaney-processed'):
@@ -156,37 +184,37 @@ def train_and_predict(train_json_f, prefix='delaney-processed'):
 
 def verify_saved_params(original_json_f, tar_f, keep_seed=False):
     """compares saved params in a tar file with original json"""
-    reload_dir = tempfile.mkdtemp()
-    with tarfile.open(tar_f, mode='r:gz') as tar:
-        futils.safe_extract(tar, path=reload_dir)
+    with tempfile.TemporaryDirectory() as reload_dir:
+        with tarfile.open(tar_f, mode='r:gz') as tar:
+            futils.safe_extract(tar, path=reload_dir)
 
-    # read config from tar file
-    config_file_path = os.path.join(reload_dir, 'model_metadata.json')
-    with open(config_file_path) as f:
-        tar_config = json.loads(f.read())
+        # read config from tar file
+        config_file_path = os.path.join(reload_dir, 'model_metadata.json')
+        with open(config_file_path) as f:
+            tar_config = json.loads(f.read())
 
-    # read original config
-    with open(original_json_f) as f:
-        original_config = json.loads(f.read())
-    
-    original_pp = parse.wrapper(original_config)
-    original_model_params = parse.extract_model_params(original_pp)
-    original_feat_params = parse.extract_featurizer_params(original_pp)
+        # read original config
+        with open(original_json_f) as f:
+            original_config = json.loads(f.read())
+        
+        original_pp = parse.wrapper(original_config)
+        original_model_params = parse.extract_model_params(original_pp)
+        original_feat_params = parse.extract_featurizer_params(original_pp)
 
-    tar_pp = parse.wrapper(tar_config)
-    tar_model_params = parse.extract_model_params(tar_pp)
-    tar_feat_params = parse.extract_featurizer_params(tar_pp)
+        tar_pp = parse.wrapper(tar_config)
+        tar_model_params = parse.extract_model_params(tar_pp)
+        tar_feat_params = parse.extract_featurizer_params(tar_pp)
 
-    print('-----------------------------------')
-    print('model params')
-    print(original_model_params)
-    print(tar_model_params)
-    assert original_model_params == tar_model_params
-    print('-----------------------------------')
-    print('feat params')
-    print(original_feat_params)
-    print(tar_feat_params)
-    assert original_feat_params == tar_feat_params
+        print('-----------------------------------')
+        print('model params')
+        print(original_model_params)
+        print(tar_model_params)
+        assert original_model_params == tar_model_params
+        print('-----------------------------------')
+        print('feat params')
+        print(original_feat_params)
+        print(tar_feat_params)
+        assert original_feat_params == tar_feat_params
 
     print('-----------------------------------')
     print('seeds')
@@ -226,13 +254,15 @@ def H1_init():
 # -----
 @pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_AttentiveFPModel(keep_seed):
-    H1_init()
-    json_f = 'reg_config_H1_fit_AttentiveFPModel.json'
-    tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
+    _skip_if_unsupported_apple_backend('AttentiveFPModel')
+    with _in_test_dir():
+        H1_init()
+        json_f = 'reg_config_H1_fit_AttentiveFPModel.json'
+        tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
 
-    re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
+        re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
-    verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
+        verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
 
 def test_reg_config_H1_fit_AttentiveFPModel():
     run_test_reg_config_H1_fit_AttentiveFPModel(True)
@@ -241,13 +271,15 @@ def test_reg_config_H1_fit_AttentiveFPModel():
 # -----
 @pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_GCNModel(keep_seed):
-    H1_init()
-    json_f = 'reg_config_H1_fit_GCNModel.json'
-    tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
+    _skip_if_unsupported_apple_backend('GCNModel')
+    with _in_test_dir():
+        H1_init()
+        json_f = 'reg_config_H1_fit_GCNModel.json'
+        tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
 
-    re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
+        re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
-    verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
+        verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
 
 def test_reg_config_H1_fit_GCNModel():
     run_test_reg_config_H1_fit_GCNModel(True)
@@ -259,27 +291,30 @@ def run_test_reg_config_H1_fit_MPNNModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
         return
-    
-    H1_init()
-    json_f = 'reg_config_H1_fit_MPNNModel.json'
-    tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
 
-    re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
+    with _in_test_dir():
+        H1_init()
+        json_f = 'reg_config_H1_fit_MPNNModel.json'
+        tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
 
-    verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
+        re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
+
+        verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
 
 def test_reg_config_H1_fit_MPNNModel():
     run_test_reg_config_H1_fit_MPNNModel(True)
     run_test_reg_config_H1_fit_MPNNModel(False)
 
 def run_test_reg_config_H1_fit_GraphConvModel(keep_seed):
-    H1_init()
-    json_f = 'reg_config_H1_fit_GraphConvModel.json'
-    tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
+    _skip_if_unsupported_apple_backend('GraphConvModel')
+    with _in_test_dir():
+        H1_init()
+        json_f = 'reg_config_H1_fit_GraphConvModel.json'
+        tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
 
-    re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
+        re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
-    verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
+        verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
 
 def test_reg_config_H1_fit_GraphConvModel():
     run_test_reg_config_H1_fit_GraphConvModel(True)
@@ -290,14 +325,15 @@ def run_test_reg_config_H1_fit_PytorchMPNNModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
         return
-    
-    H1_init()
-    json_f = 'reg_config_H1_fit_PytorchMPNNModel.json'
-    tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
 
-    re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
+    with _in_test_dir():
+        H1_init()
+        json_f = 'reg_config_H1_fit_PytorchMPNNModel.json'
+        tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
 
-    verify_saved_params(json_f, re_tar_f, keep_seed)
+        re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
+
+        verify_saved_params(json_f, re_tar_f, keep_seed)
 
 def test_reg_config_H1_fit_PytorchMPNNModel():
     run_test_reg_config_H1_fit_PytorchMPNNModel(True)

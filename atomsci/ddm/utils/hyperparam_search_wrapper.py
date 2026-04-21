@@ -1577,11 +1577,23 @@ class OptunaSearch():
                         sub_pred_results = {"roc_auc_score": 0, "accuracy_score": 0}
 
                 if tparam.prediction_type == "regression":
-                    pred_results[subset]["r2"] = sub_pred_results['r2_score']
-                    pred_results[subset]["rms"] = sub_pred_results['rms_score']
+                    r2_score = sub_pred_results.get('r2_score', np.nan)
+                    rms_score = sub_pred_results.get('rms_score', np.nan)
+                    if not np.isfinite(r2_score):
+                        r2_score = 0
+                    if not np.isfinite(rms_score):
+                        rms_score = 100
+                    pred_results[subset]["r2"] = r2_score
+                    pred_results[subset]["rms"] = rms_score
                 else:
-                    pred_results[subset]["roc_auc"] = sub_pred_results["roc_auc_score"]
-                    pred_results[subset]["acc"] = sub_pred_results["accuracy_score"]
+                    roc_auc_score = sub_pred_results.get("roc_auc_score", np.nan)
+                    accuracy_score = sub_pred_results.get("accuracy_score", np.nan)
+                    if not np.isfinite(roc_auc_score):
+                        roc_auc_score = 0
+                    if not np.isfinite(accuracy_score):
+                        accuracy_score = 0
+                    pred_results[subset]["roc_auc"] = roc_auc_score
+                    pred_results[subset]["acc"] = accuracy_score
 
             # Store per-trial extras as user attributes; return the scalar loss for Optuna.
             trial.set_user_attr("model", tparam.model_tarball_path)

@@ -1027,6 +1027,10 @@ def get_parser():
         help='Type of score function used to choose best epoch and/or hyperparameters (defaults to "roc_auc" '
              'for classification and "r2" for regression). ')
     parser.add_argument(
+        '--max_invalid_pred_frac', dest='max_invalid_pred_frac', required=False, type=float, default=0.01,
+        help='Maximum fraction of NaN/Inf predictions to filter before applying hard metric penalties. '
+             'Must be between 0.0 and 1.0.')
+    parser.add_argument(
         '--model_type', dest='model_type', default=None, type=str,
         help='Type of model to fit (NN, RF, or xgboost). The model_type sets the model subclass in model_wrapper. '
              'Can be input as a comma separated list for hyperparameter search (e.g. \'NN\',\'RF\')')
@@ -1685,6 +1689,11 @@ def postprocess_args(parsed_args):
             parsed_args.model_choice_score_type = 'roc_auc'
         else:
             parsed_args.model_choice_score_type = 'r2'
+
+    if parsed_args.max_invalid_pred_frac is None:
+        parsed_args.max_invalid_pred_frac = 0.01
+    if parsed_args.max_invalid_pred_frac < 0.0 or parsed_args.max_invalid_pred_frac > 1.0:
+        raise Exception("max_invalid_pred_frac must be between 0.0 and 1.0.")
 
     # Convert arguments passed as comma-separated values into lists
     if parsed_args.hyperparam:
