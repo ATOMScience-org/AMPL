@@ -31,7 +31,6 @@ def test_balancing_transformer():
     """
     dset_key = make_relative_to_file('../../test_datasets/MRP3_dataset.csv')
 
-    print(dset_key)
     res_dir = tempfile.mkdtemp()
 
     print('-=======normal balancing===================================')
