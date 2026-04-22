@@ -2,7 +2,7 @@
 name = "atomsci-ampl"
 dynamic = ["version"]
 description = "ATOMSCI AMPL is an open-source Python package for molecular property prediction in drug discovery."
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.11"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
