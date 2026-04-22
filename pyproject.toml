@@ -108,8 +108,15 @@ pattern = "(?P<version>\\d+\\.\\d+\\.\\d+.*)"
 
 [tool.hatch.build.targets.wheel]
 packages = ["atomsci"]
+exclude = [
+  "atomsci/ddm/examples/archive/**",        # old tutorials
+]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "atomsci/ddm/examples/archive/**",        # old tutorials
+]
 
 [tool.pytest.ini_options]
 testpaths = ["atomsci/ddm/test"]
 addopts = "-ra"
-

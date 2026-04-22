@@ -9,15 +9,7 @@ Deployment
 
 * Red Hat Enterprise Linux 7 with SLURM
 * Ubuntu 16.04
- 
-Uninstallation
---------------
-To remove AMPL from a pip environment use:
-::
 
-    deactivate
-    pip uninstall atomsci-ampl
- 
 
 To remove the atomsci pip environment entirely from a system use:
 ::

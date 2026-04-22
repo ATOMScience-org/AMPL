@@ -26,11 +26,13 @@ In addition to our written tutorials, we now provide a series of video tutorials
 ---
 ## Table of contents
 - [Installation](#installation)
-  - [What is `uv`?](#what-is-uv)
-  - [Repository helper scripts](#repository-helper-scripts)
-  - [Requirements](#requirements)
-  - [Install `uv`](#install-uv)
-  - [Clone the repository](#clone-the-repository)
+  - [Set up uv](#setup-uv)
+    - [What is `uv`?](#what-is-uv)
+    - [Repository helper scripts](#repository-helper-scripts)
+    - [Requirements](#requirements)
+    - [Install `uv`](#install-uv)
+  - [Install AMPL](#install-ampl)
+    - [Clone the repository](#clone-the-repository)
 - [Create and activate an environment](#create-and-activate-an-environment)
 - [Platform-specific setup](#platform-specific-setup)
 - [Troubleshooting](#troubleshooting)
@@ -63,7 +65,9 @@ For installation on Apple Silicon M chips, see the Docker container instructions
 
 AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependency management.
 
-### What is `uv`?
+### Set up `uv`
+
+#### What is `uv`?
 
 `uv` is a fast Python tool used in this project to:
 
@@ -73,7 +77,7 @@ AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependen
 | Sync dependencies from `pyproject.toml` | `uv sync` |
 | Install packages into the environment | `uv pip install` |
 
-### Repository helper scripts
+#### Repository helper scripts
 
 This repository includes helper commands for managing platform-specific `uv` environments and lockfiles.
 
@@ -102,7 +106,7 @@ In practice:
 
 > **Note:** Most users should start with `./sync_uv_env.sh <platform>`. `update_uv_lock.sh` is mainly for maintainers updating lockfiles.
 
-### Requirements
+#### Requirements
 
 | Item | Requirement |
 |---|---|
@@ -110,7 +114,7 @@ In practice:
 | Supported range | `>=3.10,<3.11` |
 | Platforms | `cpu`, `cuda`, `rocm`, `mchip` |
 
-### Install `uv`
+#### Install `uv`
 
 Install `uv` using one of the following methods:
 ```bash
@@ -124,7 +128,24 @@ Verify installation:
 ```bash
 uv --version
 ```
-### Clone the repository
+
+### Install AMPL
+
+Since `1.8.0`, AMPL is publised to PyPI so users can install it directly without building it locally, improving accessibility, and supporting broader adoption through a trusted distribution channel.
+
+To install:
+
+```bash
+ python -m pip install atomsci-ampl
+```
+
+or
+
+```bash
+python -m pip install --index-url https://pypi.org/simple atomsci-ampl
+```
+
+#### Clone the repository
 ```bash
 git clone https://github.com/ATOMScience-org/AMPL.git
 cd AMPL
@@ -292,20 +313,9 @@ For additional options related to building, running, and other Docker developmen
 
 ---
 
-## Uninstall
-To remove AMPL from a pip environment use:
-```bash
-pip uninstall atomsci-ampl
-```
-
 To remove an entire virtual environment named "atomsci-env":
 ```bash
 rm -rf $ENVROOT/atomsci-env
-```
-
-To remove cached packages and clear space:
-```bash
-pip cache purge
 ```
 
 ---

@@ -39,13 +39,6 @@ This Makefile is designed to manage Jupyter environments, Docker images, and the
   - `make save-docker`: Save the Docker image to a tarball (`ampl-$(PLATFORM)-$(ENV).tar.gz`).
   - `make build-docker`: Build the Docker image for the specified platform and environment.
 
-- **Installation:**
-
-  - `make install`: Install `atomsci-ampl` system-wide.
-  - `make install-dev`: Install `atomsci-ampl` in user space.
-  - `make install-system`: Install `atomsci-ampl` system-wide.
-  - `make install-venv`: Install `atomsci-ampl` in a virtual environment.
-
 - **Jupyter Notebook and Lab:**
 
   - `make jupyter-notebook`: Start a Jupyter Notebook server.
@@ -62,13 +55,6 @@ This Makefile is designed to manage Jupyter environments, Docker images, and the
 - **Entrypoint**
 
   - `make shell`: Go inside the container's shell.
-
-- **Setup and Uninstallation:**
-  - `make setup`: Set up a virtual environment and install dependencies.
-  - `make uninstall`: Uninstall `atomsci-ampl` system-wide.
-  - `make uninstall-dev`: Uninstall `atomsci-ampl` from user space.
-  - `make uninstall-system`: Uninstall `atomsci-ampl` system-wide.
-  - `make uninstall-venv`: Uninstall `atomsci-ampl` from the virtual environment.
 
 ### **Usage Examples**
 
@@ -108,10 +94,10 @@ make jupyter-lab
 
 #### **Setting Up the Development Environment**
 
-To set up a virtual environment with the appropriate dependencies:
+To set up a virtual environment with a specified platform:
 
 ```bash
-make setup
+make sync-<cpu|cuda|rocm|mchip>
 ```
 
 This Makefile provides a comprehensive approach to managing Docker images, running Jupyter servers, and handling the installation and setup of your development environment. It streamlines workflows, making it easier to maintain and develop the `atomsci-ampl` project.
