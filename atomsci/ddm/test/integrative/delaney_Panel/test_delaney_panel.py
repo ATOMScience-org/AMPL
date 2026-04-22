@@ -299,6 +299,14 @@ def test_class_config_delaney_fit_XGB_mordred_filtered():
     init()
     train_and_predict('jsons/class_config_delaney_fit_XGB_mordred_filtered.json') # breaks because labels aren't numbers
 
+def test_class_config_delaney_fit_XGB_rdkit_scaled():
+    init()
+    train_and_predict('jsons/class_config_delaney_fit_XGB_rdkit_scaled.json') # fine
+
+def test_class_config_delaney_fit_XGB_mordred_filtered_scaled():
+    init()
+    train_and_predict('jsons/class_config_delaney_fit_XGB_mordred_filtered_scaled.json') # fine
+
 def test_class_config_delaney_fit_NN_ecfp():
     init()
     train_and_predict('jsons/class_config_delaney_fit_NN_ecfp.json') # only works for class
@@ -306,6 +314,14 @@ def test_class_config_delaney_fit_NN_ecfp():
 def test_multi_class_random_config_delaney_fit_NN_mordred_filtered():
     init()
     train_and_predict('jsons/multi_class_random_config_delaney_fit_NN_mordred_filtered.json') # crashes during run
+
+def test_multi_class_random_config_delaney_fit_NN_mordred_filtered_robustscaler():
+    init()
+    train_and_predict('jsons/multi_class_random_config_delaney_fit_NN_mordred_filtered_robustscaler.json') # crashes during run
+
+def test_multi_class_random_config_delaney_fit_NN_mordred_filtered_powertransformer():
+    init()
+    train_and_predict('jsons/multi_class_random_config_delaney_fit_NN_mordred_filtered_powertransformer.json') # crashes during run
 
 def test_multi_class_config_delaney_fit_NN_graphconv():
     init()
@@ -349,5 +365,6 @@ def test_class_config_H1_fit_NN_moe():
         train_and_predict('jsons/class_config_H1_fit_NN_moe.json', prefix='H1')
 
 if __name__ == '__main__':
-    test_reg_kfold_config_delaney_fit_NN_graphconv()
+    test_class_config_delaney_fit_XGB_rdkit_scaled()
+    test_class_config_delaney_fit_XGB_mordred_filtered_scaled()
     #pass

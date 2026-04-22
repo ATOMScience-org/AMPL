@@ -412,7 +412,10 @@ class ModelWrapper(object):
         for k, td in training_datasets.items():
             self.transformers[k] = self._create_output_transformers(td)
 
-            self.transformers_x[k] = self._create_feature_transformers(td)
+            if self.params.feature_transform_path is None:
+                self.transformers_x[k] = self._create_feature_transformers(td)
+            else:
+                self.transformers_x[k] = self.load_feature_transformers_from_pkl(self.params.feature_transform_path)
 
             # Set up transformers for weights, if needed
             self.transformers_w[k] = trans.create_weight_transformers(self.params, td)
@@ -488,6 +491,40 @@ class ModelWrapper(object):
 
         # ****************************************************************************************
 
+    def load_feature_transformers_from_pkl(self, transformer_pkl_path):
+        """Loads feature transformer from pkl path
+        This loads transformers_x from a pkl created using
+        generate_transformers.build_and_save_feature_transformers_from_csvs. This also
+        overwrites any parameters set when creating the transfomers saved at
+        transformer_pkl_path.
+
+        Args:
+            transformer_pkl_path (str): Path of saved transformer_pkl.
+
+        Returns:
+            None
+
+        """
+        with open(transformer_pkl_path, 'rb') as transformers_pkl_file:
+            saved_transformers = pickle.load(transformers_pkl_file)
+
+        # check that the loaded transformers are for the same features
+        if self.params.featurizer != saved_transformers['params']['featurizer']:
+            raise ValueError((f"Loaded transformers do not match featurizer. Expected {self.params.featurizer},"
+                             f" got {saved_transformers['params']['featurizer']}"))
+        if self.params.descriptor_type != saved_transformers['params']['descriptor_type']:
+            raise ValueError((f"Loaded transformers do not match descriptor_type. Expected {self.params.descriptor_type},"
+                             f" got {saved_transformers['params']['descriptor_type']}"))
+
+        # update self.params with the loaded transformer data
+        self.params.__dict__.update(saved_transformers['params'])
+
+        return saved_transformers['transformers_x']
+
+
+        # ****************************************************************************************
+
+
     def transform_dataset(self, dataset, fold):
         """Transform the responses and/or features in the given DeepChem dataset using the current transformers.
 
@@ -523,10 +560,7 @@ class ModelWrapper(object):
            the number of dimensions of the feature space, taking both featurization method
         and transformers into account.
         """
-        if self.params.feature_transform_type == 'umap':
-            return self.params.umap_dim
-        else:
-            return self.featurization.get_feature_count()
+        return self.featurization.get_feature_count()
 
         # ****************************************************************************************
 

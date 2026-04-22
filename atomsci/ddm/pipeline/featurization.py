@@ -23,6 +23,10 @@ from rdkit.Chem import rdmolops
 from rdkit.Chem import Descriptors
 from rdkit.ML.Descriptors import MoleculeDescriptors
 
+from sklearn.preprocessing import RobustScaler, PowerTransformer
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
 subclassed_mordred_classes = ['EState', 'MolecularDistanceEdge']
 try:
     from mordred import Calculator, descriptors
@@ -348,7 +352,7 @@ def compute_all_mordred_descrs(mols, max_cpus=None, quiet=True):
     res_df = calc.pandas(mols, quiet=quiet, nproc=max_cpus)
     log.debug("Done computing Mordred descriptors")
     try:
-        res_df = res_df.fill_missing().applymap(float)
+        res_df = res_df.fill_missing().map(float)
         return res_df
     except ValueError:
         log.error('Mordred descriptor calculation failed in MordredDataFrame.fill_missing')
@@ -637,12 +641,13 @@ class Featurization(object):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def create_feature_transformer(self, dataset):
+    def create_feature_transformer(self, dataset, params):
         """Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
         DeepChem transformer object holding its parameters.
 
         Args:
             dataset (deepchem.Dataset): featurized dataset
+            params (Namespace): Contains parameters used to instantiate the featurizer.
 
         Returns:
             Empty list
@@ -836,12 +841,13 @@ class DynamicFeaturization(Featurization):
         return features, ids, vals, attr, w, featurized_dset_df
 
     # ****************************************************************************************
-    def create_feature_transformer(self, dataset):
+    def create_feature_transformer(self, dataset, params):
         """Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
         DeepChem transformer object holding its parameters.
 
         Args:
             dataset (deepchem.Dataset): featurized dataset
+            params (Namespace): Contains parameters used to instantiate the featurizer.
 
         Returns:
             Empty list since we will not be transforming the features of a DynamicFeaturization object
@@ -1183,12 +1189,13 @@ class PersistentFeaturization(Featurization):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def create_feature_transformer(self, dataset):
+    def create_feature_transformer(self, dataset, params):
         """Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
         DeepChem transformer object holding its parameters.
 
         Args:
             dataset (deepchem.Dataset): featurized dataset
+            params (Namespace): Contains parameters used to instantiate the featurizer.
 
         """
         # Leave it to subclasses to determine if features should be scaled and centered.
@@ -1621,17 +1628,60 @@ class DescriptorFeaturization(PersistentFeaturization):
         return len(self.get_feature_columns())
 
     # ****************************************************************************************
-    def create_feature_transformer(self, dataset):
+    def create_feature_transformer(self, dataset, params):
         """Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
         DeepChem transformer object holding its parameters.
 
         Args:
             dataset (deepchem.Dataset): featurized dataset
+            params (Namespace): Contains parameters used to instantiate the featurizer.
 
         Returns:
             (list of DeepChem transformer objects): list of transformers for the feature matrix
         """
-        transformers_x = [trans.NormalizationTransformerMissingData(transform_X=True, dataset=dataset)]
+        if params.feature_transform_type == 'normalization':
+            transformers_x = [trans.NormalizationTransformerMissingData(transform_X=True, dataset=dataset)]
+        elif params.feature_transform_type == 'RobustScaler':
+            # keep_empty_features is set to true so that feature counts do not change
+            imputer = SimpleImputer(strategy=params.imputer_strategy, keep_empty_features=True)
+            # Check quartile_range has length 2 and convert it into a tuple
+            quartiles = params.robustscaler_quartile_range
+            assert len(quartiles) == 2, f'robustscaler_quartile_range must have length 2, got {quartiles}.'
+            quartiles = (quartiles[0], quartiles[1])
+            robust_scaler = RobustScaler(
+                        with_centering=params.robustscaler_with_centering,
+                        with_scaling=params.robustscaler_with_scaling,
+                        quantile_range=quartiles,
+                        unit_variance=params.robustscaler_unit_variance
+                    )
+            pipeline = Pipeline([('SimpleImputer', imputer), 
+                                 ('VarianceThreshold', VarianceThreshold(threshold=0.0)),
+                                 ('RobustScaler', robust_scaler)])
+            transformers_x = [
+                trans.SklearnPipelineWrapper(transform_X=True, dataset=dataset,
+                    sklearn_pipeline=pipeline)
+            ]
+        elif params.feature_transform_type == 'PowerTransformer':
+            # keep_empty_features is set to true so that feature counts do not change
+            imputer = SimpleImputer(strategy=params.imputer_strategy, keep_empty_features=True)
+            power_transformer = PowerTransformer(
+                        method=params.powertransformer_method,
+                        standardize=params.powertransformer_standardize
+            )
+            pipeline = Pipeline([('SimpleImputer', imputer), 
+                                 ('VarianceThreshold', VarianceThreshold(threshold=0.0)),
+                                 ('PowerTransformer', power_transformer)])
+            transformers_x = [
+                trans.SklearnPipelineWrapper(transform_X=True, dataset=dataset,
+                    sklearn_pipeline=pipeline)
+            ]
+        elif params.feature_transform_type == 'Identity':
+            transformers_x = []
+        else:
+            raise ValueError((
+                "feature_transform_type must be normalization, RobustScaler, "
+                f"PowerTransformer, or Identity. Got {params.feature_transform_type}"))
+
         return transformers_x
 
 
@@ -1907,6 +1957,9 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             if not mordred_supported:
                 raise Exception("mordred package needs to be installed to use Mordred descriptors")
             desc_df, is_valid = self.compute_mordred_descriptors(smiles_df[params.smiles_col].values, params)
+            if descr_scaled:
+                desc_df = self.scale_by_heavyatomcount_and_log_scale(desc_df, params.descriptor_type)
+
             desc_df = desc_df[descr_cols]
             # Add the ID and SMILES columns to the returned data frame
             ret_df = smiles_df[is_valid][[params.id_col, params.smiles_col]].reset_index(drop=True)
@@ -1917,6 +1970,10 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
 
         elif descr_source == 'rdkit':
             desc_df, is_valid = self.compute_rdkit_descriptors(smiles_df, smiles_col = params.smiles_col)
+            if descr_scaled:
+                desc_df = self.scale_by_heavyatomcount_and_log_scale(desc_df, params.descriptor_type)
+                # RDKit features do not contain log scale features
+
             desc_df = desc_df[descr_cols]
             # Add the ID and SMILES columns to the returned data frame
             ret_df = smiles_df[is_valid][[params.id_col, params.smiles_col]].reset_index(drop=True)
@@ -2031,6 +2088,61 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         for scaled_col, unscaled_col in zip(descr_cols, unscaled_moe_desc_cols):
             if scaled_col.endswith('_per_atom'):
                 tmp_col=desc_df[unscaled_col] / a_count
+                tmp_col=tmp_col.rename(scaled_col)
+                scaled_cols.append(tmp_col)
+            else:
+                tmp_col=desc_df[unscaled_col]
+                tmp_col=tmp_col.rename(scaled_col)
+                scaled_cols.append(tmp_col)
+        scaled_df=pd.concat(scaled_cols, axis=1)
+        return scaled_df.copy()
+
+    # ****************************************************************************************
+    def scale_by_heavyatomcount_and_log_scale(self, desc_df, descr_type, heavy_atom_col=''):
+        """Scale selected descriptors computed by rdkit or mordred by dividing their values by the heavy atom count per molecule.
+
+        Args:
+            desc_df (DataFrame): Data frame containing computed descriptors.
+
+            descr_type (str): Descriptor type, used to look up expected set of descriptor columns.
+
+            heavy_atom_col (str): Column containing the heavy atom count. Default value is '', which will try
+                to infer the heavy atom count column based on descr_type.
+
+        Returns:
+            scaled_df (DataFrame): Data frame with scaled descriptors.
+
+        Raises:
+            ValueError: If there are negative feature values in a column that needs log scaling       
+
+        """
+        cls = self.__class__
+        descr_cols = cls.desc_type_cols[descr_type]
+        if heavy_atom_col != '':
+            ha_count = desc_df[heavy_atom_col].values
+        else:
+            if 'HeavyAtomCount' in descr_cols:
+                ha_count = desc_df.HeavyAtomCount.values
+            elif 'nHeavyAtom' in descr_cols:
+                ha_count = desc_df.nHeavyAtom.values
+            else:
+                raise RuntimeError("Could not infer heavy atom column. "
+                                   "Should be HeavyAtomCount or nHeavyAtom or set using the heavy_atom_col parameter")
+
+        unscaled_desc_cols = [col.replace('_per_heavyatom', '') for col in descr_cols]
+        unscaled_desc_cols = [col.replace('_log_scaled', '') for col in unscaled_desc_cols]
+        nondesc_cols = list(set(desc_df.columns.values) - set(unscaled_desc_cols))
+        scaled_cols=[desc_df[nondesc_cols].copy()]
+        for scaled_col, unscaled_col in zip(descr_cols, unscaled_desc_cols):
+            if scaled_col.endswith('_per_heavyatom'):
+                tmp_col=desc_df[unscaled_col] / ha_count
+                tmp_col=tmp_col.rename(scaled_col)
+                scaled_cols.append(tmp_col)
+            elif scaled_col.endswith('_log_scaled'):
+                feat_vals = desc_df[unscaled_col]
+                if any(feat_vals < 0):
+                    raise ValueError(f"Cannot log scale {unscaled_col} because of negative values in feature.")
+                tmp_col=np.log(feat_vals)
                 tmp_col=tmp_col.rename(scaled_col)
                 scaled_cols.append(tmp_col)
             else:

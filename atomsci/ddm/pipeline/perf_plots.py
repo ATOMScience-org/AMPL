@@ -12,6 +12,7 @@ import numpy as np
 import seaborn as sns
 import umap
 import sklearn.metrics as metrics
+import warnings
 from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -86,7 +87,8 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
         None
     """
     if isinstance(model, str):
-        return plot_pred_vs_actual_from_file(model, plot_size=plot_size, external_training_data=external_training_data, error_bars=error_bars)
+        plot_pred_vs_actual_from_file(model, plot_size=plot_size, external_training_data=external_training_data, error_bars=error_bars)
+        return
     elif not isinstance(model, mp.ModelPipeline):
         raise ValueError('model must be either a ModelPipeline or a path to a saved model')
     params = model.params
@@ -266,8 +268,7 @@ def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col
 
 #------------------------------------------------------------------------------------------------------------------------
 def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_size=7, error_bars=False, threshold=None):
-    """Plot predicted vs actual values from a trained regression model from a model tarball. 
-    This function only works for locally trained models; otherwise see the `predict_from_model` module.
+    """Plot predicted vs actual values from a trained regression model from a model tarball. This function only works for locally trained models; otherwise see the predict_from_model module.
 
     Args:
         model_path (str): Path to an AMPL model tar.gz file.
@@ -276,7 +277,7 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
         error_bars (bool): whether to plot uncertainty as shaded region above and below the predicted values.
 
     Returns:
-        None
+        Matplotlib Figure
 
     Effects:
         A matplotlib figure is displayed with subplots for each response column and train/valid/test subsets.
@@ -286,100 +287,163 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
     reload_dir = tempfile.mkdtemp()
     with tarfile.open(model_path, mode='r:gz') as tar:
         futils.safe_extract(tar, path=reload_dir)
-    
+
     # reload metadata
     with open(os.path.join(reload_dir, 'model_metadata.json')) as f:
-        config=json.loads(f.read())
+        config = json.loads(f.read())
 
-    if config['model_parameters']['prediction_type']=='classification':
-        raise ValueError("plot_pred_vs_actual_from_file() should only be called for regression models. Please try plot_confusion_matrices() instead.")
-    
-    # load (featurized) data
-    dataset_dict=config['training_dataset']
+    if config['model_parameters']['prediction_type'] == 'classification':
+        raise ValueError(
+            "plot_pred_vs_actual_from_file() should only be called for regression models. "
+            "Please try plot_confusion_matrices() instead."
+        )
+
+    # dataset info
+    dataset_dict = config['training_dataset']
     if external_training_data is not None:
-        dataset_dict['dataset_key']=external_training_data
-    dataset_key=dataset_dict['dataset_key']
-    dataset_name = os.path.splitext(os.path.basename(dataset_key))[0]
+        dataset_dict['dataset_key'] = external_training_data
 
-    is_featurized=False
-    AD_method=None
+    original_dataset_key = dataset_dict['dataset_key']
+    dataset_name = os.path.splitext(os.path.basename(original_dataset_key))[0]
+
+    response_cols = dataset_dict['response_cols']
+    id_col = dataset_dict['id_col']
+    smiles_col = dataset_dict['smiles_col']
+
+    # determine featurized path
+    is_featurized = False
+    AD_method = None
     model_type = config['model_parameters']['model_type']
     featurizer = config['model_parameters']['featurizer']
-    if featurizer in ['descriptors','computed_descriptors']:
-        desc=config['descriptor_specific']['descriptor_type']
-        dataset_key=dataset_key.rsplit('/', maxsplit=1)
-        dataset_key=os.path.join(dataset_key[0], 'scaled_descriptors', dataset_key[1].replace('.csv',f'_with_{desc}_descriptors.csv'))
-        is_featurized=True
+
+    dataset_key_to_read = original_dataset_key
+    if featurizer in ['descriptors', 'computed_descriptors']:
+        desc = config['descriptor_specific']['descriptor_type']
+        parts = original_dataset_key.rsplit('/', maxsplit=1)
+        dataset_key_to_read = os.path.join(
+            parts[0],
+            'scaled_descriptors',
+            parts[1].replace('.csv', f'_with_{desc}_descriptors.csv')
+        )
+        is_featurized = True
         features_label = f"{desc} descriptors"
     else:
         features_label = f"{featurizer} features"
-    df=pd.read_csv(dataset_key)
-    
-    # reload split file
-    dataset_key=dataset_dict['dataset_key']
-    split_dict=config['splitting_parameters']
+
+    # load dataframes
+    df = pd.read_csv(dataset_key_to_read)
+    orig_df = pd.read_csv(original_dataset_key)
+
+    # sanity-check alignment and merge missing response columns
+    df = merge_response_cols_from_original(
+        df,
+        orig_df,
+        id_col=id_col,
+        response_cols=response_cols,
+        max_missing_frac=0.01,
+        error_on_extra_feat_ids=False,
+        coerce_id_to_str=True,
+        sample_n=20,
+    )
+
+    # reload split file (use original dataset location)
+    split_dict = config['splitting_parameters']
     split_uuid = split_dict['split_uuid']
-    splitter=split_dict['splitter']
-    split_strategy=split_dict['split_strategy']
-    data_dir=os.path.dirname(os.path.realpath(dataset_key))
-    split=[file for file in os.listdir(data_dir) if split_uuid in file]
-    split_file=os.path.join(data_dir, split[0])
+    splitter = split_dict['splitter']
+    split_strategy = split_dict['split_strategy']
+
+    data_dir = os.path.dirname(os.path.realpath(original_dataset_key))
+    split = [file for file in os.listdir(data_dir) if split_uuid in file]
+    split_file = os.path.join(data_dir, split[0])
+
     split_subsets = ['train', 'valid', 'test']
-    split=pd.read_csv(split_file)
-    split=split.rename(columns={'cmpd_id':dataset_dict['id_col']})
-    
-    # merge
-    df=df.merge(split, how='left')
-    
-    # get other values
-    response_cols=dataset_dict['response_cols']
-    
+    split = pd.read_csv(split_file)
+    split = split.rename(columns={'cmpd_id': id_col})
+
+    # merge split labels
+    if id_col in df.columns:
+        df[id_col] = df[id_col].astype(str)
+    if id_col in split.columns:
+        split[id_col] = split[id_col].astype(str)
+
+    df = df.merge(split, how='left', on=id_col)
+
     # run predictions
-    pred_df=pfm.predict_from_model_file(model_path, df, id_col=dataset_dict['id_col'], smiles_col=dataset_dict['smiles_col'], 
-                                        response_col=response_cols, is_featurized=is_featurized, AD_method=AD_method, dont_standardize=True)          
-    
+    pred_df = pfm.predict_from_model_file(
+        model_path,
+        df,
+        id_col=id_col,
+        smiles_col=smiles_col,
+        response_col=response_cols,
+        is_featurized=is_featurized,
+        AD_method=AD_method,
+        dont_standardize=True
+    )
+
     # plot
     sns.set_context('notebook')
     nss = len(split_subsets)
-    fig, axes = plt.subplots(len(response_cols), nss, figsize=(plot_size*nss, plot_size*len(response_cols)))
-    if error_bars and config['model_parameters']['uncertainty']:
-        suptitle = f"{dataset_name} {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values with uncertainty"
+    fig, axes = plt.subplots(len(response_cols), nss, figsize=(plot_size * nss, plot_size * len(response_cols)))
+
+    if error_bars and config['model_parameters'].get('uncertainty'):
+        suptitle = (
+            f"{dataset_name} {splitter} {split_strategy} split {model_type} model on {features_label}, "
+            f"predicted vs actual values with uncertainty"
+        )
     else:
-        error_bars=False
-        suptitle = f"{dataset_name} {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values"
+        error_bars = False
+        suptitle = (
+            f"{dataset_name} {splitter} {split_strategy} split {model_type} model on {features_label}, "
+            f"predicted vs actual values"
+        )
+
     fig.suptitle(suptitle, y=0.95)
     axes = axes.flatten()
-    for i,resp in enumerate(response_cols):
+
+    for i, resp in enumerate(response_cols):
         actual_col = f'{resp}_actual'
         pred_col = f'{resp}_pred'
         task_pred_df = pred_df[pred_df[actual_col].notna() & pred_df[pred_col].notna()]
+
         y_actual = task_pred_df[actual_col].values
         y_pred = task_pred_df[pred_col].values
+
         if error_bars:
             std_col = f'{resp}_std'
             y_std = task_pred_df[std_col].values
         else:
-            std_col=None
+            std_col = None
             y_std = 0
-        ymin = min(min(y_actual), min(y_pred), min(y_pred-y_std))
-        ymax = max(max(y_actual), max(y_pred), max(y_pred+y_std))
+
+        ymin = min(min(y_actual), min(y_pred), min(y_pred - y_std))
+        ymax = max(max(y_actual), max(y_pred), max(y_pred + y_std))
+
         for j, subset in enumerate(split_subsets):
-            ax = axes[nss*i + j]
-            tmp = task_pred_df[task_pred_df.subset==subset]
+            ax = axes[nss * i + j]
+            tmp = task_pred_df[task_pred_df.subset == subset]
             r2 = metrics.r2_score(tmp[actual_col].values, tmp[pred_col].values)
+
             ax.set_xlabel(f"Actual {resp}")
             ax.set_ylabel(f"Predicted {resp}")
-            # Set subplot title
+
             if j == 0:
                 subtitle = f"{resp} {subset}, {score_type_label['r2']} = {r2:.3f}"
             else:
                 subtitle = f"{subset}, {score_type_label['r2']} = {r2:.3f}"
-            ax=plot_pred_vs_actual_from_df(tmp, actual_col=actual_col, pred_col=pred_col, std_col = std_col, label=subtitle, threshold=threshold, ax=ax)
-            # Force axes to have same scale for all subsets for same task (but not different tasks!)
-            # wont work unless applied after the graph is created
+
+            ax = plot_pred_vs_actual_from_df(
+                tmp,
+                actual_col=actual_col,
+                pred_col=pred_col,
+                std_col=std_col,
+                label=subtitle,
+                threshold=threshold,
+                ax=ax
+            )
             ax.set_xlim(ymin, ymax)
             ax.set_ylim(ymin, ymax)
 
+    return fig
 
 #------------------------------------------------------------------------------------------------------------------------
 def plot_perf_vs_epoch(MP, plot_size=7, pdf_dir=None):
@@ -1259,3 +1323,100 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
     if pdf_dir is not None:
         pdf.close()
         MP.log.info("Wrote plot to %s" % pdf_path)
+
+#------------------------------------------------------------------------------------------------------------------------
+def merge_response_cols_from_original(
+    feat_df: pd.DataFrame,
+    orig_df: pd.DataFrame,
+    *,
+    id_col: str,
+    response_cols: list,
+    max_missing_frac: float = 0.01,
+    error_on_extra_feat_ids: bool = False,
+    coerce_id_to_str: bool = True,
+    sample_n: int = 20,
+) -> pd.DataFrame:
+    """
+    Sanity-check compound alignment between a featurized dataframe and the original dataframe,
+    then merge missing response columns from the original into the featurized dataframe.
+
+    Expected behavior:
+      - Some original compounds may be missing in feat_df due to featurization failures.
+      - This missing fraction must be <= max_missing_frac, otherwise raise.
+      - If feat_df contains IDs not found in orig_df, warn or raise (configurable).
+
+    Returns:
+        A copy of feat_df with missing response columns merged in (left join on id_col).
+    """
+    if id_col not in feat_df.columns:
+        raise KeyError(f"Featurized dataframe is missing id_col '{id_col}'.")
+    if id_col not in orig_df.columns:
+        raise KeyError(f"Original dataframe is missing id_col '{id_col}'.")
+
+    feat = feat_df.copy()
+    orig = orig_df.copy()
+
+    if coerce_id_to_str:
+        feat[id_col] = feat[id_col].astype(str)
+        orig[id_col] = orig[id_col].astype(str)
+
+    feat_ids = pd.Series(feat[id_col]).dropna()
+    orig_ids = pd.Series(orig[id_col]).dropna()
+
+    n_feat_unique = feat_ids.nunique()
+    n_orig_unique = orig_ids.nunique()
+
+    feat_set = set(feat_ids.unique())
+    orig_set = set(orig_ids.unique())
+
+    missing_in_feat = orig_set - feat_set
+    extra_in_feat = feat_set - orig_set
+
+    missing_frac = len(missing_in_feat) / len(orig_set)
+    if missing_frac > max_missing_frac:
+        sample = list(sorted(missing_in_feat))[:sample_n]
+        raise ValueError(
+            f"Featurized dataframe appears incomplete relative to original: "
+            f"{len(missing_in_feat)}/{len(orig_set)} unique compounds missing "
+            f"({missing_frac:.2%}), exceeds allowed {max_missing_frac:.2%}. "
+            f"Examples: {sample}"
+        )
+
+    if len(extra_in_feat) > 0:
+        sample = list(sorted(extra_in_feat))[:sample_n]
+        msg = (
+            f"Featurized dataframe contains {len(extra_in_feat)} unique compound IDs not found in original. "
+            f"This may indicate mismatched files or inconsistent '{id_col}' values. "
+            f"Examples: {sample}"
+        )
+        if error_on_extra_feat_ids:
+            raise ValueError(msg)
+        warnings.warn(msg)
+
+    # Duplicate warnings (merge safety)
+    dup_feat = len(feat) - n_feat_unique
+    dup_orig = len(orig) - n_orig_unique
+    if dup_feat > 0:
+        warnings.warn(
+            f"Featurized dataframe has {dup_feat} duplicate '{id_col}' rows "
+            f"({len(feat)} rows, {n_feat_unique} unique IDs)."
+        )
+    if dup_orig > 0:
+        warnings.warn(
+            f"Original dataframe has {dup_orig} duplicate '{id_col}' rows "
+            f"({len(orig)} rows, {n_orig_unique} unique IDs)."
+        )
+
+    # Merge in only missing response columns (do not overwrite existing)
+    available_responses = [c for c in response_cols if c in orig.columns]
+    if not available_responses:
+        return feat
+
+    missing_response_cols = [c for c in available_responses if c not in feat.columns]
+    if not missing_response_cols:
+        return feat
+
+    orig_subset = orig[[id_col] + missing_response_cols].drop_duplicates(subset=[id_col])
+    merged = feat.merge(orig_subset, how='left', on=id_col)
+
+    return merged

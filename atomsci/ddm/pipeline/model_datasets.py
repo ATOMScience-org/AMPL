@@ -23,6 +23,25 @@ except (ImportError, AttributeError, ModuleNotFoundError):
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 
+# *****************************************************************************************
+def create_and_load_model_dataset(params, ds_client=None):
+    """Factory function for creating and loading a ModelDataset object.
+
+    Args:
+        params (Namespace object): contains all parameter information.
+
+        ds_client (Datastore client)
+    Returns:
+        (ModelDataset): instantiated ModelDataset subclass specified by params, with data loaded
+    """
+    featurization = feat.create_featurization(params)
+    dataset = create_model_dataset(params, featurization, ds_client=None)
+
+    # Load featurized data (this will use scaled_descriptors if available)
+    dataset.get_featurized_data()
+
+    return dataset
+
 # ****************************************************************************************
 def create_model_dataset(params, featurization, ds_client=None):
     """Factory function for creating DatastoreDataset or FileDataset objects.
@@ -1404,7 +1423,6 @@ class FileDataset(ModelDataset):
         if self.has_all_feature_columns(dset_df):
             self.dataset_key = self.params.dataset_key
             return dset_df
-
 
         # Otherwise, generate the expected path for the featurized dataset
         featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
