@@ -6,13 +6,6 @@ requires-python = ">=3.10"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-
-[project.urls]
-Homepage = "https://atomscience.org/"
-Documentation = "https://ampl.readthedocs.io/en/latest/"
-Repository = "https://github.com/ATOMScience-org/AMPL"
-Source = "https://github.com/ATOMScience-org/AMPL"
-
 dependencies = [
   "lightning==2.2.5",
   "pydantic>=1.10,<2",
@@ -38,6 +31,12 @@ dependencies = [
   "mordred",
   "setuptools",
 ]
+
+[project.urls]
+Homepage = "https://atomscience.org/"
+Documentation = "https://ampl.readthedocs.io/en/latest/"
+Repository = "https://github.com/ATOMScience-org/AMPL"
+Source = "https://github.com/ATOMScience-org/AMPL"
 
 # local developer tools
 [dependency-groups]
