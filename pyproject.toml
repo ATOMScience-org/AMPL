@@ -1,9 +1,18 @@
 [project]
 name = "atomsci-ampl"
 dynamic = ["version"]
-description = "atomsci AMPL python package"
+description = "ATOMSCI AMPL is an open-source Python package for molecular property prediction in drug discovery."
+requires-python = ">=3.10"
 readme = "README.md"
-requires-python = ">=3.10,<3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+
+[project.urls]
+Homepage = "https://atomscience.org/"
+Documentation = "https://ampl.readthedocs.io/en/latest/"
+Repository = "https://github.com/ATOMScience-org/AMPL"
+Source = "https://github.com/ATOMScience-org/AMPL"
+
 dependencies = [
   "lightning==2.2.5",
   "pydantic>=1.10,<2",
@@ -110,12 +119,24 @@ pattern = "(?P<version>\\d+\\.\\d+\\.\\d+.*)"
 packages = ["atomsci"]
 exclude = [
   "atomsci/ddm/examples/archive/**",        # old tutorials
+  "**/*.tar.gz",
+  "**/*.ipynb",
+  "**/*.rst",
 ]
+force-include = {
+  "atomsci/modac/examples/tutorials/01_modac_client_run_model.ipynb" = "atomsci/modac/examples/tutorials/01_modac_client_run_model.ipynb"
+}
 
 [tool.hatch.build.targets.sdist]
 exclude = [
   "atomsci/ddm/examples/archive/**",        # old tutorials
+  "**/*.tar.gz",
+  "**/*.ipynb",
+  "**/*.rst",
 ]
+force-include = {
+  "atomsci/modac/examples/tutorials/01_modac_client_run_model.ipynb" = "atomsci/modac/examples/tutorials/01_modac_client_run_model.ipynb"
+}
 
 [tool.pytest.ini_options]
 testpaths = ["atomsci/ddm/test"]
