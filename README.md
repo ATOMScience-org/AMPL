@@ -11,7 +11,7 @@ An open-source, end-to-end software pipeline for data curation, model building, 
 *Created by the [Accelerating Therapeutics for Opportunities in Medicine (ATOM) Consortium](https://atomscience.org)*
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ATOMScience-org/AMPL/main/assets/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" alt="AMPL logo">
+  <img src="assets/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" alt="AMPL logo">
 </p>
 
 The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools to predict key potency, safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions! An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) was published in JCIM. The AMPL pipeline documentation is available [here](https://ampl.readthedocs.io/en/latest/pipeline.html).
