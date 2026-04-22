@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://atomscience.org/"
+Homepage = "https://github.com/ATOMScience-org/AMPL"
 Documentation = "https://ampl.readthedocs.io/en/latest/"
 Repository = "https://github.com/ATOMScience-org/AMPL"
 Source = "https://github.com/ATOMScience-org/AMPL"
@@ -118,24 +118,20 @@ pattern = "(?P<version>\\d+\\.\\d+\\.\\d+.*)"
 packages = ["atomsci"]
 exclude = [
   "atomsci/ddm/examples/archive/**",        # old tutorials
+  "atomsci/ddm/test/test_datasets/**",      # test datasets
   "**/*.tar.gz",
   "**/*.ipynb",
   "**/*.rst",
 ]
-force-include = {
-  "atomsci/modac/examples/tutorials/01_modac_client_run_model.ipynb" = "atomsci/modac/examples/tutorials/01_modac_client_run_model.ipynb"
-}
 
 [tool.hatch.build.targets.sdist]
 exclude = [
   "atomsci/ddm/examples/archive/**",        # old tutorials
+  "atomsci/ddm/test/test_datasets/**",      # test datasets
   "**/*.tar.gz",
   "**/*.ipynb",
   "**/*.rst",
 ]
-force-include = {
-  "atomsci/modac/examples/tutorials/01_modac_client_run_model.ipynb" = "atomsci/modac/examples/tutorials/01_modac_client_run_model.ipynb"
-}
 
 [tool.pytest.ini_options]
 testpaths = ["atomsci/ddm/test"]

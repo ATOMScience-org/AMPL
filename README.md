@@ -32,16 +32,16 @@ In addition to our written tutorials, we now provide a series of video tutorials
     - [Repository helper scripts](#repository-helper-scripts)
     - [Requirements](#requirements)
     - [Install `uv`](#install-uv)
+    - [Create and activate an environment](#create-and-activate-an-environment)
+    - [Platform-specific setup](#platform-specific-setup)
+    - [Troubleshooting](#troubleshooting)
+      - [`uv` not found](#uv-not-found)
+      - [Missing lockfile](#missing-lockfile)
+      - [Wrong Python/Pytest](#wrong-pythonpytest)
+      - [Library not found after activation](#library-not-found-after-activation)
+      - [Package import fails or environment out of sync](#package-import-fails-or-environment-out-of-sync)
   - [Install AMPL](#install-ampl)
     - [Clone the repository](#clone-the-repository)
-- [Create and activate an environment](#create-and-activate-an-environment)
-- [Platform-specific setup](#platform-specific-setup)
-- [Troubleshooting](#troubleshooting)
-  - [`uv` not found](#uv-not-found)
-  - [Missing lockfile](#missing-lockfile)
-  - [Wrong Python/Pytest](#wrong-pythonpytest)
-  - [Library not found after activation](#library-not-found-after-activation)
-  - [Package import fails or environment out of sync](#package-import-fails-or-environment-out-of-sync)
 - [AMPL Features](#ampl-features)
 - [Running AMPL](#running-ampl)
 - [Tests](#tests)
@@ -60,7 +60,7 @@ In addition to our written tutorials, we now provide a series of video tutorials
 
 ## Installation
 
-AMPL 1.8 supports Python 3.10 on CPU systems and CUDA-enabled Linux systems using CUDA 11.8. All other systems are experimental. For a quick install summary, see [here](#install-summary). For more information, see [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), and [DGL](https://www.dgl.ai/pages/start.html).
+AMPL 1.8 supports `Python 3.10` on CPU systems and CUDA-enabled Linux systems using CUDA 11.8. All other systems are experimental. For a quick install summary, see [here](#install-summary). For more information, see [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), and [DGL](https://www.dgl.ai/pages/start.html).
 
 For installation on Apple Silicon M chips, see the Docker container instructions.
 
@@ -130,28 +130,7 @@ Verify installation:
 uv --version
 ```
 
-### Install AMPL
-
-Since `1.8.0`, AMPL is publised to PyPI so users can install it directly without building it locally, improving accessibility, and supporting broader adoption through a trusted distribution channel.
-
-To install:
-
-```bash
- python -m pip install atomsci-ampl
-```
-
-or
-
-```bash
-python -m pip install --index-url https://pypi.org/simple atomsci-ampl
-```
-
-#### Clone the repository
-```bash
-git clone https://github.com/ATOMScience-org/AMPL.git
-cd AMPL
-```
-## Create and activate an environment
+#### Create and activate an environment
 
 Use `sync_uv_env.sh` to create or rebuild the environment for your target platform from the committed platform lockfile.
 
@@ -183,7 +162,7 @@ If `.venv-cpu` already exists and you only want to refresh it:
 make sync-cpu
 source .venv-cpu/bin/activate
 ```
-## Platform-specific setup
+#### Platform-specific setup
 
 The following settings may be useful depending on your platform and runtime environment.
 
@@ -194,9 +173,9 @@ The following settings may be useful depending on your platform and runtime envi
 | ROCm | site-specific ROCm setup if required | `module load rocm`<br> `export ROCM_HOME="$(dirname "$(dirname "$(readlink -f "$(which hipcc)")")")"`<br>`export PATH="$ROCM_HOME/bin:$PATH"` |
 | Apple Silicon / M chip | none | usually none required |
 
-## Troubleshooting
+#### Troubleshooting
 
-### `uv` not found
+##### `uv` not found
 
 Install `uv`, then verify:
 ```bash
@@ -204,7 +183,7 @@ uv --version
 ```
 If needed, start a new shell session or update your `PATH`.
 
-### Missing lockfile
+##### Missing lockfile
 
 After `uv sync`, if you see:
 
@@ -215,7 +194,7 @@ the platform lockfile is not present in your checkout. Confirm that you are on t
 
 If the lockfile is genuinely missing, contact the maintainers or regenerate it only if you are updating dependencies.
 
-### Wrong Python/Pytest
+##### Wrong Python/Pytest
 
 Check that Python 3.10 is being used:
 ```bash
@@ -228,7 +207,7 @@ They should come from the virtual environment, for example:
 .venv-cpu/bin/python
 .venv-cpu/bin/pytest
 ```
-### Library not found after activation
+##### Library not found after activation
 
 Confirm the correct environment is active:
 ```bash
@@ -239,7 +218,7 @@ If needed, set:
 ```bash
 export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH
 ```
-### Package import fails or environment out of sync
+##### Package import fails or environment out of sync
 
 Try:
 ```bash
@@ -251,6 +230,24 @@ If imports fail, resync the environment:
 ```bash
 make sync-<platform>
 source .venv-<platform>/bin/activate
+```
+---
+### Install AMPL
+
+Since `1.8.0`, AMPL is publised to PyPI so users can install it directly without building it locally, improving accessibility, and supporting broader adoption through a trusted distribution channel.
+
+> **Note:** Please ensure `Python 3.10` is used or loaded for the package to run. For LLNL users on LC,  run `module load python/3.10.8` to load the right version of python.
+
+To install:
+
+```bash
+ python -m pip install atomsci-ampl
+```
+
+#### Clone the repository
+```bash
+git clone https://github.com/ATOMScience-org/AMPL.git
+cd AMPL
 ```
 ---
 #### *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install `atomsci.clients`
