@@ -41,7 +41,9 @@ In addition to our written tutorials, we now provide a series of video tutorials
       - [Library not found after activation](#library-not-found-after-activation)
       - [Package import fails or environment out of sync](#package-import-fails-or-environment-out-of-sync)
   - [Install AMPL](#install-ampl)
-    - [Clone the repository](#clone-the-repository)
+    - [Install from PyPI](#install-from-pypi)
+    - [Install from a local clone for development](#install-from-a-local-clone-for-development)
+    - [Build and install from a local clone](#build-and-install-from-a-local-clone)
 - [AMPL Features](#ampl-features)
 - [Running AMPL](#running-ampl)
 - [Tests](#tests)
@@ -234,22 +236,41 @@ source .venv-<platform>/bin/activate
 ---
 ### Install AMPL
 
-Since `1.8.0`, AMPL is publised to PyPI so users can install it directly without building it locally, improving accessibility, and supporting broader adoption through a trusted distribution channel.
+Since `1.8.0`, AMPL is published to PyPI. Users can install it directly, without building it locally.
 
-> **Note:** Please ensure `Python 3.10` is used or loaded for the package to run. For LLNL users on LC,  run `module load python/3.10.8` to load the right version of python.
+> **Note:** Please ensure `Python 3.10` is used or loaded for the package to run. For LLNL users on LC, run `module load python/3.10.8`.
 
-To install:
+#### Install from PyPI
 
-```bash
- python -m pip install atomsci-ampl
+Install the published package directly from PyPI:
+
+```
+uv pip install atomsci-ampl
 ```
 
-#### Clone the repository
-```bash
+#### Install from a local clone for development
+
+If you want to develop AMPL locally, clone the repository and install it in editable mode:
+
+```
 git clone https://github.com/ATOMScience-org/AMPL.git
 cd AMPL
+./install-dev.sh
 ```
----
+
+This installs the package from the local source tree, so changes to the code are available without reinstalling.
+
+#### Build and install from a local clone
+
+If you want to build the package locally and then install the built artifact:
+
+```
+git clone https://github.com/ATOMScience-org/AMPL.git
+cd AMPL
+./build.sh
+./install.sh
+```
+
 #### *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install `atomsci.clients`
 ```bash
 # LLNL only: required for ATOM model_tracker

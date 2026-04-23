@@ -3,22 +3,25 @@
 Introduction
 ************
 
-The ATOM Modeling PipeLine `AMPL <https://github.com/ATOMScience-org/AMPL>`_ is a Python 3 package that has been developed and run in a specific pip environment.
+The ATOM Modeling PipeLine, `AMPL <https://github.com/ATOMScience-org/AMPL>`_, is a Python 3 package.
 
-There are two alternative paths for installing `AMPL <https://github.com/ATOMScience-org/AMPL>`_:
+There are two main ways to use `AMPL <https://github.com/ATOMScience-org/AMPL>`_:
 
-1. Cloning the git repo, download from PyPI. Either
+1. Install the AMPL Python package from PyPI, or clone the Git repository for local development.
 
-.. code-block:: bash
-
-      python -m pip install atomsci-ampl
-
-   or
+   To install the released package from PyPI:
 
    .. code-block:: bash
 
-      python -m pip install --index-url https://pypi.org/simple atomsci-ampl
+      uv pip install atomsci-ampl
 
- Please refer to `Installation <https://ampl.readthedocs.io/en/latest/get_started/install.html>`_.
+   To work from a local source checkout instead:
+
+   .. code-block:: bash
+
+      git clone https://github.com/ATOMScience-org/AMPL.git
+      cd AMPL
+
+   Please refer to `Installation <https://ampl.readthedocs.io/en/latest/get_started/install.html>`_.
 
 2. `Install With Docker <https://ampl.readthedocs.io/en/latest/get_started/install_with_docker.html>`_.
