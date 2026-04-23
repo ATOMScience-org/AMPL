@@ -46,7 +46,7 @@ VENV ?= atomsci-env
 # Work Directory
 WORK_DIR ?= work
 
-.PHONY: sync-cpu sync-cuda sync-rocm sync-mchip test-cpu test-gpu test-rocm test-mchip \
+.PHONY: update-lock-cpu update-lock-cuda update-lock-rocm update-lock-mchip sync-cpu sync-cuda sync-rocm sync-mchip  \
         build-docker install install-dev install-system install-venv jupyter-notebook jupyter-lab \
 	pytest ruff ruff-fix setup
 
@@ -157,26 +157,29 @@ setup:
 	$(MAKE) install-venv
 
 # for uv env
+
+# use these to create/update a lock env. for maintainers only
+update-lock-cpu:
+	./update_uv_lock.sh cpu
+
+update-lock-cuda:
+	./update_uv_lock.sh cuda
+
+update-lock-rocm:
+	./update_uv_lock.sh rocm
+
+update-lock-mchip:
+	./update_uv_lock.sh mchip
+
+# use the matching lockfile to create or refresh .venv-<platform>. for general users
 sync-cpu:
-	UV_PROJECT_ENVIRONMENT=.venv-cpu uv sync --group dev --extra cpu
+	./sync_uv_env.sh cpu
 
 sync-cuda:
-	UV_PROJECT_ENVIRONMENT=.venv-cuda uv sync --group dev --extra cuda
+	./sync_uv_env.sh cuda
 
 sync-rocm:
-	UV_PROJECT_ENVIRONMENT=.venv-rocm uv sync --group dev --extra rocm
+	./sync_uv_env.sh rocm
 
 sync-mchip:
-	UV_PROJECT_ENVIRONMENT=.venv-mchip uv sync --group dev --extra mchip
-
-test-cpu:
-	UV_PROJECT_ENVIRONMENT=.venv-cpu uv run pytest
-
-test-gpu:
-	UV_PROJECT_ENVIRONMENT=.venv-cuda uv run pytest
-
-test-rocm:
-	UV_PROJECT_ENVIRONMENT=.venv-rocm uv run pytest
-
-test-mchip:
-	UV_PROJECT_ENVIRONMENT=.venv-mchip uv run pytest
+	./sync_uv_env.sh mchip
