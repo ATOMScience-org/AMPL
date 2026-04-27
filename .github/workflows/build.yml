@@ -54,10 +54,6 @@ jobs:
             platform: arm
             arch: linux/arm64
 
-    if: |
-      github.event.inputs.target == 'all' ||
-      github.event.inputs.target == matrix.name
-
     steps:
       - name: Set up QEMU
         if: ${{ matrix.arch == 'linux/arm64' }}
@@ -78,9 +74,9 @@ jobs:
           fetch-depth: 1
 
       - name: Build and push Docker image
-        run: |
-          make push-docker
+        if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == matrix.name }}
+        run: make push-docker
         env:
-          ENV: prod
+          ENV: ${{ github.event.inputs.env }}
           PLATFORM: ${{ matrix.platform }}
           ARCH: ${{ matrix.arch }}
