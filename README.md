@@ -72,6 +72,11 @@ For dependency-specific installation details, see:
 
 AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependency management.
 
+### Get the latest release version from PyPI
+```bash
+pip install atomsci-ampl
+```
+
 ### Set up a local `uv` environment
 
 Use this workflow if you want to run or develop AMPL from a local clone of this repository.
