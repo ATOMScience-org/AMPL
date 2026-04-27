@@ -92,8 +92,8 @@ Or use `uv` install:
 
 Example:
 ```bash
-uv venv --python 3.10 <_.venv_name>
-source <_.venv_name>/bin/activate
+uv venv --python 3.10 <.venv_name>
+source <.venv_name>/bin/activate
 uv pip install atomsci-ampl
 ```
 
@@ -187,21 +187,22 @@ The `make sync-<platform>` commands use the matching lockfile to create or refre
 
 #### For maintainers only
 
-If dependencies change, regenerate the platform lockfile with:
+If dependencies change in `pyproject.toml`, you **must** regenerate the platform lockfile:
+
 ```bash
 make update-lock-cpu
 ```
-Other options:
+
+Other supported targets:
 ```bash
 make update-lock-cuda
 make update-lock-rocm
 make update-lock-mchip
 ```
-These commands create the lockfile if it does not exist yet, or update it if it already exists.
 
-Then commit:
-- `pyproject.toml`
-- updated `uv.lock.<platform>` files
+These commands create the lockfile if it does not already exist, or update it if it does.
+
+**Any changes to `pyproject.toml` or `uv.lock.<platform>` must be committed and pushed to the AMPL GitHub repository. Do not leave regenerated lockfiles uncommitted.**
 
 Most users do not need to run `make update-lock-<platform>`.
 
