@@ -1,0 +1,138 @@
+[project]
+name = "atomsci-ampl"
+dynamic = ["version"]
+description = "ATOMSCI AMPL is an open-source Python package for molecular property prediction in drug discovery."
+requires-python = ">=3.10,<3.11"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = [
+  "lightning==2.2.5",
+  "pydantic>=1.10,<2",
+  "numpy<2",
+  "scipy>=1.10",
+  "scikit-learn==1.2.2",
+  "optuna",
+  "xgboost",
+  "lightgbm",
+  "umap-learn",
+  "bokeh",
+  "matplotlib",
+  "matplotlib-venn",
+  "seaborn>=0.13.0",
+  "pyarrow",
+  "pyyaml>=6.0",
+  "bravado",
+  "imbalanced-learn",
+  "imblearn",
+  "maestrowf",
+  "deepchem==2.8",
+  "rdkit==2024.3.5",
+  "mordred",
+  "setuptools",
+]
+
+[project.urls]
+Homepage = "https://github.com/ATOMScience-org/AMPL"
+Documentation = "https://ampl.readthedocs.io/en/latest/"
+Repository = "https://github.com/ATOMScience-org/AMPL"
+Source = "https://github.com/ATOMScience-org/AMPL"
+
+# local developer tools
+[dependency-groups]
+dev = [
+  "ipykernel",
+  "jupyter",
+  "jupyterlab",
+  "pytest",
+  "pytest-cov",
+  "pytest-mock",
+  "pytest-xdist",
+  "matplotcheck",
+  "ruff",
+]
+
+docker = [
+  "networkx==2.8.8",
+]
+
+[project.optional-dependencies]
+# RTD-installable docs deps
+docs = [
+  "ipython",
+  "joblib",
+  "pandas",
+  "pygments",
+  "sphinx",
+  "sphinx_rtd_theme",
+]
+
+# hardware/runtime variants
+cpu = [
+  "torch==2.1.2",
+  "torchdata==0.7.1",
+  "tensorflow-cpu~=2.14.0; platform_system == 'Linux'",
+  "tensorflow~=2.14.0; platform_system == 'Darwin'",
+  "dgl==2.1.0",
+  "dgllife==0.3.2",
+  "torch-geometric==2.7.0",
+]
+
+cuda = [
+  "torch==2.1.2",
+  "torchdata==0.7.1",
+  "tensorflow~=2.14.0",
+  "dgl==2.1.0",
+  "dgllife==0.3.2",
+  "torch-geometric==2.7.0",
+]
+
+rocm = [
+  "torch==2.1.2",
+  "torchdata==0.7.1",
+  "tensorflow~=2.14.0",
+  "dgl==2.1.0",
+  "dgllife==0.3.2",
+  "torch-geometric==2.7.0",
+]
+
+mchip = [
+  "torch==2.1.2",
+  "torchdata==0.7.1",
+  "tensorflow-macos~=2.14.0",
+  "tensorflow-metal~=1.1.0",
+  "dgl==2.1.0",
+  "dgllife==0.3.2",
+  "torch-geometric==2.7.0",
+]
+
+[build-system]
+requires = ["hatchling>=1.24.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "VERSION"
+pattern = "(?P<version>\\d+\\.\\d+\\.\\d+.*)"
+
+[tool.hatch.build.targets.wheel]
+packages = ["atomsci"]
+exclude = [
+  "atomsci/ddm/examples/archive/**",        # old tutorials
+  "atomsci/ddm/test/test_datasets/**",      # test datasets
+  "**/*.tar.gz",
+  "**/*.ipynb",
+  "**/*.rst",
+]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "atomsci/ddm/examples/archive/**",        # old tutorials
+  "atomsci/ddm/test/test_datasets/**",      # test datasets
+  "**/*.tar.gz",
+  "**/*.ipynb",
+  "**/*.rst",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["atomsci/ddm/test"]
+addopts = "-ra"

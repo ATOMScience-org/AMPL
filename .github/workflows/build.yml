@@ -1,8 +1,34 @@
+# How to run manually:
+# 1. Go to the GitHub repository.
+# 2. Click the "Actions" tab.
+# 3. Select this workflow, "docker publish".
+# 4. Click "Run workflow".
+# 5. Choose the desired inputs, then click "Run workflow".
+
 name: docker publish
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Deployment environment"
+        required: true
+        default: "prod"
+        type: choice
+        options:
+          - prod
+          - staging
+      target:
+        description: "Which image(s) to build"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - gpu
+          - rocm
+          - cpu-amd64
+          - cpu-arm64
 
 jobs:
   build-and-push:
@@ -11,10 +37,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Uses Dockerfile.gpu
           - name: gpu
             platform: gpu
+            arch: ""
+          # Uses Dockerfile.rocm
+          - name: rocm
+            platform: rocm
+            arch: ""
+          # Uses Dockerfile.cpu
           - name: cpu-amd64
             platform: cpu
+            arch: ""
+          # Uses Dockerfile.arm
           - name: cpu-arm64
             platform: arm
             arch: linux/arm64
@@ -34,14 +69,14 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Build and push Docker image
-        run: |
-          make push-docker
+        if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == matrix.name }}
+        run: make push-docker
         env:
-          ENV: prod
+          ENV: ${{ github.event.inputs.env }}
           PLATFORM: ${{ matrix.platform }}
           ARCH: ${{ matrix.arch }}

@@ -10,8 +10,9 @@ An open-source, end-to-end software pipeline for data curation, model building, 
 
 *Created by the [Accelerating Therapeutics for Opportunities in Medicine (ATOM) Consortium](https://atomscience.org)*
 
-<img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
-
+<p align="center">
+  <img src="assets/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" alt="AMPL logo">
+</p>
 
 The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools to predict key potency, safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions! An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) was published in JCIM. The AMPL pipeline documentation is available [here](https://ampl.readthedocs.io/en/latest/pipeline.html).
 
@@ -25,11 +26,25 @@ In addition to our written tutorials, we now provide a series of video tutorials
 
 ---
 ## Table of contents
-- [Install](#install)
-   - [Quick Install](#installation-quick-summary)
-   - [Jupyter kernel](#create-jupyter-notebook-kernel-optional)
-   - [Docker](#install-with-docker)
-   - [Uninstall](#uninstall)
+- [Installation](#installation)
+  - [Install the published package from PyPI](#install-the-published-package-from-pypi)
+    - [Get the latest release version from PyPI](#get-the-latest-release-version-from-pypi)
+  - [Set up an `uv` environment for development](#set-up-an-uv-environment-for-development)
+    - [What is `uv`?](#what-is-uv)
+    - [Requirements](#requirements)
+    - [Install `uv`](#install-uv)
+    - [Choose your platform](#choose-your-platform)
+    - [Create or refresh your environment](#create-or-refresh-your-environment)
+    - [Daily use](#daily-use)
+    - [Platform lockfiles](#platform-lockfiles)
+    - [For maintainers only](#for-maintainers-only)
+    - [Troubleshooting](#troubleshooting)
+      - [`uv` not found](#uv-not-found)
+      - [Wrong Python or missing `pytest`](#wrong-python-or-missing-pytest)
+      - [Import or package problems](#import-or-package-problems)
+  - [Building AMPL for Local Development](#building-ampl-for-local-development)
+    - [Build and install from a local clone](#build-and-install-from-a-local-clone)
+    - [Optional, for LLNL LC only](#optional-for-llnl-lc-only)
 - [AMPL Features](#ampl-features)
 - [Running AMPL](#running-ampl)
 - [Tests](#tests)
@@ -43,126 +58,228 @@ In addition to our written tutorials, we now provide a series of video tutorials
 ## Useful links
 - [Pipeline parameters (options)](atomsci/ddm/docs/PARAMETERS.md)
 - [Library documentation](https://ampl.readthedocs.io/en/latest/index.html)
+
 ---
-## Install
-AMPL 1.8 supports Python 3.10 CPU or CUDA-enabled machines using CUDA 11.8 on Linux. All other systems are experimental. For a quick install summary, see [here](#install-summary). We do not support other CUDA versions because there are multiple ML package dependency conflicts that can occur. For more information you can look at [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), [DGL](https://www.dgl.ai/pages/start.html).
 
-For installation on Apple Silicon M Chips, please see the Docker container instructions.
+## Installation
 
-### Create pip environment
+AMPL supports Python 3.10 and provides platform-specific environments for `cpu`, `cuda`, `rocm`, and `mchip`.
 
-#### 1. Create a virtual env with Python 3.10
-Make sure to create your virtual env in a convenient directory that has at least 12Gb space.
+For dependency-specific installation details, see:
+- [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html)
+- [TensorFlow](https://www.tensorflow.org/install/pip)
+- [PyTorch](https://pytorch.org/get-started/locally/)
+- [DGL](https://www.dgl.ai/pages/start.html)
 
-Go to the directory where the new environment directory be installed in. Define an environment variable - "ENVROOT".
+AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependency management.
 
+### Install the published package from PyPI
+
+Use this option if you want to install the released `atomsci-ampl` package without cloning this repository.
+
+If you are working from a local checkout of this repo, use the local `uv` environment workflow above instead.
+
+> **Note:** AMPL requires Python 3.10. For LLNL users on LC, run `module load python/3.10.8`.
+
+### Get the latest release version from PyPI
+
+Create or activate a Python 3.10 environment, then install:
 ```bash
-export ENVROOT=~/workspace # for LLNL LC users, use your workspace
+pip install atomsci-ampl
+```
+
+Or use `uv` install:
+
+Example:
+```bash
+uv venv --python 3.10 <.venv_name>
+source <.venv_name>/bin/activate
+uv pip install atomsci-ampl
+```
+
+---
+
+### Set up an `uv` environment for local development
+
+Use this workflow if you want to run or develop AMPL from a local clone of this repository.
+
+#### What is `uv`?
+
+`uv` is the Python environment and dependency tool used by this project. It creates virtual environments and installs the packages defined in `pyproject.toml`.
+
+#### Requirements
+
+| Item | Value |
+|---|---|
+| Python | 3.10 |
+| Supported range | `>=3.10,<3.11` |
+| Platforms | `cpu`, `cuda`, `rocm`, `mchip` |
+
+#### Install `uv`
+
+Install `uv` with one of the following:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 or
-export ENVROOT=~ # or the directory as your environment root
+```bash
+pip install uv
 ```
+Verify the installation:
+```bash
+uv --version
+```
+#### Choose your platform
 
-> *We use "workspace" and "atomsci-env" as an example here.*
+| Platform | Use this if... | Environment |
+|---|---|---|
+| `cpu` | you want a CPU-only environment | `.venv-cpu` |
+| `cuda` | you are using NVIDIA GPUs on Linux | `.venv-cuda` |
+| `rocm` | you are using AMD GPUs | `.venv-rocm` |
+| `mchip` | you are on Apple Silicon | `.venv-mchip` |
+
+#### Create or refresh your environment
+
+For most users, use the `make sync-<platform>` commands:
+```bash
+make sync-cpu
+```
+Other options:
+```bash
+make sync-cuda
+make sync-rocm
+make sync-mchip
+```
+Then activate the environment:
+```bash
+source .venv-cpu/bin/activate
+```
+Replace `cpu` with your platform as needed.
+
+Example:
+```bash
+make sync-cpu
+source .venv-cpu/bin/activate
+```
+#### Daily use
+
+If the environment is already working, you can usually just activate it:
+```bash
+source .venv-cpu/bin/activate
+```
+If commands like `pytest` are missing, or imports fail, refresh the environment:
+```bash
+make sync-cpu
+source .venv-cpu/bin/activate
+```
+#### Platform lockfiles
+
+This project keeps one lockfile per platform:
+
+| Platform | Lockfile | Environment |
+|---|---|---|
+| `cpu` | `uv.lock.cpu` | `.venv-cpu` |
+| `cuda` | `uv.lock.cuda` | `.venv-cuda` |
+| `rocm` | `uv.lock.rocm` | `.venv-rocm` |
+| `mchip` | `uv.lock.mchip` | `.venv-mchip` |
+
+The `make sync-<platform>` commands use the matching lockfile to create or refresh `.venv-<platform>`.
+
+#### For maintainers only
+
+If dependencies change in `pyproject.toml`, you **must** regenerate the platform lockfile:
 
 ```bash
-# LLNL only:
-# module load python/3.10.8
-cd $ENVROOT
-python3.10 -m venv atomsci-env
+make update-lock-cpu
 ```
 
-#### 2. Activate the environment
+Other supported targets:
 ```bash
-source $ENVROOT/atomsci-env/bin/activate
+make update-lock-cuda
+make update-lock-rocm
+make update-lock-mchip
 ```
 
-#### 3. Update pip
+These commands create the lockfile if it does not already exist, or update it if it does.
+
+**Any changes to `pyproject.toml` or `uv.lock.<platform>` must be committed and pushed to the AMPL GitHub repository. Do not leave regenerated lockfiles uncommitted.**
+
+Most users do not need to run `make update-lock-<platform>`.
+
+#### Troubleshooting
+
+##### `uv` not found
 ```bash
-pip install pip --upgrade
+uv --version
 ```
+If this fails, install `uv` and start a new shell.
 
-#### 4. Clone AMPL repository
+##### Wrong Python or missing `pytest`
+
+Check:
+```bash
+which python
+python --version
+which pytest
+```
+They should point into the active environment, for example:
+```bash
+.venv-cpu/bin/python
+.venv-cpu/bin/pytest
+```
+If not, refresh the environment:
+```bash
+make sync-cpu
+source .venv-cpu/bin/activate
+```
+##### Import or package problems
+
+Refresh the environment:
+```bash
+make sync-cpu
+source .venv-cpu/bin/activate
+```
+### Building AMPL for Local Development
+
+If you want to develop AMPL locally from a repository checkout:
 ```bash
 git clone https://github.com/ATOMScience-org/AMPL.git
+cd AMPL
+./install-dev.sh
 ```
+This installs the package from the local source tree, so code changes are available without reinstalling.
 
-#### 5. Install pip requirements
-Depending on system performance, creating the environment can take some time.
-> ***Note:*** *Based on which environment (CPU or CUDA) to run on, only run one of the following:*
+#### Build and install from a local clone
 
-- CPU-only installation:
+If you want to build the package locally and then install the built artifact:
 ```bash
-cd AMPL/pip
-pip install -r cpu_requirements.txt
+git clone https://github.com/ATOMScience-org/AMPL.git
+cd AMPL
+./build.sh
+./install.sh
 ```
+#### Optional, for LLNL LC only
 
-- CUDA installation:
-
-First load the CUDA module. Then run cuda specific package install.
-
+If you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install `atomsci.clients`:
 ```bash
-cd AMPL/pip
-# LLNL only:
-# module load cuda/11.8
-pip install -r cuda_requirements.txt
-```
-If you get `out of memory` errors, try setting these environment variables:
-```
-export LD_LIBRARY_PATH=<your_env>/lib:$LD_LIBRARY_PATH
-export PYTHONUSERBASE=<your_env>
-export OPENBLAS_NUM_THREADS=1
-export OMP_NUM_THREADS=48
-export PYTORCH_HIP_ALLOC_CONF=gargage_collection_threshold:0.9,max_split_size_mb:128
-export TF_FORCE_GPU_ALLOW_GROWTH=true
+pip install -r clients_requirements.txt
 ```
 
-- Install pytest, plotting packages for development, test use.
+---
 
+## Create jupyter notebook kernel (optional)
+
+To run AMPL from Jupyter Notebook, first activate your environment and then run:
 ```bash
-cd AMPL/pip
-pip install -r dev_requirements.txt
+python -m ipykernel install --user --name atomsci-env
 ```
-#### 6. *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
+---
+#### *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
 ```bash
 # LLNL only: required for ATOM model_tracker
 pip install -r clients_requirements.txt
 ```
 
-### Install AMPL
-Run the following to build the "atomsci" modules. This is required.
-
-```bash
-# return to AMPL parent directory
-cd ..
-./build.sh
-pip install -e .
-```
----
-## Installation Quick Summary
-```bash
-export ENVROOT=~/workspace           # set ENVROOT example
-# LLNL only:
-# module load python/3.10.8
-
-python3.10 -m venv atomsci-env        # create environment with Python 3.10
-source $ENVROOT/atomsci-env/bin/activate
-pip install pip --upgrade
-
-git clone https://github.com/ATOMScience-org/AMPL.git # clone AMPL
-cd AMPL/pip
-# LLNL only:
-# If use CUDA:
-# module load cuda/11.8
-pip install -r cpu_requirements.txt    # install cpu_requirements.txt OR cuda_requirements.txt
-pip install -r dev_requirements.txt    # install pytest, plotting packages.
-
-# LLNL only: required for ATOM model_tracker
-# pip install -r clients_requirements.txt
-
-cd ..
-./build.sh
-pip install -e .
-```
 ---
 ## Create jupyter notebook kernel (optional)
 To run AMPL from Jupyter Notebook. To setup a new kernel, first activate your environment and then run the following command:
@@ -204,20 +321,9 @@ For additional options related to building, running, and other Docker developmen
 
 ---
 
-## Uninstall
-To remove AMPL from a pip environment use:
-```bash
-pip uninstall atomsci-ampl
-```
-
 To remove an entire virtual environment named "atomsci-env":
 ```bash
 rm -rf $ENVROOT/atomsci-env
-```
-
-To remove cached packages and clear space:
-```bash
-pip cache purge
 ```
 
 ---
@@ -239,7 +345,6 @@ pip cache purge
 - Test set selection
 - Cross-validation
 - Uncertainty quantification
-- Hyperparameter optimization
 
 ### 4. Supported models
 - scikit-learn random forest models
@@ -250,7 +355,7 @@ pip cache purge
 ### 5. Visualization and analysis
 - Visualization and analysis tools
 </details>
-Details of running specific features are within the [parameter (options) documentation](#Pipeline-parameters). More detailed documentation is in the [library documentation](#Library-documentation).
+Details of running specific features are within the [parameter (options) documentation](atomsci/ddm/docs/PARAMETERS.md). More detailed documentation is in the [library documentation](https://ampl.readthedocs.io/en/latest/).
 
 ---
 ## Running AMPL

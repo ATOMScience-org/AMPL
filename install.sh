@@ -18,4 +18,4 @@ DIST_DIR=${TOPDIR}.dist
 
 mkdir -p $DIST_DIR
 
-python3 -m pip install --pre --upgrade --no-index --find-links=$DIST_DIR --no-deps ${PACKAGE}_${APP} $INSTALL --force-reinstall -I -v || exit 1
+uv pip install --pre --upgrade --no-index --find-links="$DIST_DIR" --no-deps ${PACKAGE}_${APP} --reinstall -v || exit 1

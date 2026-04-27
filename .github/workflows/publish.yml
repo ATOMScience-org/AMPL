@@ -1,0 +1,131 @@
+name: Publish Python Package
+
+# Publish atomsci-ampl to TestPyPI and PyPI
+#
+# Owner           -> ATOMScience-org
+# Repository name -> AMPL
+# Project         -> atomsci-ampl
+#
+# This workflow is manual only.
+#
+# Workflow behavior:
+#
+# 1. Build the package distribution
+# 2. Optionally publish to TestPyPI
+# 3. Optionally publish to PyPI
+#
+# How to use:
+#
+# - Run this workflow manually from the GitHub Actions tab
+# - Choose whether to publish to TestPyPI
+# - Choose whether to publish to PyPI
+#
+# Notes:
+#
+# - Package versions cannot be reused once published
+# - For TestPyPI testing, use development version names such as:
+#
+#     1.2.3.dev1
+#
+# - If you want PyPI publication to require approval, configure
+#   protection rules on the "pypi" environment
+#
+# Recommended usage:
+#
+# - TestPyPI only:
+#     publish_testpypi = true
+#     publish_pypi     = false
+#
+# - TestPyPI and PyPI:
+#     publish_testpypi = true
+#     publish_pypi     = true
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_testpypi:
+        description: "Publish to TestPyPI"
+        required: true
+        type: boolean
+        default: true
+      publish_pypi:
+        description: "Publish to PyPI"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Job 1: Build the source distribution and wheel
+  build:
+    name: Build package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # Job 2: Optionally publish to TestPyPI
+  publish-test:
+    name: Publish to TestPyPI
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ inputs.publish_testpypi }}
+    environment: testpypi
+
+    steps:
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          user: __token__
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+
+  # Job 3: Optionally publish to PyPI
+  # This runs only if PyPI publishing was selected.
+  # It also depends on the TestPyPI job, so TestPyPI must be selected too.
+  publish-pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: publish-test
+    if: ${{ inputs.publish_testpypi && inputs.publish_pypi }}
+    environment: pypi
+
+    steps:
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}

@@ -1,5 +1,6 @@
 name: "python-uv-setup"
 description: "Common Python + uv setup, deps install, and optional debug"
+
 inputs:
   python-version:
     description: "Python version"
@@ -8,6 +9,18 @@ inputs:
     description: "Enable debug output"
     required: false
     default: "false"
+  lockfile:
+    description: "Lockfile to use"
+    required: false
+    default: "uv.lock.cpu"
+  extras:
+    description: "Extra dependency set to install"
+    required: false
+    default: "cpu"
+  dependency-groups:
+    description: "Dependency group to install"
+    required: false
+    default: "dev"
 
 runs:
   using: "composite"
@@ -40,34 +53,22 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.cache/uv
-        key: ${{ runner.os }}-uv-${{ hashFiles('pip/*.txt') }}
+        key: ${{ runner.os }}-py${{ inputs.python-version }}-uv-${{ hashFiles('pyproject.toml', 'uv.lock.cpu') }}
         restore-keys: |
-          ${{ runner.os }}-uv-
-
-    - name: Create virtual environment
-      shell: bash
-      run: |
-        uv venv --seed .venv
+          ${{ runner.os }}-py${{ inputs.python-version }}-uv-
 
     - name: Install dependencies
       shell: bash
       run: |
         set -euxo pipefail
+        cp "${{ inputs.lockfile }}" uv.lock
+        uv venv .venv
         . .venv/bin/activate
-
-        which python
-        python -V
-
-        uv pip install -e .
-        if [ -f pip/cpu_requirements.txt ]; then uv pip install -r pip/cpu_requirements.txt; fi
-        if [ -f pip/dev_requirements.txt ]; then uv pip install -r pip/dev_requirements.txt; fi
+        uv sync --extra "${{ inputs.extras }}" --group "${{ inputs.dependency-groups }}" --locked
 
     - name: Debug - what is installed
       if: ${{ inputs.debug == 'true' }}
       shell: bash
       run: |
         . .venv/bin/activate
-        python -m pip --version
-        python -V
-        uv --version
         uv pip list

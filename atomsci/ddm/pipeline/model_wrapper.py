@@ -493,7 +493,7 @@ class ModelWrapper(object):
 
     def load_feature_transformers_from_pkl(self, transformer_pkl_path):
         """Loads feature transformer from pkl path
-        This loads transformers_x from a pkl created using 
+        This loads transformers_x from a pkl created using
         generate_transformers.build_and_save_feature_transformers_from_csvs. This also
         overwrites any parameters set when creating the transfomers saved at
         transformer_pkl_path.
@@ -2622,7 +2622,6 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
         """
         self.data = pipeline.data
         feature_names = self.data.featurization.get_feature_columns()
-        nfeatures = len(feature_names)
         self.feature_weights = dict(zip(feature_names, [[] for f in feature_names]))
 
         em = perf.EpochManager(self,
@@ -2650,10 +2649,8 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
                           pipeline.metric_type, test_perf))
 
             layer1_weights = self.model.model.layers[0].weight
-            feature_weights = np.zeros(nfeatures, dtype=float)
-            for node_weights in layer1_weights:
-                node_feat_weights = torch.abs(node_weights).detach().cpu().numpy()
-                feature_weights += node_feat_weights
+            feature_weights = layer1_weights.detach().abs().mean(dim=0).cpu().numpy()
+
             for fnum, fname in enumerate(feature_names):
                 self.feature_weights[fname].append(feature_weights[fnum])
 

@@ -46,8 +46,9 @@ VENV ?= atomsci-env
 # Work Directory
 WORK_DIR ?= work
 
-.PHONY: build-docker install install-dev install-system install-venv jupyter-notebook jupyter-lab \
-	pytest ruff ruff-fix setup uninstall uninstall-dev uninstall-system uninstall-venv
+.PHONY: update-lock-cpu update-lock-cuda update-lock-rocm update-lock-mchip sync-cpu sync-cuda sync-rocm sync-mchip  \
+        build-docker install install-dev install-system install-venv jupyter-notebook jupyter-lab \
+	pytest ruff ruff-fix setup
 
 # Load Docker image
 load-docker:
@@ -67,7 +68,7 @@ save-docker:
 
 # Build Docker image
 build-docker:
-	@echo "Building Docker image for $(PLATFORM)"
+	@echo "Building Docker image for $(PLATFORM) <cpu|gpu|rocm|arm>"
 	docker buildx build -t $(IMAGE_REPO):$(TAG) --build-arg ENV=$(ENV) $(PLATFORM_ARG) --load -f Dockerfile.$(PLATFORM) .
 
 install: install-system
@@ -155,19 +156,30 @@ setup:
 	$(VENV)/bin/pip install -r pip/dev_requirements.txt
 	$(MAKE) install-venv
 
-uninstall: uninstall-system
+# for uv env
 
-# Uninstall atomsci-ampl from user space
-uninstall-dev:
-	@echo "Uninstalling atomsci-ampl for user"
-	$(PYTHON_BIN) -m pip uninstall atomsci-ampl --user --yes
+# use these to create/update a lock env. for maintainers only
+update-lock-cpu:
+	./update_uv_lock.sh cpu
 
-# Uninstall atomsci-ampl system-wide
-uninstall-system:
-	@echo "Uninstalling atomsci-ampl from $(PYTHON_BIN)"
-	$(PYTHON_BIN) -m pip uninstall atomsci-ampl --yes
+update-lock-cuda:
+	./update_uv_lock.sh cuda
 
-# Uninstall atomsci-ampl from virtual environment
-uninstall-venv:
-	@echo "Uninstalling atomsci-ampl from $(VENV)/"
-	$(VENV)/bin/python -m pip uninstall atomsci-ampl --yes
+update-lock-rocm:
+	./update_uv_lock.sh rocm
+
+update-lock-mchip:
+	./update_uv_lock.sh mchip
+
+# use the matching lockfile to create or refresh .venv-<platform>. for general users
+sync-cpu:
+	./sync_uv_env.sh cpu
+
+sync-cuda:
+	./sync_uv_env.sh cuda
+
+sync-rocm:
+	./sync_uv_env.sh rocm
+
+sync-mchip:
+	./sync_uv_env.sh mchip

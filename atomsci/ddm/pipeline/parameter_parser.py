@@ -7,6 +7,7 @@ import logging
 
 import deepchem.models as dcm
 import deepchem.models.torch_models as dcmt
+from deepchem.models import GraphConvModel
 import deepchem.feat as dcf
 import inspect
 
@@ -34,8 +35,8 @@ parameter_synonyms = {'mode':'prediction_type',
 
 model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel,
             'GCNModel':dcm.GCNModel,
-            'MPNNModel':dcm.MPNNModel,
-            'GraphConvModel':dcm.GraphConvModel,
+            'MPNNModel':dcmt.MPNNModel,
+            'GraphConvModel': GraphConvModel,
             'PytorchMPNNModel':dcmt.MPNNModel}#, dcm.GCNModel, dcm.GATModel]
 
 # featurizer white list
