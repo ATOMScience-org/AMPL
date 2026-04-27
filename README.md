@@ -27,7 +27,9 @@ In addition to our written tutorials, we now provide a series of video tutorials
 ---
 ## Table of contents
 - [Installation](#installation)
-  - [Set up a local `uv` environment](#set-up-a-local-uv-environment)
+  - [Install the published package from PyPI](#install-the-published-package-from-pypi)
+    - [Get the latest release version from PyPI](#get-the-latest-release-version-from-pypi)
+  - [Set up an `uv` environment for development](#set-up-an-uv-environment-for-development)
     - [What is `uv`?](#what-is-uv)
     - [Requirements](#requirements)
     - [Install `uv`](#install-uv)
@@ -40,10 +42,9 @@ In addition to our written tutorials, we now provide a series of video tutorials
       - [`uv` not found](#uv-not-found)
       - [Wrong Python or missing `pytest`](#wrong-python-or-missing-pytest)
       - [Import or package problems](#import-or-package-problems)
-  - [Install the published package from PyPI](#install-the-published-package-from-pypi)
-  - [Install from a local clone for development](#install-from-a-local-clone-for-development)
-  - [Build and install from a local clone](#build-and-install-from-a-local-clone)
-  - [Optional, LLNL LC only](#optional-llnl-lc-only)
+  - [Building AMPL for Local Development](#building-ampl-for-local-development)
+    - [Build and install from a local clone](#build-and-install-from-a-local-clone)
+    - [Optional, for LLNL LC only](#optional-for-llnl-lc-only)
 - [AMPL Features](#ampl-features)
 - [Running AMPL](#running-ampl)
 - [Tests](#tests)
@@ -72,12 +73,33 @@ For dependency-specific installation details, see:
 
 AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependency management.
 
+### Install the published package from PyPI
+
+Use this option if you want to install the released `atomsci-ampl` package without cloning this repository.
+
+If you are working from a local checkout of this repo, use the local `uv` environment workflow above instead.
+
+> **Note:** AMPL requires Python 3.10. For LLNL users on LC, run `module load python/3.10.8`.
+
 ### Get the latest release version from PyPI
+
+Create or activate a Python 3.10 environment, then install:
 ```bash
 pip install atomsci-ampl
 ```
 
-### Set up a local `uv` environment
+Or use `uv` install:
+
+Example:
+```bash
+uv venv --python 3.10 <_.venv_name>
+source <_.venv_name>/bin/activate
+uv pip install atomsci-ampl
+```
+
+---
+
+### Set up an `uv` environment for local development
 
 Use this workflow if you want to run or develop AMPL from a local clone of this repository.
 
@@ -216,29 +238,7 @@ Refresh the environment:
 make sync-cpu
 source .venv-cpu/bin/activate
 ```
-### Install the published package from PyPI
-
-Use this option if you want to install the released `atomsci-ampl` package without cloning this repository.
-
-If you are working from a local checkout of this repo, use the local `uv` environment workflow above instead.
-
-> **Note:** AMPL requires Python 3.10. For LLNL users on LC, run `module load python/3.10.8`.
-
-Create or activate a Python 3.10 environment, then install:
-```bash
-uv pip install atomsci-ampl
-```
-You can also use standard `pip`:
-```bash
-pip install atomsci-ampl
-```
-Example:
-```bash
-uv venv --python 3.10 .venv
-source .venv/bin/activate
-uv pip install atomsci-ampl
-```
-### Install from a local clone for development
+### Building AMPL for Local Development
 
 If you want to develop AMPL locally from a repository checkout:
 ```bash
@@ -248,7 +248,7 @@ cd AMPL
 ```
 This installs the package from the local source tree, so code changes are available without reinstalling.
 
-### Build and install from a local clone
+#### Build and install from a local clone
 
 If you want to build the package locally and then install the built artifact:
 ```bash
@@ -257,7 +257,7 @@ cd AMPL
 ./build.sh
 ./install.sh
 ```
-### Optional, LLNL LC only
+#### Optional, for LLNL LC only
 
 If you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install `atomsci.clients`:
 ```bash

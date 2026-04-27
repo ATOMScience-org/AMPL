@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.abspath('../../'))
 
 project = 'ATOM Data-Driven Modeling Pipeline'
 author = 'ATOM DDM Team'
- 
+
 #note: wait on this
 # import atomsci.ddm
 #version = atomsci.ddm.__version__
@@ -196,15 +196,9 @@ epub_exclude_files = ['search.html']
 
 # -- Extension configuration -------------------------------------------------
 autodoc_mock_imports = [
-    "torch",
-    "torchdata",
-    "tensorflow",
-    "dgl",
-    "dgllife",
-    "torch_geometric",
-    "deepchem",
-    "rdkit",
+    "rdkit", 
     "tensorflow.contrib", 
+    "atomsci", 
     "yaml", 
-    "sklearn.preprocessing.Imputer",
+    "sklearn.preprocessing.Imputer"
 ]
