@@ -24,7 +24,7 @@ torch==2.1.2+cpu
 torchdata==0.7.1
 
 # Lightning; pin to a recent stable series to avoid breaking changes
-lightning==2.2.5
+lightning==2.3.3
 
 # TensorFlow CPU; compatible with DeepChem 2.8
 tensorflow-cpu~=2.14.0
