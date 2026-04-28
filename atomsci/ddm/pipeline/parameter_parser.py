@@ -7,6 +7,7 @@ import logging
 
 import deepchem.models as dcm
 import deepchem.models.torch_models as dcmt
+from deepchem.models import GraphConvModel
 import deepchem.feat as dcf
 import inspect
 
@@ -32,10 +33,10 @@ parameter_synonyms = {'mode':'prediction_type',
                       'model_dir':'result_dir',
                     }
 
-model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel, 
+model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel,
             'GCNModel':dcm.GCNModel,
-            'MPNNModel':dcm.MPNNModel,
-            'GraphConvModel':dcm.GraphConvModel,
+            'MPNNModel':dcmt.MPNNModel,
+            'GraphConvModel': GraphConvModel,
             'PytorchMPNNModel':dcmt.MPNNModel}#, dcm.GCNModel, dcm.GATModel]
 
 # featurizer white list
@@ -139,7 +140,7 @@ def all_auto_lists():
 def extract_model_params(params, strip_prefix=True):
     """Extract parameters specific to a model.
 
-    This function extracts parameters intended for a specific model. It should only be used 
+    This function extracts parameters intended for a specific model. It should only be used
     for arguments automatically added by an AutoArgumentAdder.
 
     Args:
@@ -148,7 +149,7 @@ def extract_model_params(params, strip_prefix=True):
             For example, 'AttentiveFP_mode' becomes 'mode'.
 
     Returns:
-        dict: A dictionary containing a subset of parameters from `params` that are relevant 
+        dict: A dictionary containing a subset of parameters from `params` that are relevant
             to the specified model.
     """
     assert params.model_type in model_wl
@@ -159,7 +160,7 @@ def extract_model_params(params, strip_prefix=True):
 def extract_featurizer_params(params, strip_prefix=True):
     """Extract parameters specific to a featurizer.
 
-    This function extracts parameters intended for a specific featurizer. It should only be used 
+    This function extracts parameters intended for a specific featurizer. It should only be used
     for arguments automatically added by an AutoArgumentAdder.
 
     Args:
@@ -168,7 +169,7 @@ def extract_featurizer_params(params, strip_prefix=True):
             For example, 'MolGraphConvFeaturizer_use_edges' becomes 'use_edges'.
 
     Returns:
-        dict: A dictionary containing a subset of parameters from `params` that are relevant 
+        dict: A dictionary containing a subset of parameters from `params` that are relevant
             to the specified featurizer.
     """
     assert params.featurizer in featurizer_wl
@@ -298,7 +299,7 @@ def is_list(p, type_annotation):
         return str(type_annotation).startswith('typing.List') or str(type_annotation) == "<class 'list'>"
 
 def strip_optional(type_annotation):
-    """In the upgrade to python 3.9 type_annotaions now use
+    """In the upgrade to python 3.10 type_annotaions now use
         typeing.Optional and we need to strip that off.
 
     Args:
@@ -530,7 +531,7 @@ class AutoArgumentAdder:
 # Parameters that may take lists of values, usually but not always in the context of a hyperparam search
 
 convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','learning_rate',
-                         'umap_targ_wt', 'umap_min_dist', 'dropout_list','weight_decay_penalty',
+                         'dropout_list','weight_decay_penalty',
                          'xgb_learning_rate',
                          'xgb_gamma',
                          'xgb_alpha',
@@ -538,10 +539,11 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          "xgb_min_child_weight",
                          "xgb_subsample",
                          "xgb_colsample_bytree",
-                         "ki_convert_ratio"
+                         "ki_convert_ratio",
+                         "robustscaler_quartile_range"
                          }
 convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
-                       'umap_dim', 'umap_neighbors', 'layer_nums', 'node_nums',
+                       'layer_nums', 'node_nums',
                        'xgb_max_depth',  'xgb_n_estimators', 'seed'}.union(all_auto_int_lists())
 convert_to_numeric_list = convert_to_float_list | convert_to_int_list
 keep_as_list = {'dropouts','weight_init_stddevs','bias_init_consts',
@@ -557,9 +559,9 @@ not_a_list_outside_of_hyperparams = {'learning_rate','weight_decay_penalty',
                                      'xgb_max_depth',  'xgb_n_estimators'
                                      }
 convert_to_str_list = \
-    {'response_cols','model_type','featurizer','splitter','umap_metric','weight_decay_penalty_type','descriptor_type'}
+    {'response_cols','model_type','featurizer','splitter','weight_decay_penalty_type','descriptor_type'}
 not_a_str_list_outside_of_hyperparams = \
-    {'model_type','featurizer','splitter','umap_metric','weight_decay_penalty_type','descriptor_type'}
+    {'model_type','featurizer','splitter','weight_decay_penalty_type','descriptor_type'}
 
 #**********************************************************************************************************
 def to_str(params_obj):
@@ -781,8 +783,14 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production', 'embedding_and_features'] 
-    default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
+    default_false = ['previously_split','use_shortlist','datastore', 
+                    'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production', 
+                    'embedding_and_features', 
+                    'robustscaler_unit_variance']
+    default_true = ['transformers','previously_featurized','uncertainty', 'rerun',
+                    'robustscaler_with_centering', 'robustscaler_with_scaling',
+                    'powertransformer_standardize']
+
     for key, value in inp_dictionary.items():
         if key in default_false:
             true_options = ['True','true','ture','TRUE','Ture']
@@ -1027,6 +1035,10 @@ def get_parser():
         help='Type of score function used to choose best epoch and/or hyperparameters (defaults to "roc_auc" '
              'for classification and "r2" for regression). ')
     parser.add_argument(
+        '--max_invalid_pred_frac', dest='max_invalid_pred_frac', required=False, type=float, default=0.01,
+        help='Maximum fraction of NaN/Inf predictions to filter before applying hard metric penalties. '
+             'Must be between 0.0 and 1.0.')
+    parser.add_argument(
         '--model_type', dest='model_type', default=None, type=str,
         help='Type of model to fit (NN, RF, or xgboost). The model_type sets the model subclass in model_wrapper. '
              'Can be input as a comma separated list for hyperparameter search (e.g. \'NN\',\'RF\')')
@@ -1244,7 +1256,7 @@ def get_parser():
     parser.add_argument(
         '--sampling_method', dest='sampling_method', type=str, default=None,
         help='Method for sampling to address class imbalance (e.g., \'undersampling\', \'SMOTE\')')
-    
+
     parser.add_argument(
         '--sampling_ratio', dest='sampling_ratio', type=str, default='auto',
         help='The "sampling_ratio" parameter of SMOTE must be a float in the range (0.0, 1.0], a str '
@@ -1281,11 +1293,13 @@ def get_parser():
     # **********************************************************************************************************
     # model_building_parameters: transformers
     parser.add_argument(
-        '--feature_transform_type', dest='feature_transform_type', choices=['normalization', 'umap'],
+        '--feature_transform_type', dest='feature_transform_type', 
+        choices=['normalization', 'RobustScaler', 'PowerTransformer', 'Identity'],
         default='normalization', help='type of transformation for the features')
     parser.add_argument(
         '--response_transform_type', dest='response_transform_type', default='normalization',
-        help='type of normalization for the response column TODO: Not currently implemented')
+        choices=['normalization'],
+        help='type of normalization for the response column.')
     parser.add_argument(
         '--weight_transform_type', dest='weight_transform_type', choices=[None, 'None', 'balancing'], default=None,
         help='type of normalization for the weights')
@@ -1305,28 +1319,59 @@ def get_parser():
         help='Boolean switch for using transformation on regression output. Default is True')
     parser.set_defaults(transformers=True)
 
-    # **********************************************************************************************************
-    # model_building_parameters: UMAP
+    # Load transformer
     parser.add_argument(
-        '--umap_dim', dest='umap_dim', required=False, default='10',
-        help='Dimension of projected feature space, if UMAP transformation is requested. Can be input as a comma '
-             'separated list for hyperparameter search (e.g. \'2,6,10\').')
+        '--feature_transform_path', dest='feature_transform_path',
+        type=str, default=None, help='Path to a transformer pkl created using generate_transformers. This '
+        'will overwrite any relevant transformer parameters with values loaded from the pkl'
+    )
+
+    # RobustScaler parameters
     parser.add_argument(
-        '--umap_metric', dest='umap_metric', required=False, default='euclidean',
-        help='Distance metric used, if UMAP transformation is requested. Can be input as a comma separated list '
-             'for hyperparameter search (e.g. \'euclidean\',\'cityblock\')')
+        '--robustscaler_with_centering', action='store_false',
+        help='If True, center the data before scaling. '
+        'This will cause transform to raise an exception when attempted on sparse matrices, '
+        'because centering them entails building a dense matrix which in common use '
+        'cases is likely to be too large to fit in memory. Default is True')
+    parser.set_defaults(robustscaler_with_centering=True)
     parser.add_argument(
-        '--umap_min_dist', dest='umap_min_dist', required=False, default='0.05',
-        help='Minimum distance used in UMAP projection, if UMAP transformation is requested. Can be input as a '
-             'comma separated list for hyperparameter search (e.g. \'0.01,0.02,0.05\')')
+        '--robustscaler_with_scaling', action='store_false',
+        help='If True, scale the data to interquartile range. Default is True')
+    parser.set_defaults(robustscaler_with_scaling=True)
     parser.add_argument(
-        '--umap_neighbors', dest='umap_neighbors', required=False, default='20',
-        help='Number of nearest neighbors used in UMAP projection, if UMAP transformation is requested. Can be input '
-             'as a comma separated list for hyperparameter search (e.g. \'10,20,30\')')
+        '--robustscaler_quartile_range', type=str, default='25.0,75.0',
+        help='Quantile range used to calculate scale_. '
+        'By default this is equal to the IQR, i.e., '
+        'q_min is the first quantile and q_max is the third quantile. '
+        '(q_min, q_max), 0.0 < q_min < q_max < 100.0. Default is "25.0,75.0"')
     parser.add_argument(
-        '--umap_targ_wt', dest='umap_targ_wt', required=False, default='0.0',
-        help='Weight given to training set response values in UMAP projection, if UMAP transformation is requested.'
-             ' Can be input as a comma separated list for hyperparameter search (e.g. \'0.0,0.1,0.2\')')
+        '--robustscaler_unit_variance', action='store_true',
+        help='If True, scale data so that normally distributed features have a variance of 1. '
+        'In general, if the difference between the x-values of q_max and q_min for a standard '
+        'normal distribution is greater than 1, the dataset will be scaled down. '
+        'If less than 1, the dataset will be scaled up. Default is False.')
+    parser.set_defaults(robustscaler_unit_variance=False)
+
+    # PowerTransformer parameters
+    parser.add_argument(
+        '--powertransformer_method', choices=['yeo-johnson', 'box-cox'],
+        default='yeo-johnson',
+        help='The power transform method. Available methods are: "yeo-johnson", '
+        'works with positive and negative values "box-cox", only works with strictly positive values. '
+        'Choices are {"yeo-johnson", "box-cox"}')
+    parser.add_argument(
+        '--powertransformer_standardize', action='store_false',
+        help='Set to True to apply zero-mean, unit-variance normalization to the transformed output. '
+        'Default is True.')
+    parser.set_defaults(powertransformer_standardize=True)
+
+    # Sklearn parameters
+    parser.add_argument(
+        '--imputer_strategy', choices=['mean', 'median', 'most_frequent'],
+        default='mean',
+        help='This sets the imputer strategy for the SimpleImputer for use with'
+        'PowerTransformer or RobustScaler.'
+        'Choices are {"mean", "median", "most_frequent"}')
 
     # **********************************************************************************************************
     # model_building_parameters: XGBoost
@@ -1470,9 +1515,9 @@ def get_parser():
             help='Scaling factor for constraining network size based on number of parameters in the network for '
                  'hyperparam search')
     parser.add_argument(
-        '--python_path', dest='python_path', required=False, 
+        '--python_path', dest='python_path', required=False,
         # default to the version of python used to run this script
-        default=sys.executable, 
+        default=sys.executable,
         help='Path to desired python version')
     parser.add_argument(
             '--rerun', dest= 'rerun', required=False, action='store_false',
@@ -1480,14 +1525,14 @@ def get_parser():
                  'already been built')
     parser.set_defaults(rerun=True)
     parser.add_argument(
-        '--script_dir', dest='script_dir', required=False, 
+        '--script_dir', dest='script_dir', required=False,
         # use location of this file to generate script dir
         default=os.path.abspath(os.path.join(__file__, '../..')),
         help='Path where pipeline file you want to run hyperparam search from is located')
 
     parser.add_argument(
         '--search_type', dest='search_type', required=False, default='grid',
-        help='Type of hyperparameter search to do. Options = [grid, random, geometric, and user_specified]')
+        help='Type of hyperparameter search to do. Options = [grid, random, geometric, user_specified, and hyperopt (Optuna Bayesian search)]')
 
     parser.add_argument(
         '--split_only', dest='split_only', required=False, action='store_true',
@@ -1528,64 +1573,64 @@ def get_parser():
         help='Time limit in minutes for hyperparameter search batch jobs.'
              'If set to None then this parameter will not be used.')
 
-    # HyperOptSearch specific parameters
+    # OptunaSearch specific parameters
     # NN model
     parser.add_argument(
         '--lr', dest='lr', required=False, default=None,
-        help='learning rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
+        help='learning rate shown in Optuna domain format, e.g. --lr=uniform|0.00001,0.001')
     parser.add_argument(
         '--ls', dest='ls', required=False, default=None,
-        help='layer sizes shown in HyperOpt domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
+        help='layer sizes shown in Optuna domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
     parser.add_argument(
         '--ls_ratio', dest='ls_ratio', required=False, default=None,
-        help='layer size ratios (layer size / previous layer size) shown in HyperOpt domain format, the number of layers is not needed here, taken from ls, e.g. --ls_ratio=uniform|0.1,0.9')
+        help='layer size ratios (layer size / previous layer size) shown in Optuna domain format, the number of layers is not needed here, taken from ls, e.g. --ls_ratio=uniform|0.1,0.9')
     parser.add_argument(
         '--dp', dest='dp', required=False, default=None,
-        help='dropouts shown in HyperOpt domain format, e.g. --dp=uniform|3|0,0.4')
+        help='dropouts shown in Optuna domain format, e.g. --dp=uniform|3|0,0.4')
     parser.add_argument(
         '--wdp', dest='wdp', required=False, default=None,
-        help='weight_decay_penalty shown in HyperOpt domain format, e.g. --wdp=loguniform|-6.908,-4.605')
+        help='weight_decay_penalty shown in Optuna domain format, e.g. --wdp=loguniform|-6.908,-4.605')
     parser.add_argument(
         '--wdt', dest='wdt', required=False, default=None,
-        help='weight_decay_penalty_type shown in HyperOpt domain format, e.g. --wdt=choice|l1,l2')
+        help='weight_decay_penalty_type shown in Optuna domain format, e.g. --wdt=choice|l1,l2')
     # RF model
     parser.add_argument(
         '--rfe', dest='rfe', required=False, default=None,
-        help='rf_estimators shown in HyperOpt domain format, e.g. --rfe=uniformint|64,512')
+        help='rf_estimators shown in Optuna domain format, e.g. --rfe=uniformint|64,512')
     parser.add_argument(
         '--rfd', dest='rfd', required=False, default=None,
-        help='rf_max_depth shown in HyperOpt domain format, e.g. --rfd=uniformint|64,512')
+        help='rf_max_depth shown in Optuna domain format, e.g. --rfd=uniformint|64,512')
     parser.add_argument(
         '--rff', dest='rff', required=False, default=None,
-        help='rf_max_features shown in HyperOpt domain format, e.g. --rff=uniformint|64,512')
+        help='rf_max_features shown in Optuna domain format, e.g. --rff=uniformint|64,512')
     # XGBoost model
     parser.add_argument(
         '--xgbg', dest='xgbg', required=False, default=None,
-        help='xgb_gamma shown in HyperOpt domain format, e.g. --xgbg=uniform|0,0.4')
+        help='xgb_gamma shown in Optuna domain format, e.g. --xgbg=uniform|0,0.4')
     parser.add_argument(
         '--xgba', dest='xgba', required=False, default=None,
-        help='xgb_alpha shown in HyperOpt domain format, e.g. --xgba=uniform|0,0.4')
+        help='xgb_alpha shown in Optuna domain format, e.g. --xgba=uniform|0,0.4')
     parser.add_argument(
         '--xgbb', dest='xgbb', required=False, default=None,
-        help='xgb_lambda shown in HyperOpt domain format, e.g. --xgbb=uniform|0,0.4')
+        help='xgb_lambda shown in Optuna domain format, e.g. --xgbb=uniform|0,0.4')
     parser.add_argument(
         '--xgbl', dest='xgbl', required=False, default=None,
-        help='xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
+        help='xgb_learning_rate shown in Optuna domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
     parser.add_argument(
         '--xgbd', dest='xgbd', required=False, default=None,
-        help='xgb_max_depth shown in HyperOpt domain format, e.g. --xgbd=uniformint|3,10')
+        help='xgb_max_depth shown in Optuna domain format, e.g. --xgbd=uniformint|3,10')
     parser.add_argument(
         '--xgbc', dest='xgbc', required=False, default=None,
-        help='xgb_colsample_bytree shown in HyperOpt domain format, e.g. --xgbc=uniform|0.1,1.0')
+        help='xgb_colsample_bytree shown in Optuna domain format, e.g. --xgbc=uniform|0.1,1.0')
     parser.add_argument(
         '--xgbs', dest='xgbs', required=False, default=None,
-        help='xgb_subsample shown in HyperOpt domain format, e.g. --xgbs=uniform|0.1,1.0')
+        help='xgb_subsample shown in Optuna domain format, e.g. --xgbs=uniform|0.1,1.0')
     parser.add_argument(
         '--xgbn', dest='xgbn', required=False, default=None,
-        help='xgb_n_estimators shown in HyperOpt domain format, e.g. --xgbn=choice|200,500,1000')
+        help='xgb_n_estimators shown in Optuna domain format, e.g. --xgbn=choice|200,500,1000')
     parser.add_argument(
         '--xgbw', dest='xgbw', required=False, default=None,
-        help='xgb_min_child_weight shown in HyperOpt domain format, e.g. --xgbw=uniform|1.0,1.2')
+        help='xgb_min_child_weight shown in Optuna domain format, e.g. --xgbw=uniform|1.0,1.2')
     # checkpoint
     parser.add_argument(
         '--hp_checkpoint_save', dest='hp_checkpoint_save', required=False, default=None,
@@ -1685,6 +1730,11 @@ def postprocess_args(parsed_args):
             parsed_args.model_choice_score_type = 'roc_auc'
         else:
             parsed_args.model_choice_score_type = 'r2'
+
+    if parsed_args.max_invalid_pred_frac is None:
+        parsed_args.max_invalid_pred_frac = 0.01
+    if parsed_args.max_invalid_pred_frac < 0.0 or parsed_args.max_invalid_pred_frac > 1.0:
+        raise Exception("max_invalid_pred_frac must be between 0.0 and 1.0.")
 
     # Convert arguments passed as comma-separated values into lists
     if parsed_args.hyperparam:
@@ -1788,7 +1838,7 @@ def postprocess_args(parsed_args):
 #***********************************************************************************************************
 def validate_sampling_strategy_argument(value):
     """Validates sampling_strategy parameter for SMOTE and undersampling.
-    Validates that the input value is either a float in the range (0.0, 1.0] or a string among 
+    Validates that the input value is either a float in the range (0.0, 1.0] or a string among
     {'auto', 'not majority', 'minority', 'all', 'not minority'}. Raises a ValueError if the validation fails.
 
     Args:
@@ -1798,7 +1848,7 @@ def validate_sampling_strategy_argument(value):
         ValueError: If the value is not a float in the range (0.0, 1.0] or a valid string.
     """
     valid_strings = {"auto", "not majority", "minority", "all", "not minority"}
-    
+
     try:
         float_value = float(value)
         if float_value <= 0.0 or float_value > 1.0:

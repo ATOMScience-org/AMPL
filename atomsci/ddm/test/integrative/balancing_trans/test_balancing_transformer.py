@@ -1,11 +1,21 @@
 import tempfile
+import pytest
+import re
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.transformations as trans
+import atomsci.ddm.pipeline.featurization as feat
+import atomsci.ddm.pipeline.compare_models as cm
+import atomsci.ddm.utils.model_file_reader as mfr
 import numpy as np
 import os
 import json
+
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import RobustScaler, PowerTransformer
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.pipeline import Pipeline
 
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -361,9 +371,99 @@ def test_kfold_regression_transformers():
     # transformer means should be around expected_mean
     np.testing.assert_array_almost_equal(transformer.y_means, expected_y_means)
 
+def test_sklearn_pipelines():
+    """
+    Test the balancing transformer to ensure that it correctly adjusts weights for imbalanced datasets.
+    """
+    dset_key = make_relative_to_file('../../test_datasets/MRP3_dataset.csv')
+    res_dir = tempfile.mkdtemp()
+
+    robustscaler_params = read_params(
+        make_relative_to_file('jsons/RobustScaler_transformer.json'),
+        dset_key,
+        res_dir
+    )
+
+    robustscaler_pipe = make_pipeline(robustscaler_params)
+    transformers_x = robustscaler_pipe.model_wrapper.transformers_x
+    assert len(transformers_x[0])==1
+    assert isinstance(transformers_x[0][0], trans.SklearnPipelineWrapper)
+    assert isinstance(transformers_x[0][0].sklearn_pipeline, Pipeline)
+    scaler = transformers_x[0][0].sklearn_pipeline.named_steps['RobustScaler']
+    assert isinstance(scaler, RobustScaler)
+    imputer = transformers_x[0][0].sklearn_pipeline.named_steps['SimpleImputer']
+    assert isinstance(imputer, SimpleImputer)
+    assert imputer.strategy == 'median'
+    thresholder = transformers_x[0][0].sklearn_pipeline.named_steps['VarianceThreshold']
+    assert isinstance(thresholder, VarianceThreshold)
+
+    tar_path = cm.get_filesystem_perf_results(res_dir)['model_path'].values[0]
+    reader = mfr.ModelFileReader(tar_path)
+
+    assert reader.get_robustscaler_with_centering()
+    assert reader.get_robustscaler_with_scaling()
+    assert reader.get_robustscaler_quartile_range() == [30.0, 80.0]
+    assert reader.get_robustscaler_unit_variance()
+    assert reader.get_imputer_strategy() == 'median'
+
+    res_dir = tempfile.mkdtemp()
+    powertransformer_params = read_params(
+        make_relative_to_file('jsons/PowerTransformer_transformer.json'),
+        dset_key,
+        res_dir
+    )
+
+    powertransformer_pipe = make_pipeline(powertransformer_params)
+    transformers_x = powertransformer_pipe.model_wrapper.transformers_x
+    assert len(transformers_x[0])==1
+    assert isinstance(transformers_x[0][0], trans.SklearnPipelineWrapper)
+    assert isinstance(transformers_x[0][0].sklearn_pipeline, Pipeline)
+    scaler = transformers_x[0][0].sklearn_pipeline.named_steps['PowerTransformer']
+    assert isinstance(scaler, PowerTransformer)
+
+    tar_path = cm.get_filesystem_perf_results(res_dir)['model_path'].values[0]
+    reader = mfr.ModelFileReader(tar_path)
+
+    assert reader.get_powertransformer_method() == 'yeo-johnson'
+    assert reader.get_powertransformer_standardize()
+
+    res_dir = tempfile.mkdtemp()
+    identity_params = read_params(
+        make_relative_to_file('jsons/Identity_transformer.json'),
+        dset_key,
+        res_dir
+    )
+
+    # borrow the pipeline from PowerTransforer to test
+    # the Identity transformer since MRP3 contains nans in the dataset
+    # So it cannot train. Since it cannot train it will never make a model_wrapper
+    # which is what makes the feature transformers.
+    identity_pparams = parse.wrapper(identity_params)
+    transformers_x = powertransformer_pipe.model_wrapper.featurization.create_feature_transformer(
+        dataset=None,
+        params=identity_pparams
+    )
+    assert len(transformers_x)==0
+
+    res_dir = tempfile.mkdtemp()
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "feature_transform_type must be normalization, RobustScaler, "
+            "PowerTransformer, or Identity. Got NOTREALTRANSFORMER",
+        ),
+    ):
+        # Test that an unrecognized transformer raises the correct error
+        identity_pparams.feature_transform_type = 'NOTREALTRANSFORMER'
+        transformers_x = powertransformer_pipe.model_wrapper.featurization.create_feature_transformer(
+            dataset=None,
+            params=identity_pparams
+        )
+
 
 if __name__ == '__main__':
-    test_kfold_regression_transformers()
-    test_kfold_transformers()
-    test_all_transformers()
+    #test_sklearn_pipelines()
+    #test_kfold_regression_transformers()
+    #test_kfold_transformers()
+    #test_all_transformers()
     test_balancing_transformer()

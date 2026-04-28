@@ -36,6 +36,14 @@ utils.datastore\_functions module
    :undoc-members:
    :show-inheritance:
 
+utils.generate\_transformers module
+-----------------------------------
+
+.. automodule:: utils.generate_transformers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 utils.hyperparam\_search\_wrapper module
 ----------------------------------------
 

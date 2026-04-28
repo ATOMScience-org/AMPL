@@ -50,7 +50,19 @@ git fetch upstream
 git rebase upstream/master
 ```
 
-2. Set up a new environment for AMPL by following these [instructions](https://github.com/ATOMScience-org/AMPL#install).
+2. Set up a new environment for AMPL by following these [instructions](https://github.com/ATOMScience-org/AMPL#installation).
+
+This project uses [`uv`](https://docs.astral.sh/uv/) (a fast Python package and project manager) together with `pyproject.toml` and `uv.lock` for dependency management.
+
+### Prerequisites
+- Install **uv** (recommended way):
+  ```bash
+  # On macOS / Linux
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+
+  # On Windows (PowerShell)
+  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+  ```
 
 Keep in mind, every contribution must pass the unit tests.
 

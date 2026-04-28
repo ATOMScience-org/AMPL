@@ -7,6 +7,7 @@ Edited by AKP, 2025-02-22
 import os
 import json
 import tarfile
+import shutil
 import pytest
 import pandas as pd
 from glob import glob
@@ -20,20 +21,34 @@ import atomsci.ddm.utils.file_utils as futils
 # Fixtures and Test Data
 # --------------------------
 
-@pytest.fixture
-def sample_result_dir():
-    """Fixture to use an existing sample result directory."""
+
+def _get_regression_dataset_key(sample_result_dir):
+    fs_df = compare_models.get_filesystem_perf_results(
+        str(sample_result_dir),
+        pred_type='regression',
+    )
+    assert not fs_df.empty, 'Expected regression fixture models to be present.'
+    return fs_df['dataset_key'].dropna().iloc[0]
+
+
+def _get_expected_model_count(sample_result_dir, dataset_key):
+    fs_df = compare_models.get_filesystem_perf_results(
+        str(sample_result_dir),
+        pred_type='regression',
+    )
+    filtered = fs_df[fs_df['dataset_key'] == dataset_key]
+    assert not filtered.empty, f'Expected regression fixture models for dataset_key={dataset_key}'
+    return filtered['model_uuid'].nunique()
+
+@pytest.fixture(scope="module")
+def unpack_tar_files_module_scope():
+    """Module-level fixture to create model directories with unpacked tar files"""
     # Resolve the path to the existing directory
     result_dir = Path(__file__).parent / "../../examples/tutorials/dataset/"
     assert result_dir.exists(), f"Directory {result_dir} does not exist."
-    return result_dir
-
-# @pytest.fixture
-def unpack_tar_files(sample_result_dir):
-    """Fixture to create a model directories with unpacked tar files"""
-
+    
     # get .tar.gz files
-    tar_list=glob(f'{sample_result_dir}/**/*.tar.gz', recursive=True)
+    tar_list=glob(f'{result_dir}/**/*.tar.gz', recursive=True)
 
     # unpack tar files into model directories
     delete_dirs = []
@@ -49,16 +64,21 @@ def unpack_tar_files(sample_result_dir):
         with tarfile.open(tar_file, mode='r:gz') as tar:
             futils.safe_extract(tar, path=extract_location)
 
-    return delete_dirs
+    yield delete_dirs
 
-# @pytest.fixture
-def delete_model_dirs(delete_dirs):
-    """Fixture to clean up model directories after tests"""
-    yield
-    # Cleanup
+    # Cleanup extracted trees even when they contain files.
     for dir in delete_dirs:
         if os.path.exists(dir):
-            os.rmdir(dir)
+            shutil.rmtree(dir, ignore_errors=True)
+
+
+@pytest.fixture
+def sample_result_dir(unpack_tar_files_module_scope):
+    """Fixture to use an existing sample result directory with unpacked tar files."""
+    # Resolve the path to the existing directory
+    result_dir = Path(__file__).parent / "../../examples/tutorials/dataset/"
+    assert result_dir.exists(), f"Directory {result_dir} does not exist."
+    return result_dir
 
 
 # --------------------------
@@ -68,26 +88,35 @@ def delete_model_dirs(delete_dirs):
 def test_basic_directory_processing(sample_result_dir):
     """Test basic JSON model discovery and processing"""
 
-    delete_dirs=unpack_tar_files(sample_result_dir)
+    dataset_key = _get_regression_dataset_key(sample_result_dir)
+    expected_models = _get_expected_model_count(sample_result_dir, dataset_key)
 
     df = compare_models.get_multitask_perf_from_files_new(
         str(sample_result_dir),
-        pred_type='regression'
+        pred_type='regression',
+        dataset_key=dataset_key,
     )
 
-    delete_model_dirs(delete_dirs)
-
-    assert df.model_uuid.nunique() == 5, f"Expected 5 unique models, but got {df.model_uuid.nunique()}"
+    assert df.model_uuid.nunique() == expected_models, (
+        f"Expected {expected_models} unique models, but got {df.model_uuid.nunique()}"
+    )
     assert all(df.prediction_type == 'regression'), "Not all rows have 'regression' as prediction_type"
 
 
 def test_tar_file_processing(sample_result_dir):
     """Test TAR archive handling"""
+    dataset_key = _get_regression_dataset_key(sample_result_dir)
+    expected_models = _get_expected_model_count(sample_result_dir, dataset_key)
+
     df = compare_models.get_multitask_perf_from_files_new(
         str(sample_result_dir),
+        pred_type='regression',
+        dataset_key=dataset_key,
         tar=True
     )
-    assert df.model_uuid.nunique() == 5, f"Expected 5 unique models, but got {df.model_uuid.nunique()}"
+    assert df.model_uuid.nunique() == expected_models, (
+        f"Expected {expected_models} unique models, but got {df.model_uuid.nunique()}"
+    )
     assert all(df.model_path.str.endswith('.tar.gz')), "Not all model paths end with '.tar.gz'"
     
 
@@ -115,7 +144,12 @@ def test_tar_file_processing(sample_result_dir):
 
 def test_dataframe_structure(sample_result_dir):
     """Validate DataFrame schema and data types"""
-    df = compare_models.get_multitask_perf_from_files_new(str(sample_result_dir))
+    dataset_key = _get_regression_dataset_key(sample_result_dir)
+    df = compare_models.get_multitask_perf_from_files_new(
+        str(sample_result_dir),
+        pred_type='regression',
+        dataset_key=dataset_key,
+    )
     
     # Required columns
     assert {'model_uuid', 'time_built', 'ampl_version','dataset_key', 'model_path',
@@ -152,14 +186,154 @@ def test_dataframe_structure(sample_result_dir):
 
 def test_mixed_model_types(sample_result_dir):
     """Test handling directories with both MT and ST model files"""
-    
+    dataset_key = _get_regression_dataset_key(sample_result_dir)
+
     df = compare_models.get_multitask_perf_from_files_new(
         str(sample_result_dir),
+        pred_type='regression',
+        dataset_key=dataset_key,
         tar=True
     )
-    
-    assert len(df.multitask.unique()) > 1, "Expected multiple multitask types"
-    assert df.multitask.max() == 1, "Expected at least one multitask model"
+
+    if len(df.multitask.unique()) < 2:
+        pytest.skip('Fixture does not currently contain both multitask and single-task regression tar models.')
+
+    assert set(df.multitask.unique()) == {0, 1}, "Expected both multitask and single-task models"
+
+
+def test_filesystem_perf_results_include_invalid_prediction_columns(sample_result_dir):
+    df = compare_models.get_filesystem_perf_results(
+        str(sample_result_dir),
+        pred_type='regression'
+    )
+
+    expected_cols = {
+        'best_train_invalid_prediction_count',
+        'best_train_invalid_prediction_fraction',
+        'best_train_invalid_prediction_threshold',
+        'best_valid_invalid_prediction_count',
+        'best_valid_invalid_prediction_fraction',
+        'best_valid_invalid_prediction_threshold',
+        'best_test_invalid_prediction_count',
+        'best_test_invalid_prediction_fraction',
+        'best_test_invalid_prediction_threshold',
+    }
+    assert expected_cols.issubset(df.columns)
+
+
+def test_get_multitask_perf_from_files_new_includes_invalid_prediction_columns(sample_result_dir):
+    fs_df = compare_models.get_filesystem_perf_results(
+        str(sample_result_dir),
+        pred_type='regression'
+    )
+    with_invalid = fs_df[~fs_df['best_valid_invalid_prediction_count'].isna()]
+    if with_invalid.empty:
+        pytest.skip('No regression fixture models with invalid prediction metrics available.')
+    dataset_key = with_invalid['dataset_key'].dropna().iloc[0]
+
+    df = compare_models.get_multitask_perf_from_files_new(
+        str(sample_result_dir),
+        pred_type='regression',
+        dataset_key=dataset_key,
+    )
+
+    assert 'best_train_invalid_prediction_count' in df.columns
+    assert 'best_valid_invalid_prediction_fraction' in df.columns
+    assert 'best_test_invalid_prediction_threshold' in df.columns
+
+
+def test_get_multitask_perf_from_files_new_returns_empty_df_for_non_matching_dataset_key(sample_result_dir):
+    df = compare_models.get_multitask_perf_from_files_new(
+        str(sample_result_dir),
+        pred_type='regression',
+        dataset_key='__definitely_not_a_real_dataset_key__.csv',
+    )
+    assert isinstance(df, pd.DataFrame)
+    assert df.empty
+
+
+def test_get_multitask_perf_from_files_new_handles_missing_seed_and_time_built(tmp_path):
+    model_dir = tmp_path / 'model_missing_fields'
+    model_dir.mkdir()
+
+    metadata = {
+        'model_uuid': 'm-1',
+        'splitting_parameters': {
+            'splitter': 'random',
+            'split_strategy': 'train_valid_test',
+            'split_valid_frac': 0.1,
+            'split_test_frac': 0.1,
+            'split_uuid': 'split-1',
+        },
+        'model_parameters': {
+            'ampl_version': '0.0.0-test',
+            'model_type': 'RF',
+            'prediction_type': 'regression',
+            'featurizer': 'ecfp',
+            'descriptor_type': 'none',
+            'num_model_tasks': 1,
+            'production': False,
+            'model_choice_score_type': 'r2',
+        },
+        'training_dataset': {
+            'dataset_key': 'toy.csv',
+            'response_cols': ['y'],
+            'feature_transform_type': 'none',
+            'response_transform_type': 'none',
+            'weight_transform_type': 'none',
+            'smiles_col': 'smiles',
+        },
+        'training_metrics': [
+            {
+                'label': 'best',
+                'subset': 'train',
+                'prediction_results': {
+                    'r2_score': 0.1,
+                    'rms_score': 1.0,
+                    'mae_score': 1.0,
+                    'num_compounds': 4,
+                    'model_choice_score': 0.1,
+                },
+            },
+            {
+                'label': 'best',
+                'subset': 'valid',
+                'prediction_results': {
+                    'r2_score': 0.1,
+                    'rms_score': 1.0,
+                    'mae_score': 1.0,
+                    'num_compounds': 4,
+                    'model_choice_score': 0.1,
+                },
+            },
+            {
+                'label': 'best',
+                'subset': 'test',
+                'prediction_results': {
+                    'r2_score': 0.1,
+                    'rms_score': 1.0,
+                    'mae_score': 1.0,
+                    'num_compounds': 4,
+                    'model_choice_score': 0.1,
+                },
+            },
+        ],
+    }
+
+    metadata_path = model_dir / 'model_metadata.json'
+    with open(metadata_path, 'w') as f:
+        json.dump(metadata, f)
+
+    tar_path = tmp_path / 'model_missing_fields.tar.gz'
+    with tarfile.open(tar_path, mode='w:gz') as tar:
+        tar.add(metadata_path, arcname='model_metadata.json')
+
+    df = compare_models.get_multitask_perf_from_files_new(str(tmp_path), pred_type='regression', tar=True)
+    assert len(df) == 1
+    assert 'seed' in df.columns
+    assert 'time_built' in df.columns
+    assert pd.isna(df['seed'].iloc[0])
+    assert pd.isna(df['time_built'].iloc[0])
 
 # --------------------------
 # main

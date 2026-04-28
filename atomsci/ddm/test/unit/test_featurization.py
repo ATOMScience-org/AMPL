@@ -1,9 +1,12 @@
 from argparse import Namespace
 import pytest
+import numpy as np
 import atomsci.ddm.pipeline.featurization as feat
 import deepchem as dc
 from atomsci.ddm.pipeline import model_datasets as md
-
+import pandas as pd
+import unittest.mock as mock
+import atomsci.ddm.pipeline.parameter_parser as param_parser
 try:
     from mol_vae_features import MoleculeVAEFeaturizer
     mol_vae_supported = True
@@ -203,5 +206,153 @@ def test_copy_featurizer_params():
     assert hasattr(result, "featurizer")
     assert hasattr(result, "mordred_cpus")
 
+#***********************************************************************************
+@pytest.mark.moe_required
+def test_compute_moe():
+    """Test the compute_all_moe_descriptors function to ensure it correctly generates moe features."""
+    smiles_df = pd.DataFrame({
+        'smiles': ['C(#Cc1c2c(nc3ccccc13)CCCCC2)CCN1CCCCC1', 
+                   'C(#Cc1cccc(CN2CCOCC2)c1)CCN1CCCCC1', 
+                   'C(=C/c1ccccc1)\CN1CCN(C(c2ccccc2)c2ccccc2)CC1'],
+        'compound_id': ['CHEMBL66660', 
+                        'CHEMBL237087', 
+                        'CHEMBL43064'],
+    })
+
+    params = Namespace(
+        smiles_col='smiles',
+        id_col='compound_id',
+        moe_threads=1,
+    )
+
+    moe_df = feat.compute_all_moe_descriptors(
+        smiles_df=smiles_df,
+        params=params)
+
+    assert moe_df is not None
+
+def test_compute_all_mordred_descrs_returns_none_on_valueerror(caplog, monkeypatch):
+    # Fake "res_df" returned by calc.pandas(...)
+    fake_df = mock.MagicMock()
+    fake_df.fill_missing.side_effect = ValueError("boom")
+
+    # Fake calculator
+    fake_calc = mock.MagicMock()
+    fake_calc.pandas.return_value = fake_df
+
+    # Patch the calculator factory used inside the function
+    monkeypatch.setattr(feat, "get_mordred_calculator", lambda ignore_3D: fake_calc)
+
+    with caplog.at_level("ERROR"):
+        out = feat.compute_all_mordred_descrs(mols=[object()])
+
+    assert out is None
+    assert "Mordred descriptor calculation failed in MordredDataFrame.fill_missing" in caplog.text
+
+def test_not_implemented():
+    params = param_parser.wrapper({"dataset_key": "fake.csv"})
+    f = feat.Featurization(params)
+    with pytest.raises(NotImplementedError):
+        f.get_feature_count()
+
+    fp = feat.PersistentFeaturization(params)
+    with pytest.raises(NotImplementedError):
+        fp.featurize_data(
+            dset_df=None,
+            params=None,
+            contains_responses=False
+        )
+
+
+def test_scale_by_heavyatomcount_uses_specified_heavy_atom_col(monkeypatch):
+    params = param_parser.wrapper({
+        "dataset_key": "fake.csv", 
+        "featurizer": "compouted_descriptors",
+        "descriptor_type": "rdkit_raw",})
+    obj = feat.ComputedDescriptorFeaturization(params)
+
+    # Force a small, known descriptor set for the test
+    monkeypatch.setattr(
+        obj.__class__,
+        "desc_type_cols",
+        {"demo": ["MolWt_per_heavyatom", "B_log_scaled", "C"]},
+        raising=False,
+    )
+
+    df = pd.DataFrame(
+        {
+            "id": [1, 2],
+            "HA": [10, 5],               # specified heavy atom column
+            "MolWt": [100.0, 50.0],      # unscaled input for _per_heavyatom
+            "B": [1.0, np.e],            # unscaled input for _log_scaled
+            "C": [7.0, 9.0],             # pass-through
+        }
+    )
+
+    out = obj.scale_by_heavyatomcount_and_log_scale(df, descr_type="demo", heavy_atom_col="HA")
+
+    # Columns exist (do not assert full column order, nondesc_cols order is set-derived)
+    assert {"id", "HA", "MolWt_per_heavyatom", "B_log_scaled", "C"}.issubset(out.columns)
+
+    # Values are correct
+    assert np.allclose(out["MolWt_per_heavyatom"].to_numpy(), np.array([10.0, 10.0]))
+    assert np.allclose(out["B_log_scaled"].to_numpy(), np.array([0.0, 1.0]))
+    assert np.allclose(out["C"].to_numpy(), df["C"].to_numpy())
+    assert np.allclose(out["HA"].to_numpy(), df["HA"].to_numpy())
+    assert np.allclose(out["id"].to_numpy(), df["id"].to_numpy())
+
+
+def test_scale_by_heavyatomcount_raises_runtimeerror_when_cannot_infer_heavy_atom_col(monkeypatch):
+    params = param_parser.wrapper({
+        "dataset_key": "fake.csv", 
+        "featurizer": "compouted_descriptors",
+        "descriptor_type": "rdkit_raw",})
+    obj = feat.ComputedDescriptorFeaturization(params)
+
+    # No "HeavyAtomCount" or "nHeavyAtom" in descr_cols, and we do not pass heavy_atom_col
+    monkeypatch.setattr(
+        obj.__class__,
+        "desc_type_cols",
+        {"demo": ["MolWt_per_heavyatom"]},
+        raising=False,
+    )
+
+    df = pd.DataFrame({"MolWt": [100.0]})
+
+    with pytest.raises(RuntimeError, match=r"Could not infer heavy atom column"):
+        obj.scale_by_heavyatomcount_and_log_scale(df, descr_type="demo")
+
+def test_scale_by_heavyatomcount_and_log_scale_raises_on_negative_log_feature(monkeypatch):
+    params = param_parser.wrapper({
+        "dataset_key": "fake.csv", 
+        "featurizer": "compouted_descriptors",
+        "descriptor_type": "rdkit_raw",})
+    obj = feat.ComputedDescriptorFeaturization(params)
+
+    # No "HeavyAtomCount" or "nHeavyAtom" in descr_cols, and we do not pass heavy_atom_col
+    monkeypatch.setattr(
+        obj.__class__,
+        "desc_type_cols",
+        {"test_type": ["SomeFeature_log_scaled", "HeavyAtomCount"]},
+        raising=False,
+    )
+
+    # Build a DataFrame where:
+    #   - HeavyAtomCount is present so the function can infer heavy atom counts
+    #   - SomeFeature has a negative value, and desc_type_cols includes SomeFeature_log_scaled
+    df = pd.DataFrame({
+        "HeavyAtomCount": [10, 12],
+        "SomeFeature": [-1.0, 2.0]  # negative value triggers ValueError in log scaling
+    })
+
+    with pytest.raises(ValueError) as excinfo:
+        obj.scale_by_heavyatomcount_and_log_scale(
+            desc_df=df,
+            descr_type="test_type"  # uses desc_type_cols defined above
+        )
+
+    # Optionally check the error message
+    assert "Cannot log scale SomeFeature" in str(excinfo.value)
+
 if __name__ == '__main__':
-    test_get_mordred_calculator()
+    test_compute_moe()

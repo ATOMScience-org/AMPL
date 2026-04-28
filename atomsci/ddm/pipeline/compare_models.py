@@ -691,202 +691,6 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
                 top_models_df.to_csv(os.path.join(output_dir, 'best_models_metadata_%s.csv' % shortened_key), index=False)
     return top_models_df
 
-
-# TODO: This function looks like work in progress, should we delete it?
-'''
-#---------------------------------------------------------------------------------------------------------
-def _get_best_grouped_models_info(collection='pilot_fixed', pred_type='regression', top_n=1, subset='test'):
-    """Get results for models in the given collection."""
-
-    if not mlmt_supported:
-        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
-        return
-
-    res_dir = '/usr/local/data/%s_perf' % collection
-    plt_dir = '%s/Plots' % res_dir
-    os.makedirs(plt_dir, exist_ok=True)
-    res_files = os.listdir(res_dir)
-    suffix = '_%s_model_perf_metrics.csv' % collection
-
-    if pred_type == 'regression':
-        metric_type = 'r2_score'
-    else:
-        metric_type = 'roc_auc_score'
-    for res_file in res_files:
-        try:
-            if not res_file.endswith(suffix):
-                continue
-            res_path = os.path.join(res_dir, res_file)
-
-            res_df = pd.read_csv(res_path, index_col=False)
-            res_df['combo'] = ['%s/%s' % (m,f) for m, f in zip(res_df.model_type.values, res_df.featurizer.values)]
-            dset_name = res_file.replace(suffix, '')
-            datasets.append(dset_name)
-            res_df['dataset'] = dset_name
-            print(dset_name)
-            res_df = res_df.sort_values('{0}_{1}'.format(metric_type, subset), ascending=False)
-            res_df['model_type/feat'] = ['%s/%s' % (m,f) for m, f in zip(res_df.model_type.values, res_df.featurizer.values)]
-            res_df = res_df.sort_values('{0}_{1}'.format(metric_type, subset), ascending=False)
-            grouped_df = res_df.groupby('model_type/feat').apply(
-                lambda t: t.head(top_n)
-            ).reset_index(drop=True)
-            top_grouped_models.append(grouped_df)
-            top_combo = res_df['model_type/feat'].values[0]
-            top_combo_dsets.append(top_combo + dset_name.lstrip('ATOM_GSK_dskey'))
-            top_score = res_df['{0}_{1}'.format(metric_type, subset)].values[0]
-            top_model_feat.append(top_combo)
-            top_scores.append(top_score)
-            num_samples.append(res_df['Dataset Size'][0])
-
-#------------------------------------------------------------------------------------------------------------------
-def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type='regression'):
-    """Load performance metrics from model tracker for all NN models with the given prediction_type saved in
-    the model tracker DB under a given collection that were trained against a particular dataset. Show
-    parameter settings for UMAP transformer for models where they are available.
-
-    Args:
-        dataset_key (str): Dataset key for training dataset.
-
-        bucket (str): Dataset bucket for training dataset.
-
-        collection_name (str): Name of model tracker collection to search for models.
-
-        pred_type (str): Prediction type ('classification' or 'regression') of models to query.
-
-    Returns:
-        pd.DataFrame: Table of model performance metrics.
-
-    """
-    if not mlmt_supported:
-        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
-        return None
-
-    query_params = {
-        "match_metadata": {
-            "training_dataset.bucket": bucket,
-            "training_dataset.dataset_key": dataset_key,
-            "model_parameters.model_type" : "NN",
-            "model_parameters.prediction_type" : pred_type
-        },
-
-        "match_metrics": {
-            "metrics_type": "training",  # match only training metrics
-            "label": "best",
-        },
-    }
-    query_params['match_metadata'].update(other_filters)
-
-    print("Finding models trained on %s dataset %s" % (bucket, dataset_key))
-    mlmt_client = dsf.initialize_model_tracker()
-    metadata_list = mlmt_client.model.query_model_metadata(
-        collection_name=collection_name,
-        query_params=query_params,
-    ).result()
-    if metadata_list == []:
-        print("No matching models returned")
-        return
-    else:
-        print("Found %d matching models" % len(metadata_list))
-
-    model_uuid_list = []
-    learning_rate_list = []
-    dropouts_list = []
-    layer_sizes_list = []
-    featurizer_list = []
-    best_epoch_list = []
-    max_epochs_list = []
-
-    feature_transform_type_list = []
-    umap_dim_list = []
-    umap_targ_wt_list = []
-    umap_neighbors_list = []
-    umap_min_dist_list = []
-
-    subsets = ['train', 'valid', 'test']
-
-    if pred_type == 'regression':
-        sort_metric = 'r2_score'
-        metrics = ['r2_score', 'rms_score', 'mae_score']
-    else:
-        sort_metric = 'roc_auc_score'
-        metrics = ['roc_auc_score', 'prc_auc_score', 'matthews_cc', 'kappa', 'confusion_matrix']
-    score_dict = {}
-    for subset in subsets:
-        score_dict[subset] = {}
-        for metric in metrics:
-            score_dict[subset][metric] = []
-
-    for metadata_dict in metadata_list:
-        model_uuid = metadata_dict['model_uuid']
-        #print("Got metadata for model UUID %s" % model_uuid)
-
-        # Get model metrics for this model
-        metrics_dicts = metadata_dict['training_metrics']
-        #print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
-        if len(metrics_dicts) < 3:
-            print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
-            continue
-        if len(metrics_dicts) > 3:
-            raise Exception('Got more than one set of best epoch metrics for model %s' % model_uuid)
-        subset_metrics = {}
-        for metrics_dict in metrics_dicts:
-            subset = metrics_dict['subset']
-            subset_metrics[subset] = metrics_dict['prediction_results']
-
-        model_uuid_list.append(model_uuid)
-        model_params = metadata_dict['model_parameters']
-        model_type = model_params['model_type']
-        if model_type != 'NN':
-            continue
-        featurizer = model_params['featurizer']
-        featurizer_list.append(featurizer)
-        feature_transform_type = metadata_dict['training_dataset']['feature_transform_type']
-        feature_transform_type_list.append(feature_transform_type)
-        nn_params = metadata_dict['nn_specific']
-        max_epochs_list.append(nn_params['max_epochs'])
-        best_epoch_list.append(nn_params['best_epoch'])
-        learning_rate_list.append(nn_params['learning_rate'])
-        layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
-        dropouts_list.append(','.join(['%.2f' % d for d in nn_params['dropouts']]))
-        for subset in subsets:
-            for metric in metrics:
-                score_dict[subset][metric].append(subset_metrics[subset][metric])
-        if 'umap_specific' in metadata_dict:
-            umap_params = metadata_dict['umap_specific']
-            umap_dim_list.append(umap_params['umap_dim'])
-            umap_targ_wt_list.append(umap_params['umap_targ_wt'])
-            umap_neighbors_list.append(umap_params['umap_neighbors'])
-            umap_min_dist_list.append(umap_params['umap_min_dist'])
-        else:
-            umap_dim_list.append(nan)
-            umap_targ_wt_list.append(nan)
-            umap_neighbors_list.append(nan)
-            umap_min_dist_list.append(nan)
-
-
-    perf_df = pd.DataFrame(dict(
-                    model_uuid=model_uuid_list,
-                    learning_rate=learning_rate_list,
-                    dropouts=dropouts_list,
-                    layer_sizes=layer_sizes_list,
-                    featurizer=featurizer_list,
-                    best_epoch=best_epoch_list,
-                    max_epochs=max_epochs_list,
-                    feature_transform_type=feature_transform_type_list,
-                    umap_dim=umap_dim_list,
-                    umap_targ_wt=umap_targ_wt_list,
-                    umap_neighbors=umap_neighbors_list,
-                    umap_min_dist=umap_min_dist_list ))
-    for subset in subsets:
-        for metric in metrics:
-            metric_col = '%s_%s' % (metric, subset)
-            perf_df[metric_col] = score_dict[subset][metric]
-    sort_by = '%s_valid' % sort_metric
-
-    perf_df = perf_df.sort_values(sort_by, ascending=False)
-    return perf_df
-'''
-
 #------------------------------------------------------------------------------------------------------------------
 def get_tarball_perf_table(model_tarball, pred_type='classification'):
     """Retrieve model metadata and performance metrics for a model saved as a tarball (.tar.gz) file.
@@ -966,10 +770,16 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
     subsets = ['train', 'valid', 'test']
 
     if pred_type == 'regression':
-        metrics = ['r2_score', 'rms_score', 'mae_score', 'num_compounds']
+        metrics = [
+            'r2_score', 'rms_score', 'mae_score', 'num_compounds',
+            'invalid_prediction_count', 'invalid_prediction_fraction', 'invalid_prediction_threshold'
+        ]
     else:
-        metrics = ['roc_auc_score', 'prc_auc_score', 'precision', 'recall_score', 'num_compounds',
-                   'accuracy_score', 'bal_accuracy', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix']
+        metrics = [
+            'roc_auc_score', 'prc_auc_score', 'precision', 'recall_score', 'num_compounds',
+            'accuracy_score', 'bal_accuracy', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix',
+            'invalid_prediction_count', 'invalid_prediction_fraction', 'invalid_prediction_threshold'
+        ]
     score_dict = {}
     for subset in subsets:
         score_dict[subset] = {}
@@ -1864,9 +1674,22 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
                     model_list.append(meta)
 
     print(f'Found data for {len(model_list)} {pred_type} models under {result_dir}')
+    if len(model_list) == 0:
+        logger.warning(
+            "No %s models found under %s for dataset_key=%s",
+            pred_type,
+            result_dir,
+            dataset_key,
+        )
+        return pd.DataFrame()
     
     # unpack metadata dicts
     metadata=pd.DataFrame(model_list)
+
+    # Ensure optional columns are present for backward compatibility with older metadata.
+    for req_col in ['model_uuid', 'time_built', 'model_path', 'training_metrics', 'seed']:
+        if req_col not in metadata.columns:
+            metadata[req_col] = np.nan
     
     # establish initial unpacked models df
     dropcols=['model_uuid','time_built','model_path','training_metrics','seed']
@@ -1876,13 +1699,13 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     dict_cols=['model_uuid','splitting_parameters']
     dict_cols.extend([x for x in metadata.columns if 'specific' in x and (x!='descriptor_specific')])
     dropcols.extend([x for x in metadata.columns if ('specific' in x) and (x!='descriptor_specific')])
-    keep_dicts=metadata[dict_cols]       
+    keep_dicts=metadata[[c for c in dict_cols if c in metadata.columns]]       
     
     # extract training data
     training_metrics=metadata[['model_uuid','training_metrics']]
     
     # drop info from metadata
-    metadata=metadata.drop(columns=dropcols)
+    metadata=metadata.drop(columns=dropcols, errors='ignore')
     
     # unpack and re-merge simple dicts into models df
     for col in metadata.columns:
@@ -1925,8 +1748,32 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
 
             # get task scores - long form and rename columns
             taskcols=['response_cols']
-            taskcols.extend([x for x in pred.columns if 'task' in x])    
-            task_preds=pred[['model_uuid']+taskcols].set_index('model_uuid').explode(taskcols).reset_index()
+            taskcols.extend([x for x in pred.columns if 'task' in x])
+
+            task_preds = pred[['model_uuid'] + taskcols].copy()
+
+            def _num_tasks_for_row(resp_cols):
+                if isinstance(resp_cols, list):
+                    return len(resp_cols)
+                return 1
+
+            def _normalize_task_col_value(value, n_tasks):
+                if isinstance(value, list):
+                    if len(value) == n_tasks:
+                        return value
+                    if len(value) == 1 and n_tasks > 1:
+                        return value * n_tasks
+                    return value[:n_tasks] + [np.nan] * max(0, n_tasks - len(value))
+                if pd.isna(value):
+                    return [np.nan] * n_tasks
+                return [value] * n_tasks
+
+            for ridx in task_preds.index:
+                n_tasks = _num_tasks_for_row(task_preds.at[ridx, 'response_cols'])
+                for tcol in [c for c in taskcols if c != 'response_cols']:
+                    task_preds.at[ridx, tcol] = _normalize_task_col_value(task_preds.at[ridx, tcol], n_tasks)
+
+            task_preds = task_preds.set_index('model_uuid').explode(taskcols).reset_index()
         
             # get full model scores and rename columns
             predcols=[x for x in pred.columns if 'task' not in x]
@@ -1937,9 +1784,44 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
         
             # rename task_pred columns to match full model names
             coldict={}
+            task_to_full_overrides = {
+                'task_r2_scores': 'r2_score',
+                'task_rms_scores': 'rms_score',
+                'task_mae_scores': 'mae_score',
+                'task_roc_auc_scores': 'roc_auc_score',
+                'task_roc_auc_stds': 'roc_auc_std',
+                'task_prc_auc_scores': 'prc_auc_score',
+                'task_cross_entropies': 'cross_entropy',
+                'task_precisions': 'precision',
+                'task_recalls': 'recall_score',
+                'task_npvs': 'npv',
+                'task_accuracies': 'accuracy_score',
+                'task_bal_accuracies': 'bal_accuracy',
+                'task_kappas': 'kappa',
+                'task_matthews_ccs': 'matthews_cc',
+                'task_invalid_prediction_counts': 'invalid_prediction_count',
+                'task_invalid_prediction_fractions': 'invalid_prediction_fraction',
+            }
             for task_col in task_preds.columns:
                 if task_col not in ['model_uuid','response_cols']:
-                    coldict[task_col]=[predcol for predcol in pred.columns if predcol.replace(metlabel+'_','').startswith(task_col.replace('task_','')[0:3])][0]
+                    if task_col in task_to_full_overrides:
+                        target_metric = task_to_full_overrides[task_col]
+                    else:
+                        target_metric = task_col.replace('task_', '')
+
+                    pred_col = metlabel + '_' + target_metric
+                    if pred_col not in pred.columns:
+                        # Fallback to original prefix matching for unexpected/new metric naming.
+                        prefix = task_col.replace('task_', '')[0:3]
+                        candidates = [
+                            pcol for pcol in pred.columns
+                            if pcol.replace(metlabel + '_', '').startswith(prefix)
+                        ]
+                        if len(candidates) == 0:
+                            continue
+                        pred_col = candidates[0]
+
+                    coldict[task_col] = pred_col
             task_preds=task_preds.rename(columns=coldict)
         
             # concatenate all scores

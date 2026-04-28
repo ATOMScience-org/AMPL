@@ -23,12 +23,12 @@ sys.path.insert(0, os.path.abspath('../../'))
 
 project = 'ATOM Data-Driven Modeling Pipeline'
 author = 'ATOM DDM Team'
- 
+
 #note: wait on this
 # import atomsci.ddm
 #version = atomsci.ddm.__version__
 # The short X.Y version
-version = '1.7.0'
+version = '1.8.0'
 copyright = f'{datetime.datetime.now().year}, {author}'
 
 # The full version, including alpha/beta/rc tags
@@ -195,5 +195,10 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
-autodoc_mock_imports = ["rdkit", "tensorflow.contrib", "atomsci", "yaml", "sklearn.preprocessing.Imputer"]
-
+autodoc_mock_imports = [
+    "rdkit", 
+    "tensorflow.contrib", 
+    "atomsci", 
+    "yaml", 
+    "sklearn.preprocessing.Imputer"
+]

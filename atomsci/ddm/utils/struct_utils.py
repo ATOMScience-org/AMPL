@@ -7,15 +7,13 @@ molecules.
 
 import re
 import numpy as np
-import molvs
 import logging
 
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
-stdizer = molvs.standardize.Standardizer(prefer_organic=True)
-uncharger = molvs.charge.Uncharger()
+uncharger = rdMolStandardize.Uncharger()
 
 
 def get_rdkit_smiles(orig_smiles, useIsomericSmiles=True):
@@ -34,13 +32,12 @@ def get_rdkit_smiles(orig_smiles, useIsomericSmiles=True):
     mol = Chem.MolFromSmiles(orig_smiles)
     if mol is None:
         return ""
-    else:
-        return Chem.MolToSmiles(mol, isomericSmiles=useIsomericSmiles)
+    return Chem.MolToSmiles(mol, isomericSmiles=useIsomericSmiles)
 
 
 def rdkit_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, useCanonicalTautomers=False, workers=1):
     """Parallel version of get_rdkit_smiles. If orig_smiles is a list and workers is > 1, spawn 'workers'
-    threads to convert input SMILES strings to standardized RDKit format.
+    processes to convert input SMILES strings to standardized RDKit format.
 
     Args:
         orig_smiles (list or str): List of SMILES strings to canonicalize.
@@ -59,7 +56,7 @@ def rdkit_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, useCanonicalTa
 
     if isinstance(orig_smiles, list):
         from functools import partial
-        func = partial(rdkit_smiles_from_smiles, useIsomericSmiles=useIsomericSmiles, 
+        func = partial(rdkit_smiles_from_smiles, useIsomericSmiles=useIsomericSmiles,
                        useCanonicalTautomers=useCanonicalTautomers)
         if workers > 1:
             from multiprocessing import pool
@@ -85,7 +82,7 @@ def rdkit_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, useCanonicalTa
 
 def mols_from_smiles(orig_smiles, workers=1):
     """Parallel function to create RDKit Mol objects for a list of SMILES strings. If orig_smiles is a list
-    and workers is > 1, spawn 'workers' threads to convert input SMILES strings to Mol objects.
+    and workers is > 1, spawn 'workers' processes to convert input SMILES strings to Mol objects.
 
     Args:
         orig_smiles (list or str): List of SMILES strings to convert to Mol objects.
@@ -115,7 +112,7 @@ def mols_from_smiles(orig_smiles, workers=1):
     return mols
 
 
-def base_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=False, 
+def base_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=False,
                             useCanonicalTautomers=False, workers=1):
     """Generate standardized SMILES strings for the largest fragments of each molecule specified by
     orig_smiles. Strips salt groups and replaces any rare isotopes with the most common ones for each element.
@@ -225,9 +222,14 @@ def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=Fals
     cmpd_mol = Chem.MolFromSmiles(orig_smiles)
     if cmpd_mol is None:
         return None
-    std_mol = stdizer.isotope_parent(stdizer.fragment_parent(cmpd_mol), skip_standardize=True)
-    if removeCharges:
-        std_mol = uncharger(std_mol)
+    try:
+        std_mol = rdMolStandardize.IsotopeParent(
+            rdMolStandardize.FragmentParent(cmpd_mol),
+            skipStandardize=True)
+        if removeCharges:
+            std_mol = uncharger.uncharge(std_mol)
+    except Exception:
+        std_mol = None
     return std_mol
 
 
@@ -294,11 +296,16 @@ def base_mol_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False):
     cmpd_mol = Chem.inchi.MolFromInchi(inchi_str)
     if cmpd_mol is None:
         return None
-    std_mol = stdizer.isotope_parent(stdizer.fragment_parent(cmpd_mol), skip_standardize=True)
-    if removeCharges:
-        std_mol = uncharger(std_mol)
+    try:
+        std_mol = rdMolStandardize.IsotopeParent(
+            rdMolStandardize.FragmentParent(cmpd_mol),
+            skipStandardize=True)
+        if removeCharges:
+            std_mol = uncharger.uncharge(std_mol)
+    except Exception as e:
+        print(f"Error standardizing InChI {inchi_str}: {e}")
+        std_mol = None
     return std_mol
-
 
 def draw_structure(smiles_str, image_path, image_size=500):
     """Draw structure for the compound with the given SMILES string as a PNG file.
@@ -418,7 +425,7 @@ def _merge_dataframes_by_smiles(dataframes, smiles_col='rdkit_smiles', id_col='c
                 new_df = new_df.drop([lCol, rCol], axis=1)
         left_df = new_df
 
-    return new_df
+    return left_df
 
 
 def smiles_to_inchi_key(smiles):
@@ -515,5 +522,3 @@ def canonical_tautomers_from_smiles(smiles):
     mols = [Chem.MolFromSmiles(smi) for smi in smiles]
     canon_tautomers = [taut_enum.Canonicalize(m) if m is not None else None for m in mols]
     return [Chem.MolToSmiles(m) if m is not None else '' for m in canon_tautomers]
-
-

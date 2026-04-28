@@ -16,7 +16,7 @@ dgllife
 
 networkx==2.8.8
 scikit-learn==1.2.2
-hyperopt
+optuna
 
 xgboost
 
@@ -36,7 +36,6 @@ bravado
 # pycairo
 
 maestrowf
-MolVS
 mordred
 pytest
 ipykernel
@@ -45,4 +44,4 @@ jupyterlab
 
 deepchem==2.7.1
 rdkit==2024.3.5
-pyyaml==5.4.1
+pyyaml>=6.0

@@ -20,6 +20,26 @@ def clean():
         if os.path.isfile("./output/"+f):
             os.remove("./output/"+f)
 
+def test_is_hybrid():
+    """Test to see of the model pipeline is built correctly"""
+    with open("H1_hybrid.json", "r") as f:
+        hp_params = json.load(f)
+
+    script_dir = parse.__file__.strip("parameter_parser.py").replace("/pipeline/", "")
+    python_path = sys.executable
+    hp_params["script_dir"] = script_dir
+    hp_params["python_path"] = python_path
+    hp_params["descriptor_type"] = "rdkit_raw"
+
+    params = parse.wrapper(hp_params)
+    if not os.path.isfile(params.dataset_key):
+        params.dataset_key = os.path.join(params.script_dir, params.dataset_key)
+
+    print("Train a hybrid models with MOE descriptors")
+    pl = mp.ModelPipeline(params)
+
+    assert pl.params.model_type == 'hybrid'
+ 
 @pytest.mark.moe_required
 def test():
     """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""

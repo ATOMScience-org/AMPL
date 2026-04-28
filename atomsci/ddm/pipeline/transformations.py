@@ -5,11 +5,11 @@ provided by DeepChem.
 import logging
 
 import numpy as np
-import umap
+import pandas as pd
 
 from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import RobustScaler
+
+import sklearn.utils as sku
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
@@ -80,18 +80,12 @@ def create_feature_transformers(params, featurization, train_dset):
     Returns:
         (list of DeepChem transformer objects): list of transformers for the feature matrix
     """
-    if params.feature_transform_type == 'umap':
-        # Map feature vectors using UMAP for dimension reduction
-        log.warning("UMAP feature transformation is deprecated and will be removed in a future release.")
-        if params.split_strategy == 'k_fold_cv':
-            log.warning("Warning: UMAP transformation may produce misleading results when used with K-fold split strategy.")
-        transformers_x = [UMAPTransformer(params, train_dset)]
-    elif params.transformers:
+    if params.transformers:
         # TODO: Transformers on responses and features should be controlled only by parameters
         # response_transform_type and feature_transform_type, rather than params.transformers.
 
         # Scale and center feature matrix if featurization type calls for it
-        transformers_x = featurization.create_feature_transformer(train_dset)
+        transformers_x = featurization.create_feature_transformer(train_dset, params)
     else:
         transformers_x = []
 
@@ -132,16 +126,21 @@ def get_transformer_specific_metadata(params):
         meta_dict (dict): Nested dictionary of parameters and values for each currently active
         transformer.
     """
-    meta_dict = {}
-    if params.feature_transform_type == 'umap':
-        umap_dict = dict(
-                        umap_dim = params.umap_dim,
-                        umap_metric = params.umap_metric,
-                        umap_targ_wt = params.umap_targ_wt,
-                        umap_neighbors = params.umap_neighbors,
-                        umap_min_dist = params.umap_min_dist )
-        meta_dict['umap_specific'] = umap_dict
-    return meta_dict
+    meta_dict = dict(
+        robustscaler_with_centering = params.robustscaler_with_centering,
+        robustscaler_with_scaling = params.robustscaler_with_scaling,
+        robustscaler_quartile_range = params.robustscaler_quartile_range,
+        robustscaler_unit_variance = params.robustscaler_unit_variance,
+        powertransformer_method = params.powertransformer_method,
+        powertransformer_standardize = params.powertransformer_standardize,
+        imputer_strategy = params.imputer_strategy)
+
+    # this parameter is set only if transformations have been loaded
+    # from an outside source
+    if hasattr(params, 'transformer_dataset_key_configs'):
+        meta_dict['transformer_dataset_key_configs'] = params.transformer_dataset_key_configs
+
+    return dict(transformer_specific=meta_dict)
 
 # ****************************************************************************************
 def get_transformer_keys(params):
@@ -207,62 +206,79 @@ def get_all_training_datasets(model_dataset):
 
 
 # ****************************************************************************************
-class UMAPTransformer(Transformer):
-    """Dimension reduction transformations using the UMAP algorithm.
-    
-    DEPRECATED: Will be removed in a future release.
+def zero_out_inf_nan(d):
+    """Return a copy of d with NaN and +/-Inf replaced by 0.
 
-    Attributes:
-        mapper (UMAP) : UMAP transformer
-        scaler (RobustScaler): Centering/scaling transformer
-
+    Supports numpy arrays and pandas Series/DataFrame.
     """
-    def __init__(self, params, dataset):
-        """Initializes a UMAPTransformer object.
-
-        Args:
-            params (Namespace): Contains parameters used to instantiate the transformer.
-
-            dataset (Dataset): Dataset used to "train" the projection mapping.
-        """
-
-        # TODO: decide whether to make n_epochs a parameter
-        #default_n_epochs = None
-        default_n_epochs = 500
-
-        if params.prediction_type == 'classification':
-            target_metric = 'categorical'
+    # Handle pandas structures
+    if isinstance(d, (pd.Series, pd.DataFrame)):
+        arr = d.values.copy()
+        mask = ~np.isfinite(arr)
+        if mask.any():
+            arr[mask] = 0.0
+        if isinstance(d, pd.Series):
+            return pd.Series(arr, index=d.index, name=d.name)
         else:
-            target_metric = 'l2'
-        self.scaler = RobustScaler()
-        # Use SimpleImputer to replace missing values (NaNs) with means for each column
-        self.imputer = SimpleImputer()
-        scaled_X = self.scaler.fit_transform(self.imputer.fit_transform(dataset.X))
-        self.mapper = umap.UMAP(n_neighbors=params.umap_neighbors,
-                                n_components=params.umap_dim,
-                                metric=params.umap_metric,
-                                target_metric=target_metric,
-                                target_weight=params.umap_targ_wt,
-                                min_dist=params.umap_min_dist,
-                                n_epochs=default_n_epochs)
-        # TODO: How to deal with multitask data?
-        self.mapper.fit(scaled_X, y=dataset.y.flatten())
+            return pd.DataFrame(arr, index=d.index, columns=d.columns)
+    else:
+        # Fallback to numpy array
+        arr = np.array(d, copy=True)
+        mask = ~np.isfinite(arr)
+        if mask.any():
+            arr[mask] = 0.0
+        return arr
 
-    # ****************************************************************************************
+
+class SklearnPipelineWrapper(Transformer):
+    """
+    This wraps a given sklearn transformer and converts it to a DeepChem style transformer
+    """
+    def __init__(self, dataset, sklearn_pipeline, 
+                 transform_X=False, transform_y=False, transform_w=False):
+
+        self.transform_X = transform_X
+        self.transform_y = transform_y
+        self.transform_w = transform_w
+
+        assert (self.transform_X ^ self.transform_y) ^ self.transform_w, \
+            "This transformer can operate on only one of X, y, or w."
+
+        self.sklearn_pipeline = sklearn_pipeline
+
+        if self.transform_X:
+            data = dataset.X
+        elif self.transform_y:
+            data = dataset.y
+        else:
+            data = dataset.w
+
+        # Fit the sklearn pipeline
+        try:
+            sku.assert_all_finite(data)
+        except ValueError:
+            # data contains inf or nan values
+            log.warning("SklearnPipelineWrapper: data contains NaN or Inf; replacing with zeros")
+            data = zero_out_inf_nan(data)
+
+        self.sklearn_pipeline.fit(data)
+
     def transform(self, dataset, parallel=False):
-        return super(UMAPTransformer, self).transform(dataset, parallel=parallel)
+        return dataset.transform(self)
 
-    # ****************************************************************************************
     def transform_array(self, X, y, w, ids):
-        X = self.mapper.transform(self.scaler.transform(self.imputer.transform(X)))
+        """Transform the data in a set of (X, y, w) arrays."""
+        if self.transform_X:
+            X = self.sklearn_pipeline.transform(X)
+        elif self.transform_y:
+            y = self.sklearn_pipeline.transform(y)
+        else:
+            w = self.sklearn_pipeline.transform(w)
+
         return (X, y, w, ids)
 
-    # ****************************************************************************************
-    def untransform(self, z):
-        """Reverses stored transformation on provided data."""
-        raise NotImplementedError("Can't reverse a UMAP transformation")
-    # ****************************************************************************************
-
+    def untransform(self, z: np.ndarray) -> np.ndarray:
+        raise NotImplementedError("SklearnPipelineWrapper does not support inverse transforms")
 
 # ****************************************************************************************
 
@@ -310,7 +326,7 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
                 X = np.nan_to_num(X * X_weight / self.X_stds)
             # zero out large values, especially for out of range test data
             X[np.abs(X) > 1e30] = 1e30
-        if self.transform_y:
+        elif self.transform_y:
             if not hasattr(self, 'move_mean') or self.move_mean:
                 y = np.nan_to_num((y - self.y_means) / self.y_stds)
             else:

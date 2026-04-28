@@ -1,4 +1,4 @@
-[![Develop test](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml/badge.svg)](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml)  [![Linter](https://github.com/ATOMScience-org/AMPL/actions/workflows/lint.yml/badge.svg)](https://github.com/ATOMScience-org/AMPL/actions/workflows/lint.yml)    [![Documentation Status](https://readthedocs.org/projects/ampl/badge/?version=stable)](https://ampl.readthedocs.io/en/latest/?badge=stable) 
+[![Develop test](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml/badge.svg)](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml)  [![Linter](https://github.com/ATOMScience-org/AMPL/actions/workflows/lint.yml/badge.svg)](https://github.com/ATOMScience-org/AMPL/actions/workflows/lint.yml)    [![Documentation Status](https://readthedocs.org/projects/ampl/badge/?version=stable)](https://ampl.readthedocs.io/en/latest/?badge=stable)
  [![codecov](https://codecov.io/gh/ATOMScience-org/AMPL/graph/badge.svg)](https://codecov.io/gh/ATOMScience-org/AMPL)
 
 ![GitHub Release](https://img.shields.io/github/v/release/ATOMScience-org/AMPL)  [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE)   [![LinkedIn](https://custom-icon-badges.demolab.com/badge/LinkedIn-0A66C2?logo=linkedin-white&logoColor=fff)](https://www.linkedin.com/company/atomscience) [![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?logo=YouTube&logoColor=white)](https://www.youtube.com/channel/UCOF6zZ7ltGwopYCoOGIFM-w)
@@ -10,26 +10,39 @@ An open-source, end-to-end software pipeline for data curation, model building, 
 
 *Created by the [Accelerating Therapeutics for Opportunities in Medicine (ATOM) Consortium](https://atomscience.org)*
 
-<img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
-
+![AMPL logo](https://raw.githubusercontent.com/ATOMScience-org/AMPL/master/assets/ATOM_cymatics_black_wordmark.jpg)
 
 The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools to predict key potency, safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions! An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) was published in JCIM. The AMPL pipeline documentation is available [here](https://ampl.readthedocs.io/en/latest/pipeline.html).
 
 Check out our new tutorial series that walks through AMPL's end-to-end modeling pipeline to build a machine learning model! View them in our [docs](https://ampl.readthedocs.io/en/latest/) or as Jupyter notebooks in our [repo](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials).
 
-![Static Badge](https://img.shields.io/badge/Announcement-1.7.0-blue)
+![Static Badge](https://img.shields.io/badge/Announcement-1.8.0-blue)
 
-In addition to our written tutorials, we now provide a series of video tutorials on our YouTube channel, [ATOMScience-org](https://www.youtube.com/channel/UCOF6zZ7ltGwopYCoOGIFM-w). These videos are created to assist users in exploring and leveraging AMPL's robust capabilities. We provided a playlist for easy streamlined Learning: 
+In addition to our written tutorials, we now provide a series of video tutorials on our YouTube channel, [ATOMScience-org](https://www.youtube.com/channel/UCOF6zZ7ltGwopYCoOGIFM-w). These videos are created to assist users in exploring and leveraging AMPL's robust capabilities. We provided a playlist for easy streamlined Learning:
 
 [![AMPL Tutorial Playlist](https://img.shields.io/badge/AMPL_Tutorial_Playlist-%23FF0000.svg?logo=YouTube&logoColor=white)](https://www.youtube.com/playlist?list=PLe85Q-Gf8eFgYGQmUDSTlSjJorQZyDG8E)
 
 ---
 ## Table of contents
-- [Install](#install)
-   - [Quick Install](#installation-quick-summary)
-   - [Jupyter kernel](#create-jupyter-notebook-kernel-optional)
-   - [Docker](#install-with-docker)
-   - [Uninstall](#uninstall)
+- [Installation](#installation)
+  - [Install the published package from PyPI](#install-the-published-package-from-pypi)
+    - [Get the latest release version from PyPI](#get-the-latest-release-version-from-pypi)
+  - [Set up an `uv` environment for development](#set-up-an-uv-environment-for-development)
+    - [What is `uv`?](#what-is-uv)
+    - [Requirements](#requirements)
+    - [Install `uv`](#install-uv)
+    - [Choose your platform](#choose-your-platform)
+    - [Create or refresh your environment](#create-or-refresh-your-environment)
+    - [Daily use](#daily-use)
+    - [Platform lockfiles](#platform-lockfiles)
+    - [For maintainers only](#for-maintainers-only)
+    - [Troubleshooting](#troubleshooting)
+      - [`uv` not found](#uv-not-found)
+      - [Wrong Python or missing `pytest`](#wrong-python-or-missing-pytest)
+      - [Import or package problems](#import-or-package-problems)
+  - [Building AMPL for Local Development](#building-ampl-for-local-development)
+    - [Build and install from a local clone](#build-and-install-from-a-local-clone)
+    - [Optional, for LLNL LC only](#optional-for-llnl-lc-only)
 - [AMPL Features](#ampl-features)
 - [Running AMPL](#running-ampl)
 - [Tests](#tests)
@@ -37,132 +50,234 @@ In addition to our written tutorials, we now provide a series of video tutorials
 - [Advanced testing](#advanced-testing)
 - [Tutorials](#ampl-tutorials)
 - [Development](#development)
-- [Project information](#project-information)  
+- [Project information](#project-information)
 - [Suggestions or Report Issues](#support-suggestions-or-report-issues)
 
 ## Useful links
 - [Pipeline parameters (options)](atomsci/ddm/docs/PARAMETERS.md)
 - [Library documentation](https://ampl.readthedocs.io/en/latest/index.html)
+
 ---
-## Install
-AMPL 1.6 supports Python 3.9 CPU or CUDA-enabled machines using CUDA 11.8 on Linux. All other systems are experimental. For a quick install summary, see [here](#install-summary). We do not support other CUDA versions because there are multiple ML package dependency conflicts that can occur. For more information you can look at [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), [DGL](https://www.dgl.ai/pages/start.html).
 
-For installation on Apple Silicon M Chips, please see the Docker container instructions.
+## Installation
 
-### Create pip environment
+AMPL supports Python 3.10 and provides platform-specific environments for `cpu`, `cuda`, `rocm`, and `mchip`.
 
-#### 1. Create a virtual env with Python 3.9 
-Make sure to create your virtual env in a convenient directory that has at least 12Gb space.
+For dependency-specific installation details, see:
+- [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html)
+- [TensorFlow](https://www.tensorflow.org/install/pip)
+- [PyTorch](https://pytorch.org/get-started/locally/)
+- [DGL](https://www.dgl.ai/pages/start.html)
 
-Go to the directory where the new environment directory be installed in. Define an environment variable - "ENVROOT".
+AMPL uses [`uv`](https://docs.astral.sh/uv/) for Python environment and dependency management.
 
+### Install the published package from PyPI
+
+Use this option if you want to install the released `atomsci-ampl` package without cloning this repository.
+
+If you are working from a local checkout of this repo, use the local `uv` environment workflow above instead.
+
+> **Note:** AMPL requires Python 3.10. For LLNL users on LC, run `module load python/3.10.8`.
+
+### Get the latest release version from PyPI
+
+Create or activate a Python 3.10 environment, then install:
 ```bash
-export ENVROOT=~/workspace # for LLNL LC users, use your workspace
+pip install atomsci-ampl
+```
+
+Or use `uv` install:
+
+Example:
+```bash
+uv venv --python 3.10 <.venv_name>
+source <.venv_name>/bin/activate
+uv pip install atomsci-ampl
+```
+
+---
+
+### Set up an `uv` environment for local development
+
+Use this workflow if you want to run or develop AMPL from a local clone of this repository.
+
+#### What is `uv`?
+
+`uv` is the Python environment and dependency tool used by this project. It creates virtual environments and installs the packages defined in `pyproject.toml`.
+
+#### Requirements
+
+| Item | Value |
+|---|---|
+| Python | 3.10 |
+| Supported range | `>=3.10,<3.11` |
+| Platforms | `cpu`, `cuda`, `rocm`, `mchip` |
+
+#### Install `uv`
+
+Install `uv` with one of the following:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 or
-export ENVROOT=~ # or the directory as your environment root
+```bash
+pip install uv
 ```
+Verify the installation:
+```bash
+uv --version
+```
+#### Choose your platform
 
-> *We use "workspace" and "atomsci-env" as an example here.*
+| Platform | Use this if... | Environment |
+|---|---|---|
+| `cpu` | you want a CPU-only environment | `.venv-cpu` |
+| `cuda` | you are using NVIDIA GPUs on Linux | `.venv-cuda` |
+| `rocm` | you are using AMD GPUs | `.venv-rocm` |
+| `mchip` | you are on Apple Silicon | `.venv-mchip` |
+
+#### Create or refresh your environment
+
+For most users, use the `make sync-<platform>` commands:
+```bash
+make sync-cpu
+```
+Other options:
+```bash
+make sync-cuda
+make sync-rocm
+make sync-mchip
+```
+Then activate the environment:
+```bash
+source .venv-cpu/bin/activate
+```
+Replace `cpu` with your platform as needed.
+
+Example:
+```bash
+make sync-cpu
+source .venv-cpu/bin/activate
+```
+#### Daily use
+
+If the environment is already working, you can usually just activate it:
+```bash
+source .venv-cpu/bin/activate
+```
+If commands like `pytest` are missing, or imports fail, refresh the environment:
+```bash
+make sync-cpu
+source .venv-cpu/bin/activate
+```
+#### Platform lockfiles
+
+This project keeps one lockfile per platform:
+
+| Platform | Lockfile | Environment |
+|---|---|---|
+| `cpu` | `uv.lock.cpu` | `.venv-cpu` |
+| `cuda` | `uv.lock.cuda` | `.venv-cuda` |
+| `rocm` | `uv.lock.rocm` | `.venv-rocm` |
+| `mchip` | `uv.lock.mchip` | `.venv-mchip` |
+
+The `make sync-<platform>` commands use the matching lockfile to create or refresh `.venv-<platform>`.
+
+#### For maintainers only
+
+If dependencies change in `pyproject.toml`, you **must** regenerate the platform lockfile:
 
 ```bash
-# LLNL only: 
-# module load python/3.9.12
-cd $ENVROOT
-python3.9 -m venv atomsci-env
+make update-lock-cpu
 ```
 
-#### 2. Activate the environment
+Other supported targets:
 ```bash
-source $ENVROOT/atomsci-env/bin/activate
+make update-lock-cuda
+make update-lock-rocm
+make update-lock-mchip
 ```
 
-#### 3. Update pip
+These commands create the lockfile if it does not already exist, or update it if it does.
+
+**Any changes to `pyproject.toml` or `uv.lock.<platform>` must be committed and pushed to the AMPL GitHub repository. Do not leave regenerated lockfiles uncommitted.**
+
+Most users do not need to run `make update-lock-<platform>`.
+
+#### Troubleshooting
+
+##### `uv` not found
 ```bash
-pip install pip --upgrade
+uv --version
 ```
+If this fails, install `uv` and start a new shell.
 
-#### 4. Clone AMPL repository
+##### Wrong Python or missing `pytest`
+
+Check:
 ```bash
-git clone https://github.com/ATOMScience-org/AMPL.git 
+which python
+python --version
+which pytest
 ```
-
-#### 5. Install pip requirements
-Depending on system performance, creating the environment can take some time.
-> ***Note:*** *Based on which environment (CPU or CUDA) to run on, only run one of the following:*
-
-- CPU-only installation:
+They should point into the active environment, for example:
 ```bash
-cd AMPL/pip
-pip install -r cpu_requirements.txt
+.venv-cpu/bin/python
+.venv-cpu/bin/pytest
 ```
-
-- CUDA installation:
-
-First load the CUDA module. Then run cuda specific package install.
-
+If not, refresh the environment:
 ```bash
-cd AMPL/pip
-# LLNL only: 
-# module load cuda/11.8
-pip install -r cuda_requirements.txt
+make sync-cpu
+source .venv-cpu/bin/activate
 ```
-If you get `out of memory` errors, try setting these environment variables:
-```
-export LD_LIBRARY_PATH=<your_env>/lib:$LD_LIBRARY_PATH
-export PYTHONUSERBASE=<your_env>
-export OPENBLAS_NUM_THREADS=1
-export OMP_NUM_THREADS=48
-export PYTORCH_HIP_ALLOC_CONF=gargage_collection_threshold:0.9,max_split_size_mb:128
-export TF_FORCE_GPU_ALLOW_GROWTH=true
-```
+##### Import or package problems
 
-- Install pytest, plotting packages for development, test use.
-
+Refresh the environment:
 ```bash
-cd AMPL/pip
-pip install -r dev_requirements.txt
+make sync-cpu
+source .venv-cpu/bin/activate
 ```
-#### 6. *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
+### Building AMPL for Local Development
+
+If you want to develop AMPL locally from a repository checkout:
+```bash
+git clone https://github.com/ATOMScience-org/AMPL.git
+cd AMPL
+./install-dev.sh
+```
+This installs the package from the local source tree, so code changes are available without reinstalling.
+
+#### Build and install from a local clone
+
+If you want to build the package locally and then install the built artifact:
+```bash
+git clone https://github.com/ATOMScience-org/AMPL.git
+cd AMPL
+./build.sh
+./install.sh
+```
+#### Optional, for LLNL LC only
+
+If you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install `atomsci.clients`:
+```bash
+pip install -r clients_requirements.txt
+```
+
+---
+
+## Create jupyter notebook kernel (optional)
+
+To run AMPL from Jupyter Notebook, first activate your environment and then run:
+```bash
+python -m ipykernel install --user --name atomsci-env
+```
+---
+#### *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
 ```bash
 # LLNL only: required for ATOM model_tracker
 pip install -r clients_requirements.txt
 ```
 
-### Install AMPL
-Run the following to build the "atomsci" modules. This is required.
-
-```bash
-# return to AMPL parent directory
-cd ..
-./build.sh
-pip install -e .
-```
----
-## Installation Quick Summary
-```bash
-export ENVROOT=~/workspace           # set ENVROOT example
-# LLNL only:
-# module load python/3.9.12
-
-python3.9 -m venv atomsci-env        # create environment with Python 3.9
-source $ENVROOT/atomsci-env/bin/activate 
-pip install pip --upgrade               
-
-git clone https://github.com/ATOMScience-org/AMPL.git # clone AMPL
-cd AMPL/pip    
-# LLNL only:
-# If use CUDA: 
-# module load cuda/11.8                         
-pip install -r cpu_requirements.txt    # install cpu_requirements.txt OR cuda_requirements.txt  
-pip install -r dev_requirements.txt    # install pytest, plotting packages.
-
-# LLNL only: required for ATOM model_tracker
-# pip install -r clients_requirements.txt
-
-cd ..                                   
-./build.sh                            
-pip install -e .                        
-```
 ---
 ## Create jupyter notebook kernel (optional)
 To run AMPL from Jupyter Notebook. To setup a new kernel, first activate your environment and then run the following command:
@@ -175,7 +290,7 @@ python -m ipykernel install --user --name atomsci-env
 ## Install with Docker
 - Download and install Docker Desktop.
   - https://www.docker.com/get-started
-- Create a workspace folder to mount with Docker environment and transfer files. 
+- Create a workspace folder to mount with Docker environment and transfer files.
 - Get the Docker image and run it. Since 1.6.3, there are some changes with the AMPL Docker.
 
 To retrieve, run version 1.6.2 or earlier, please specify the desired version tag:
@@ -184,7 +299,7 @@ To retrieve, run version 1.6.2 or earlier, please specify the desired version ta
   docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl:v1.6.2
   ```
 
-For AMPL versions 1.6.3 and later, we offer downloadable images for various platforms (CPU, GPU or Linux/ARM64). To run a Docker container, be sure to append `bash` at the end of the command to open a bash session. 
+For AMPL versions 1.6.3 and later, we offer downloadable images for various platforms (CPU, GPU or Linux/ARM64). To run a Docker container, be sure to append `bash` at the end of the command to open a bash session.
 
   ```
   docker pull atomsci/atomsci-ampl:latest-<platform> # can be cpu, gpu, or arm (for arm64 chip)
@@ -204,20 +319,9 @@ For additional options related to building, running, and other Docker developmen
 
 ---
 
-## Uninstall
-To remove AMPL from a pip environment use:
-```bash
-pip uninstall atomsci-ampl
-```
-
 To remove an entire virtual environment named "atomsci-env":
 ```bash
 rm -rf $ENVROOT/atomsci-env
-```
-
-To remove cached packages and clear space:
-```bash
-pip cache purge
 ```
 
 ---
@@ -233,28 +337,27 @@ pip cache purge
 - Extended connectivity fingerprints (ECFP)
 - Graph convolution latent vectors from DeepChem
 - Chemical descriptors from Mordred package
-- Descriptors generated by MOE (requires MOE license)  
+- Descriptors generated by MOE (requires MOE license)
 
 ### 3. Model training and tuning
 - Test set selection
 - Cross-validation
 - Uncertainty quantification
-- Hyperparameter optimization  
 
 ### 4. Supported models
 - scikit-learn random forest models
 - XGBoost models
 - Fully connected neural networks
-- Graph convolution models  
+- Graph convolution models
 
 ### 5. Visualization and analysis
-- Visualization and analysis tools  
+- Visualization and analysis tools
 </details>
-Details of running specific features are within the [parameter (options) documentation](#Pipeline-parameters). More detailed documentation is in the [library documentation](#Library-documentation).  
+Details of running specific features are within the [parameter (options) documentation](atomsci/ddm/docs/PARAMETERS.md). More detailed documentation is in the [library documentation](https://ampl.readthedocs.io/en/latest/).
 
 ---
 ## Running AMPL
-AMPL can be run from the command line or by importing into Python scripts and Jupyter notebooks.  
+AMPL can be run from the command line or by importing into Python scripts and Jupyter notebooks.
 
 ### Python scripts and Jupyter notebooks
 AMPL can be used to fit and predict molecular activities and properties by importing the appropriate modules. See the [examples](atomsci/ddm/examples/) for more descriptions on how to fit and make predictions using AMPL.
@@ -263,13 +366,13 @@ AMPL can be used to fit and predict molecular activities and properties by impor
 AMPL includes many parameters to run various model fitting and prediction tasks.
 - Pipeline options (parameters) can be set within JSON files containing a parameter list.
 - The parameter list with detailed explanations of each option can be found at [atomsci/ddm/docs/PARAMETERS.md](atomsci/ddm/docs/PARAMETERS.md).
-- Example pipeline JSON files can be found in the tests directory and the example directory.  
+- Example pipeline JSON files can be found in the tests directory and the example directory.
 
 ### Library documentation
 AMPL includes detailed docstrings and comments to explain the modules. Full HTML documentation of the Python library is available with the package at [https://ampl.readthedocs.io/en/latest/](https://ampl.readthedocs.io/en/latest/).
 
 ### More information on AMPL usage
-- More information on AMPL usage can be found in [Advanced AMPL usage](#advanced-ampl-usage)   
+- More information on AMPL usage can be found in [Advanced AMPL usage](#advanced-ampl-usage)
 
 ---
 ## Tests
@@ -281,7 +384,7 @@ source $ENVROOT/atomsci-env/bin/activate # activate your pip environment.
 cd atomsci/ddm/test/integrative/delaney_RF
 pytest
 ```
-> ***Note***: *This test generally takes a few minutes on a modern system*  
+> ***Note***: *This test generally takes a few minutes on a modern system*
 
 The important files for this test are listed below:
 
@@ -299,7 +402,7 @@ The important files for this test are listed below:
 AMPL can **fit** models from the command line with:
 ```bash
 python model_pipeline.py --config_file filename.json # [filename].json is the name of the config file
-```  
+```
 
 To get more info on an AMPL config file, please refer to:
 
@@ -308,45 +411,46 @@ To get more info on an AMPL config file, please refer to:
   - [AMPL Tutorials](atomsci/ddm/examples/tutorials)
 
 ### Hyperparameter optimization
-<details><summary>Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.</summary>
+<details><summary>Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [Optuna](https://optuna.readthedocs.io/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.</summary>
 
-1. (Optional) Install HyperOpt with "pip install hyperopt"
+1. (Optional) Install Optuna with "pip install optuna"
 2. Pre-split your dataset with computed_descriptors if you want to use Mordred/MOE/RDKit descriptors.
 3. In the config JSON file, set the following parameters.
-   
+
    - "hyperparam": "True"
-   - "search_type": "hyperopt"
+   - "search_type": "optuna"
    - "descriptor_type": "mordred_filtered,rdkit_raw" (use comma to separate multiple values)
    - "model_type": "RF|20" (the number after | is the number of evaluations of Bayesian Optimization)
    - "featurizer": "ecfp,computed_descriptors" (use comma if you want to try multiple featurizers, note the RF and graphconv are not compatible)
    - "result_dir": "/path/to/save/the/final/results,/temp/path/to/save/models/during/optimization" (Two paths separated by a comma)
-  
+
    RF model specific parameters:
    - "rfe": "uniformint|8,512", (RF number of estimators)
    - "rfd": "uniformint|8,512", (RF max depth of the decision tree)
    - "rff": "uniformint|8,200", (RF max number of features)
-  
+
     Use the following schemes to define the searching domains
-    
+
     method|parameter1,parameter2...
-    
-    method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
-    
+
+    method: supported searching schemes in Optuna include: choice, uniform, loguniform, uniformint. For details, see the [Optuna documentation](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html).
+
     parameters:
       - choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
-      - uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
-      - loguniform: low and high bound (in natural log) of the interval to serach, e.g. uniform|-13.8,-6.9
-      - uniformint: low and high bound of the interval as integers, e.g. uniforming|8,256
-  
+      - uniform: low and high bound of the interval to search, e.g. uniform|0.00001,0.001
+      - loguniform: low and high bound (in natural log) of the interval to search, e.g. loguniform|-13.8,-6.9
+        - **Note**: For backwards compatibility, loguniform values are submitted to Optuna in log scale. Although Optuna supports non-log-scaled value ranges for log-uniform distributions, we maintain the original log-scaled specification format to ensure consistency with existing configurations.
+      - uniformint: low and high bound of the interval as integers, e.g. uniformint|8,256
+
     NN model specific parameters:
      - "lr": "loguniform|-13.8,-6.9", (learning rate)
      - "ls": "uniformint|3|8,512", (layer_sizes)
         - The number between two bars (|) is the number of layers, namely 3 layers, each one with 8~512 nodes
-        - Note that the number of layers (number between two |) can not be changed during optimization, if you want to try different number of layers, just run several optimizations. 
+        - Note that the number of layers (number between two |) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
      - "dp": "uniform|3|0,0.4", (dropouts)
         - 3 layers, each one has a dropout range from 0 to 0.4
-        - Note that the number of layers (number between two |) can not be changed during optimization, if you want to try different number of layers, just run several optimizations. 
-    
+        - Note that the number of layers (number between two |) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
+
     XGBoost model specific parameters:
      - "xgbg": "uniform|0,0.4", (xgb_gamma, Minimum loss reduction required to make a further partition on a leaf node of the tree)
      - "xgbl": "loguniform|-6.9,-2.3", (xgb_learning_rate, Boosting learning rate (xgboost's "eta"))
@@ -356,14 +460,14 @@ To get more info on an AMPL config file, please refer to:
     ```
     python hyperparam_search_wrapper.py --config_file filename.json
     ```
-    
+
 5. Save a checkpoint to continue it later.
-    
+
     To save a checkpoint file of the hyperparameter search job, you want to set the following two parameters.
     - "hp_checkpoint_save": "/path/to/the/checkpoint/file.pkl"
     - "hp_checkpoint_load": "/path/to/the/checkpoint/file.pkl"
-    
-    If the "hp_checkpoint_load" is provided, the hyperparameter search will continue from the checkpoint. 
+
+    If the "hp_checkpoint_load" is provided, the hyperparameter search will continue from the checkpoint.
 </details>
 
 ---
@@ -393,7 +497,7 @@ sbatch pytest_slurm.sh
 ### Running tests without internet access
 <details><summary>AMPL works without internet access. Curation, fitting, and prediction do not require internet access.</summary>
 
-However, the public datasets used in tests and examples are not included in the repo due to licensing concerns. These are automatically downloaded when the tests are run. 
+However, the public datasets used in tests and examples are not included in the repo due to licensing concerns. These are automatically downloaded when the tests are run.
 
 If a system does not have internet access, the datasets will need to be downloaded before running the tests and examples. From a system with internet access, run the following shell script to download the public datasets. Then, copy the AMPL directory to the offline system.
 
@@ -407,20 +511,20 @@ cd ../../..
 
 ---
 ## AMPL tutorials
-Please follow link, ["atomsci/ddm/examples/tutorials"](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users. 
+Please follow link, ["atomsci/ddm/examples/tutorials"](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users.
 
 ---
 ## Development
 ### Installing the AMPL for development
-Using "pip install -e ." will create a namespace package in your environment directory that points back to your git working directory, so every time you reimport a module you'll be in sync with your working code. Since site-packages is already in your sys.path, you won't have to fuss with PYTHONPATH or setting sys.path in your notebooks.  
+Using "pip install -e ." will create a namespace package in your environment directory that points back to your git working directory, so every time you reimport a module you'll be in sync with your working code. Since site-packages is already in your sys.path, you won't have to fuss with PYTHONPATH or setting sys.path in your notebooks.
 
 ### Code Push Policy
 It's recommended to use a development branch to do the work. After each release, there will be a branch opened for development.
 
-The policy is 
+The policy is
 
 1. Create a branch based off a development ("1.6.0 "for example) or "master" branch
-2. Create a pull request. Assign a reviewer to approve the code changes 
+2. Create a pull request. Assign a reviewer to approve the code changes
 
 > ***Note***:
 > Step 2 is required for pushing directly to "master". For a development branch, this step is recommended but not required.
@@ -429,7 +533,7 @@ The policy is
 The ["Google docstring"](https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings) format is used in the AMPL code. When writing new code, please use the same Docstring style. Refer [here](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html#example-google) and [here](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) for examples.
 
 ### Versioning
-Versions are managed through GitHub tags on this repository.  
+Versions are managed through GitHub tags on this repository.
 
 ### Built with
 - [DeepChem](https://github.com/deepchem/deepchem): A rich repository of chemistry-specific model types and utilities
@@ -454,7 +558,7 @@ Versions are managed through GitHub tags on this repository.
 - Stacie Calad-Thomson <sub>(2)</sub>
 - Jim Brase <sub>(1)</sub>
 - Jonathan E. Allen <sub>(1)</sub>
-&nbsp;  
+&nbsp;
 
 ### Contributors
 - [Amanda Paulson](https://github.com/paulsonak) <sub>(5)</sub>
@@ -470,7 +574,7 @@ Versions are managed through GitHub tags on this repository.
 <sub>5. [University of California, San Francisco](https://www.ucsf.edu/)</sub>\
 <sub>6. [Schrodinger](https://www.schrodinger.com/)</sub>\
 <sub>7. [Leidos](https://www.leidos.com)</sub>
-&nbsp;  
+&nbsp;
 
 ### Support, Suggestions or Report Issues
 - If you have suggestions or like to report issues, please click [here](https://github.com/ATOMScience-org/AMPL/issues).
@@ -480,8 +584,8 @@ Versions are managed through GitHub tags on this repository.
 Thank you for contributing to AMPL!
 
 - Contributions must be submitted through pull requests.
-- All new contributions must adhere to the MIT license.  
-&nbsp;  
+- All new contributions must adhere to the MIT license.
+&nbsp;
 
 ### Release
 AMPL is distributed under the terms of the MIT license. All new contributions must be made under this license.

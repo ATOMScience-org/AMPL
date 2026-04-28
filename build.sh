@@ -13,4 +13,4 @@ DIST_DIR=${TOPDIR}.dist
 mkdir -p $DIST_DIR
 mkdir -p $BUILD_DIR
 
-python3 setup.py build -b $BUILD_DIR egg_info --egg-base $BUILD_DIR bdist_wheel --dist-dir $DIST_DIR  || exit 1
+uv build --wheel --out-dir "$DIST_DIR" || exit 1

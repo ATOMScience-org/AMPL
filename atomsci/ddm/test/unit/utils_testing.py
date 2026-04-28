@@ -20,10 +20,14 @@ log = logging.getLogger('ATOM')
 def clean():
     split_files = glob.glob('./*_train_valid_test_*')
     for f in split_files:
-        os.remove(f)
+        try:
+            os.remove(f)
+        except FileNotFoundError:
+            # Another worker may have already removed this file.
+            pass
 
     if os.path.exists('pytest'):
-        shutil.rmtree('pytest')
+        shutil.rmtree('pytest', ignore_errors=True)
 
 def datastore_status():
     """Returns True if the datastore is down, False otherwise. Will figure out how to do this programmatically"""

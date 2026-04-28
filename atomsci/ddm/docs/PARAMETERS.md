@@ -16,7 +16,6 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   - [Hybrid model](#Hybrid-model)
   - [Splitting](#Splitting)
   - [Transformers](#Transformers)
-  - [UMAP](#UMAP)
   - [XGBoost](#XGBoost)
   - [Additional DeepChem Models](#Auto-DCModels)
 - [Model Saving](#Model-Saving)
@@ -626,16 +625,17 @@ the model will train for max_epochs regardless of validation error.|
   
 |||
 |-|-|
-|*Description:*|type of transformation for the features|
-|*Default:*|normalization|
-|*Type:*|Choice|
+|*Description:*|type of transformation for the features. Choices are {"normalization", "RobustScaler", "PowerTransformer", "Identity"}.|
+|*Default:*|"normalizaton"|
+|*Type:*|choice|
   
 - **response\_transform\_type**  
   
 |||
 |-|-|
-|*Description:*|type of transformation for the response column (defaults to "normalization") TODO: Not currently implemented|
-|*Default:*|normalization|
+|*Description:*|type of transformation for the response column. Choices are {"normalization"}|
+|*Default:*|"normalization"|
+|*Type:*|choice|
   
 - **weight\_transform\_type**  
   
@@ -673,46 +673,63 @@ the model will train for max_epochs regardless of validation error.|
 |*Default:*|TRUE|
 |*Type:*|Bool|
   
----
+- **robustscaler_with_centering**  
+  
+|||
+|-|-|
+|*Description:*|If `True`, center the data before scaling. This will cause `transform` to raise an exception when attempted on sparse matrices, because centering them entails building a dense matrix which in common use cases is likely to be too large to fit in memory.|
+|*Default:*|TRUE|
+|*Type:*|Bool|
 
-<a name="UMAP"></a>
-## UMAP  
+- **robustscaler_with_scaling**  
+  
+|||
+|-|-|
+|*Description:*|If `True`, scale the data to interquartile range.|
+|*Default:*|TRUE|
+|*Type:*|Bool|
 
-- **umap\_dim**  
+  - **robustscaler_quartile_range**  
   
 |||
 |-|-|
-|*Description:*|Dimension of projected feature space, if UMAP transformation is requested. Can be input as a comma separated list for hyperparameter search (e.g. '2,6,10').|
-|*Default:*|10|
-  
-- **umap\_metric**  
-  
-|||
-|-|-|
-|*Description:*|Distance metric used, if UMAP transformation is requested. Can be input as a comma separated list for hyperparameter search (e.g. 'euclidean','cityblock')|
-|*Default:*|euclidean|
-  
-- **umap\_min\_dist**  
+|*Description:*|Quantile range used to calculate `scale_`. By default this is equal to the IQR, i.e., `q_min` is the first quantile and `q_max` is the third quantile. `(q_min, q_max), 0.0 < q_min < q_max < 100.0`|
+|*Default:*|(25.0, 75.0)|
+|*Type:*|List|
+
+  - **robustscaler_unit_variance**  
   
 |||
 |-|-|
-|*Description:*|Minimum distance used in UMAP projection, if UMAP transformation is requested. Can be input as a comma separated list for hyperparameter search (e.g. '0.01,0.02,0.05')|
-|*Default:*|0.05|
-  
-- **umap\_neighbors**  
-  
-|||
-|-|-|
-|*Description:*|Number of nearest neighbors used in UMAP projection, if UMAP transformation is requested. Can be input as a comma separated list for hyperparameter search (e.g. '10,20,30')|
-|*Default:*|20|
-  
-- **umap\_targ\_wt**  
+|*Description:*|If `True`, scale data so that normally distributed features have a variance of 1. In general, if the difference between the x-values of `q_max` and `q_min` for a standard normal distribution is greater than 1, the dataset will be scaled down. If less than 1, the dataset will be scaled up.|
+|*Default:*|FALSE|
+|*Type:*|bool|
+
+  - **powertransformer_method**  
   
 |||
 |-|-|
-|*Description:*|Weight given to training set response values in UMAP projection, if UMAP transformation is requested. Can be input as a comma separated list for hyperparameter search (e.g. '0.0,0.1,0.2')|
-|*Default:*|0.0|
+|*Description:*|The power transform method. Available methods are: ‘yeo-johnson’ , works with positive and negative values ‘box-cox’, only works with strictly positive values. Choices are {"yeo-johnson", "box-cox"}|
+|*Default:*|"yeo-johnson"|
+|*Type:*|choice|
+
+  - **powertransformer_standardize**  
   
+|||
+|-|-|
+|*Description:*|Set to True to apply zero-mean, unit-variance normalization to the transformed output.|
+|*Default:*|TRUE|
+|*Type:*|Bool|
+
+  - **imputer_strategy**  
+  
+|||
+|-|-|
+|*Description:*|This sets the imputer strategy for the SimpleImputer for use with PowerTransformer or RobustScaler. Choices are {"mean", "median", "most_frequent"}|
+|*Default:*|"mean"|
+|*Type:*|choice|
+
+
 ---
 
 <a name="XGBoost"></a>
@@ -903,6 +920,14 @@ in the same way as model parameters.
 |*Description:*|Computational system you are running on, LC or twintron-blue. LLNL system specific|
 |*Default:*|twintron-blue|
 |*Type:*|str|
+
+- **max_invalid_pred_frac**  
+  
+|||
+|-|-|
+|*Description:*|The amount of invalid (NaN/Inf) predictions acceptable for filtering out of the dataset before calculating model performance metrics, as a fraction from 0-1.|
+|*Default:*|0.01|
+|*Type:*|float|
   
 ---
 
@@ -1088,7 +1113,7 @@ in the same way as model parameters.
 ## Bayesian Optimization  
 ### Search Domain Specifications
 The following parameters are used to specify the search domains for certain model parameters in a Bayesian hyperparameter optimization. Each search domain parameter is
-tied to a specific model parameter. Only a subset of model parameters may be optimized in this way, but more will be supported in future releases. See the hyperopt package documentation at https://github.com/hyperopt/hyperopt/wiki/FMin#2-defining-a-search-space to learn more about the search domain format.
+tied to a specific model parameter. Only a subset of model parameters may be optimized in this way, but more will be supported in future releases. See the Optuna documentation at https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html to learn more about the search domain format.
 
 - **lr**  
   

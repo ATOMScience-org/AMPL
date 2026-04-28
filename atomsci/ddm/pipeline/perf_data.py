@@ -7,9 +7,12 @@ and predictions
 
 import deepchem as dc
 import numpy as np
+import logging
 from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score, precision_score, recall_score
 from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score, log_loss, balanced_accuracy_score
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+
+log = logging.getLogger('ATOM')
 
 # ******************************************************************************************************************************
 def rms_error(y_real, y_pred):
@@ -54,6 +57,234 @@ classif_score_func = dict(roc_auc = roc_auc_score, precision = precision_score, 
                           npv = negative_predictive_value, cross_entropy = log_loss, accuracy = accuracy_score, bal_accuracy = balanced_accuracy_score,
                           avg_precision = average_precision_score, mcc = matthews_corrcoef, kappa = cohen_kappa_score)
 
+MAX_INVALID_FRAC_TO_FILTER = 0.01
+_ACTIVE_MAX_INVALID_FRAC_TO_FILTER = MAX_INVALID_FRAC_TO_FILTER
+
+
+def _configure_invalid_pred_frac_threshold(params):
+    """Set module-level invalid prediction filtering threshold from params."""
+    global _ACTIVE_MAX_INVALID_FRAC_TO_FILTER
+    threshold = getattr(params, 'max_invalid_pred_frac', MAX_INVALID_FRAC_TO_FILTER)
+    if threshold is None:
+        threshold = MAX_INVALID_FRAC_TO_FILTER
+    threshold = float(threshold)
+    clamped_threshold = min(1.0, max(0.0, threshold))
+    if clamped_threshold != threshold:
+        log.warning(
+            "Clamped max_invalid_pred_frac from %.6f to %.6f; expected range is [0.0, 1.0].",
+            threshold,
+            clamped_threshold,
+        )
+    threshold = clamped_threshold
+    _ACTIVE_MAX_INVALID_FRAC_TO_FILTER = threshold
+    log.info("Using max_invalid_pred_frac=%.4f for invalid prediction handling.", threshold)
+
+
+def _get_active_invalid_pred_frac_threshold():
+    """Return active invalid prediction filtering threshold."""
+    return _ACTIVE_MAX_INVALID_FRAC_TO_FILTER
+
+
+def _regression_invalid_penalty(score_type):
+    """Return a hard penalty for invalid regression predictions.
+
+    Scores where larger is better (for example R2) get a very negative value.
+    Loss-like scores (for example MAE/RMSE) get a very large positive value.
+    """
+    if score_type == 'r2':
+        return -1.0e12
+    if score_type in {'mae', 'rmse'}:
+        return 1.0e12
+    return np.nan
+
+
+def _finite_row_mask(arr):
+    """Return a row-wise finite mask for 1D/2D+ arrays."""
+    arr = np.asarray(arr)
+    if arr.ndim <= 1:
+        return np.isfinite(arr)
+    reduce_axes = tuple(range(1, arr.ndim))
+    return np.all(np.isfinite(arr), axis=reduce_axes)
+
+
+def _invalid_stats(y_real, y_pred):
+    """Return invalid count, total count, and invalid fraction for paired arrays."""
+    y_real = np.asarray(y_real)
+    y_pred = np.asarray(y_pred)
+
+    if y_real.ndim == 0 or y_pred.ndim == 0 or y_real.shape[0] != y_pred.shape[0]:
+        return 0, 0, 0.0, np.array([], dtype=bool)
+
+    valid_rows = _finite_row_mask(y_real) & _finite_row_mask(y_pred)
+    total = int(valid_rows.shape[0])
+    invalid_count = int(total - np.sum(valid_rows))
+    invalid_frac = float(invalid_count / total) if total > 0 else 0.0
+    return invalid_count, total, invalid_frac, valid_rows
+
+
+def _safe_regression_score(score_type, y_real, y_pred, default=np.nan):
+    """Compute a regression metric with tolerant filtering then hard penalties.
+
+    If invalid values are at most 1% of rows, compute the metric on remaining rows.
+    Otherwise, return a score-specific worst-case penalty.
+    """
+    y_real = np.asarray(y_real).reshape(-1)
+    y_pred = np.asarray(y_pred).reshape(-1)
+    penalty = _regression_invalid_penalty(score_type)
+
+    threshold = _get_active_invalid_pred_frac_threshold()
+    invalid_count, total_count, invalid_frac, valid_rows = _invalid_stats(y_real, y_pred)
+    if invalid_frac > 0.0:
+        if invalid_frac <= threshold and np.any(valid_rows):
+            log.info(
+                "Filtered invalid regression rows for %s: %d/%d (%.2f%%) <= threshold %.2f%%",
+                score_type,
+                invalid_count,
+                total_count,
+                100.0 * invalid_frac,
+                100.0 * threshold,
+            )
+            y_real = y_real[valid_rows]
+            y_pred = y_pred[valid_rows]
+        else:
+            log.warning(
+                "Applying regression penalty for %s due to invalid rows: %d/%d (%.2f%%) > threshold %.2f%%",
+                score_type,
+                invalid_count,
+                total_count,
+                100.0 * invalid_frac,
+                100.0 * threshold,
+            )
+            return penalty
+
+    if score_type == 'r2' and y_real.size < 2:
+        return penalty
+
+    try:
+        return regr_score_func[score_type](y_real, y_pred)
+    except ValueError:
+        return penalty if np.isfinite(penalty) else default
+
+
+def _has_non_finite_values(arr):
+    """Return True when an array-like contains NaN/Inf numeric values."""
+    arr = np.asarray(arr)
+    if np.issubdtype(arr.dtype, np.number):
+        return not np.all(np.isfinite(arr))
+    if arr.dtype == object:
+        try:
+            return not np.all(np.isfinite(arr.astype(float)))
+        except (TypeError, ValueError):
+            return False
+    return False
+
+
+def _classification_invalid_penalty(score_type):
+    """Return a hard penalty for invalid classification predictions."""
+    if score_type == 'cross_entropy':
+        return 1.0e12
+    if score_type in {'mcc', 'kappa'}:
+        return -1.0
+    if score_type in classif_score_func:
+        return 0.0
+    return np.nan
+
+
+def _safe_classification_score(score_type, y_real, y_pred, average=None, default=np.nan):
+    """Compute a classification metric with tolerant filtering then hard penalties.
+
+    If invalid values are at most 1% of rows, compute the metric on remaining rows.
+    Otherwise, return a score-specific worst-case penalty.
+    """
+    penalty = _classification_invalid_penalty(score_type)
+    y_real = np.asarray(y_real)
+    y_pred = np.asarray(y_pred)
+
+    threshold = _get_active_invalid_pred_frac_threshold()
+
+    if _has_non_finite_values(y_real) or _has_non_finite_values(y_pred):
+        if y_real.ndim == 0 or y_pred.ndim == 0:
+            return penalty
+
+        if y_real.shape[0] != y_pred.shape[0]:
+            return penalty
+
+        invalid_count, total_count, invalid_frac, valid_rows = _invalid_stats(y_real, y_pred)
+        if invalid_frac <= threshold and np.any(valid_rows):
+            log.info(
+                "Filtered invalid classification rows for %s: %d/%d (%.2f%%) <= threshold %.2f%%",
+                score_type,
+                invalid_count,
+                total_count,
+                100.0 * invalid_frac,
+                100.0 * threshold,
+            )
+            y_real = y_real[valid_rows]
+            y_pred = y_pred[valid_rows]
+        else:
+            log.warning(
+                "Applying classification penalty for %s due to invalid rows: %d/%d (%.2f%%) > threshold %.2f%%",
+                score_type,
+                invalid_count,
+                total_count,
+                100.0 * invalid_frac,
+                100.0 * threshold,
+            )
+            return penalty
+
+    try:
+        if average is None:
+            return classif_score_func[score_type](y_real, y_pred)
+        return classif_score_func[score_type](y_real, y_pred, **{'average': average})
+    except ValueError:
+        return penalty if np.isfinite(penalty) else default
+
+
+def _coerce_invalid_pred_classes(y_real_classes, y_pred_classes, y_class_probs, num_classes):
+    """Force non-finite-probability rows to an explicitly wrong predicted class."""
+    pred_classes = np.asarray(y_pred_classes).copy()
+    real_classes = np.asarray(y_real_classes)
+    class_probs = np.asarray(y_class_probs)
+
+    if class_probs.ndim == 1:
+        invalid_rows = ~np.isfinite(class_probs)
+    else:
+        invalid_rows = ~np.all(np.isfinite(class_probs), axis=1)
+
+    if not np.any(invalid_rows):
+        return pred_classes
+
+    bad_idxs = np.where(invalid_rows)[0]
+    for idx in bad_idxs:
+        real_class = real_classes[idx]
+        if not np.isfinite(real_class):
+            pred_classes[idx] = 0
+            continue
+        real_class = int(real_class)
+        if num_classes == 2:
+            pred_classes[idx] = 1 - real_class if real_class in (0, 1) else 0
+        else:
+            pred_classes[idx] = (real_class + 1) % int(num_classes)
+
+    return pred_classes
+
+
+def _safe_confusion_matrix(y_real, y_pred, num_classes):
+    """Compute confusion matrix and return zeros when predictions are invalid."""
+    if _has_non_finite_values(y_real):
+        return np.zeros((num_classes, num_classes), dtype=int).tolist()
+
+    try:
+        return confusion_matrix(y_real, y_pred).tolist()
+    except ValueError:
+        return np.zeros((num_classes, num_classes), dtype=int).tolist()
+
+
+def _safe_mean(scores, default=np.nan):
+    """Average only finite values and return a fallback when none are valid."""
+    finite_scores = [score for score in scores if np.isfinite(score)]
+    return float(np.mean(finite_scores)) if finite_scores else default
+
 # The following score types are loss functions, meaning the result must be sign flipped so we can maximize it in model selection
 loss_funcs = {'mae', 'rmse', 'cross_entropy'}
 
@@ -91,6 +322,8 @@ def create_perf_data(prediction_type, model_dataset, subset, **kwargs):
         ValueError: if split_strategy not in ['train_valid_test','k_fold_cv']
         ValueError: prediction_type not in ['regression','classification']
     """
+    _configure_invalid_pred_frac_threshold(model_dataset.params)
+
     if subset == 'full':
         split_strategy = 'train_valid_test'
     else:
@@ -236,9 +469,9 @@ class RegressionPerfData(PerfData):
             nzrows = np.where(weights[:,i] != 0)[0]
             task_real_vals = np.squeeze(real_vals[nzrows,i])
             task_pred_vals = np.squeeze(pred_vals[nzrows,i])
-            scores.append(regr_score_func[score_type](task_real_vals, task_pred_vals))
+            scores.append(_safe_regression_score(score_type, task_real_vals, task_pred_vals))
 
-        self.model_score = float(np.mean(scores))
+        self.model_score = _safe_mean(scores, default=-np.inf)
         if score_type in loss_funcs:
             self.model_score = -self.model_score
         return self.model_score
@@ -287,14 +520,14 @@ class RegressionPerfData(PerfData):
             nzrows = np.where(weights[:,i] != 0)[0]
             task_real_vals = np.squeeze(real_vals[nzrows,i])
             task_pred_vals = np.squeeze(pred_vals[nzrows,i])
-            mae_scores.append(regr_score_func['mae'](task_real_vals, task_pred_vals))
-            rms_scores.append(regr_score_func['rmse'](task_real_vals, task_pred_vals))
+            mae_scores.append(_safe_regression_score('mae', task_real_vals, task_pred_vals))
+            rms_scores.append(_safe_regression_score('rmse', task_real_vals, task_pred_vals))
             response_means.append(task_real_vals.mean().tolist())
             response_stds.append(task_real_vals.std().tolist())
-        pred_results['mae_score'] = float(np.mean(mae_scores))
+        pred_results['mae_score'] = _safe_mean(mae_scores)
         if self.num_tasks > 1:
             pred_results['task_mae_scores'] = mae_scores
-        pred_results['rms_score'] = float(np.mean(rms_scores))
+        pred_results['rms_score'] = _safe_mean(rms_scores)
         if self.num_tasks > 1:
             pred_results['task_rms_scores'] = rms_scores
 
@@ -305,6 +538,24 @@ class RegressionPerfData(PerfData):
         pred_results['num_compounds'] = self.num_cmpds
         pred_results['mean_response_vals'] = response_means
         pred_results['std_response_vals'] = response_stds
+
+        task_invalid_counts = []
+        task_invalid_fracs = []
+        for i in range(self.num_tasks):
+            nzrows = np.where(weights[:,i] != 0)[0]
+            task_real_vals = np.squeeze(real_vals[nzrows,i])
+            task_pred_vals = np.squeeze(pred_vals[nzrows,i])
+            invalid_count, total_count, invalid_frac, _ = _invalid_stats(task_real_vals, task_pred_vals)
+            task_invalid_counts.append(int(invalid_count))
+            task_invalid_fracs.append(float(invalid_frac))
+
+        total_scored = int(np.sum(weights != 0))
+        total_invalid = int(np.sum(task_invalid_counts))
+        pred_results['invalid_prediction_count'] = total_invalid
+        pred_results['invalid_prediction_fraction'] = float(total_invalid / total_scored) if total_scored > 0 else 0.0
+        pred_results['invalid_prediction_threshold'] = _get_active_invalid_pred_frac_threshold()
+        pred_results['task_invalid_prediction_counts'] = task_invalid_counts
+        pred_results['task_invalid_prediction_fractions'] = task_invalid_fracs
 
         return pred_results
 
@@ -408,15 +659,15 @@ class HybridPerfData(PerfData):
         bind_real_vals = np.squeeze(real_vals[rowbind,0])
         bind_pred_vals = np.squeeze(pred_vals[rowbind,0])
         if len(rowki) > 0:
-            scores.append(regr_score_func[score_type](ki_real_vals, ki_pred_vals))
+            scores.append(_safe_regression_score(score_type, ki_real_vals, ki_pred_vals))
             if len(rowbind) > 0:
-                scores.append(regr_score_func[score_type](bind_real_vals, bind_pred_vals))
+                scores.append(_safe_regression_score(score_type, bind_real_vals, bind_pred_vals))
             else:
                 # if all values are dose response activities, use the r2_score above.
                 scores.append(scores[0])
         elif len(rowbind) > 0:
             # all values are single concentration activities.
-            scores.append(regr_score_func[score_type](bind_real_vals, bind_pred_vals))
+            scores.append(_safe_regression_score(score_type, bind_real_vals, bind_pred_vals))
             scores.append(scores[0])
 
         self.model_score = float(np.mean(scores))
@@ -476,19 +727,19 @@ class HybridPerfData(PerfData):
         bind_real_vals = np.squeeze(real_vals[rowbind,0])
         bind_pred_vals = np.squeeze(pred_vals[rowbind,0])
         if len(rowki) > 0:
-            mae_scores.append(regr_score_func['mae'](ki_real_vals, ki_pred_vals))
-            rms_scores.append(regr_score_func['rmse'](ki_real_vals, ki_pred_vals))
+            mae_scores.append(_safe_regression_score('mae', ki_real_vals, ki_pred_vals))
+            rms_scores.append(_safe_regression_score('rmse', ki_real_vals, ki_pred_vals))
             if len(rowbind) > 0:
-                mae_scores.append(regr_score_func['mae'](bind_real_vals, bind_pred_vals))
-                rms_scores.append(regr_score_func['rmse'](bind_real_vals, bind_pred_vals))
+                mae_scores.append(_safe_regression_score('mae', bind_real_vals, bind_pred_vals))
+                rms_scores.append(_safe_regression_score('rmse', bind_real_vals, bind_pred_vals))
             else:
                 # if all values are dose response activities, use the r2_score above.
                 mae_scores.append(mae_scores[0])
                 rms_scores.append(rms_scores[0])
         elif len(rowbind) > 0:
             # all values are single concentration activities.
-            mae_scores.append(regr_score_func['mae'](bind_real_vals, bind_pred_vals))
-            rms_scores.append(regr_score_func['rmse'](bind_real_vals, bind_pred_vals))
+            mae_scores.append(_safe_regression_score('mae', bind_real_vals, bind_pred_vals))
+            rms_scores.append(_safe_regression_score('rmse', bind_real_vals, bind_pred_vals))
             mae_scores.append(mae_scores[0])
             rms_scores.append(rms_scores[0])
 
@@ -497,10 +748,10 @@ class HybridPerfData(PerfData):
         response_means.append(bind_real_vals.mean().tolist())
         response_stds.append(bind_real_vals.std().tolist())
 
-        pred_results['mae_score'] = float(np.mean(mae_scores))
+        pred_results['mae_score'] = _safe_mean(mae_scores)
         if self.num_tasks > 1:
             pred_results['task_mae_scores'] = mae_scores
-        pred_results['rms_score'] = float(np.mean(rms_scores))
+        pred_results['rms_score'] = _safe_mean(rms_scores)
         if self.num_tasks > 1:
             pred_results['task_rms_scores'] = rms_scores
 
@@ -511,6 +762,20 @@ class HybridPerfData(PerfData):
         pred_results['num_compounds'] = self.num_cmpds
         pred_results['mean_response_vals'] = response_means
         pred_results['std_response_vals'] = response_stds
+
+        task_invalid_counts = []
+        task_invalid_fracs = []
+        ki_invalid_count, ki_total_count, ki_invalid_frac, _ = _invalid_stats(ki_real_vals, ki_pred_vals)
+        bind_invalid_count, bind_total_count, bind_invalid_frac, _ = _invalid_stats(bind_real_vals, bind_pred_vals)
+        task_invalid_counts.extend([int(ki_invalid_count), int(bind_invalid_count)])
+        task_invalid_fracs.extend([float(ki_invalid_frac), float(bind_invalid_frac)])
+        total_scored = int(ki_total_count + bind_total_count)
+        total_invalid = int(ki_invalid_count + bind_invalid_count)
+        pred_results['invalid_prediction_count'] = total_invalid
+        pred_results['invalid_prediction_fraction'] = float(total_invalid / total_scored) if total_scored > 0 else 0.0
+        pred_results['invalid_prediction_threshold'] = _get_active_invalid_pred_frac_threshold()
+        pred_results['task_invalid_prediction_counts'] = task_invalid_counts
+        pred_results['task_invalid_prediction_fractions'] = task_invalid_fracs
 
         return pred_results
 
@@ -628,12 +893,12 @@ class ClassificationPerfData(PerfData):
                 task_pred_vars = task_class_probs
                 task_real_vars = task_real_vals
             else:
-                task_pred_vars = pred_classes[nzrows,i]
+                task_pred_classes = pred_classes[nzrows,i]
+                task_pred_vars = _coerce_invalid_pred_classes(
+                    task_real_classes, task_pred_classes, task_class_probs, self.num_classes
+                )
                 task_real_vars = task_real_classes
-            if average_param is None:
-                scores.append(classif_score_func[score_type](task_real_vars, task_pred_vars))
-            else:
-                scores.append(classif_score_func[score_type](task_real_vars, task_pred_vars, average=average_param))
+            scores.append(_safe_classification_score(score_type, task_real_vars, task_pred_vars, average=average_param))
 
         self.model_score = float(np.mean(scores))
         if score_type in loss_funcs:
@@ -683,42 +948,56 @@ class ClassificationPerfData(PerfData):
         cross_entropies = []
         precisions = []
         recalls = []
-        if self.num_classes == 2:
-            npvs = []
+        npvs = []
         accuracies = []
         bal_accs = []
         kappas = []
         matthews_ccs = []
         confusion_matrices = []
+        task_invalid_counts = []
+        task_invalid_fracs = []
+        total_scored = 0
+        total_invalid = 0
         for i in range(self.num_tasks):
             nzrows = np.where(weights[:,i] != 0)[0]
-            task_pred_classes = pred_classes[nzrows,i]
             task_real_classes = real_classes[nzrows,i]
 
             if self.num_classes > 2:
                 # If more than 2 classes, task_real_vals is indicator matrix (one-hot encoded).
                 task_real_vals = real_vals[nzrows,i,:]
                 task_class_probs = class_probs[nzrows,i,:]
-                prc_aucs.append(average_precision_score(task_real_vals, task_class_probs, average='macro'))
-                precisions.append(float(precision_score(task_real_classes, task_pred_classes, average='macro')))
-                recalls.append(float(recall_score(task_real_classes, task_pred_classes, average='macro')))
+                invalid_count, total_count, invalid_frac, _ = _invalid_stats(task_real_vals, task_class_probs)
+                task_pred_classes = _coerce_invalid_pred_classes(
+                    task_real_classes, pred_classes[nzrows,i], task_class_probs, self.num_classes
+                )
+                prc_aucs.append(_safe_classification_score('avg_precision', task_real_vals, task_class_probs, average='macro'))
+                precisions.append(float(_safe_classification_score('precision', task_real_classes, task_pred_classes, average='macro')))
+                recalls.append(float(_safe_classification_score('recall', task_real_classes, task_pred_classes, average='macro')))
                 # NPV is not supported for multilabel classifiers, skip it
             else:
                 # sklearn metrics functions are expecting single array of 1s and 0s for task_real_vals
                 # and task_class_probs for class 1 only
                 task_real_vals = real_vals[nzrows,i]
                 task_class_probs = class_probs[nzrows,i,1]
-                prc_aucs.append(average_precision_score(task_real_vals, task_class_probs))
-                precisions.append(float(precision_score(task_real_vals, task_pred_classes, average='binary')))
-                recalls.append(float(recall_score(task_real_vals, task_pred_classes, average='binary')))
-                npvs.append(negative_predictive_value(task_real_vals, task_pred_classes))
+                invalid_count, total_count, invalid_frac, _ = _invalid_stats(task_real_vals, task_class_probs)
+                task_pred_classes = _coerce_invalid_pred_classes(
+                    task_real_classes, pred_classes[nzrows,i], task_class_probs, self.num_classes
+                )
+                prc_aucs.append(_safe_classification_score('avg_precision', task_real_vals, task_class_probs))
+                precisions.append(float(_safe_classification_score('precision', task_real_vals, task_pred_classes, average='binary')))
+                recalls.append(float(_safe_classification_score('recall', task_real_vals, task_pred_classes, average='binary')))
+                npvs.append(float(_safe_classification_score('npv', task_real_vals, task_pred_classes)))
 
-            cross_entropies.append(log_loss(task_real_vals, task_class_probs))
-            accuracies.append(accuracy_score(task_real_classes, task_pred_classes))
-            bal_accs.append(balanced_accuracy_score(task_real_classes, task_pred_classes))
-            kappas.append(float(cohen_kappa_score(task_real_classes, task_pred_classes)))
-            matthews_ccs.append(float(matthews_corrcoef(task_real_classes, task_pred_classes)))
-            confusion_matrices.append(confusion_matrix(task_real_classes, task_pred_classes).tolist())
+            cross_entropies.append(_safe_classification_score('cross_entropy', task_real_vals, task_class_probs))
+            accuracies.append(_safe_classification_score('accuracy', task_real_classes, task_pred_classes))
+            bal_accs.append(_safe_classification_score('bal_accuracy', task_real_classes, task_pred_classes))
+            kappas.append(float(_safe_classification_score('kappa', task_real_classes, task_pred_classes)))
+            matthews_ccs.append(float(_safe_classification_score('mcc', task_real_classes, task_pred_classes)))
+            confusion_matrices.append(_safe_confusion_matrix(task_real_classes, task_pred_classes, self.num_classes))
+            task_invalid_counts.append(int(invalid_count))
+            task_invalid_fracs.append(float(invalid_frac))
+            total_scored += int(total_count)
+            total_invalid += int(invalid_count)
 
         pred_results['prc_auc_score'] = float(np.mean(prc_aucs))
         if self.num_tasks > 1:
@@ -763,6 +1042,11 @@ class ClassificationPerfData(PerfData):
 
         pred_results['confusion_matrix'] = confusion_matrices
         pred_results['num_compounds'] = self.num_cmpds
+        pred_results['invalid_prediction_count'] = int(total_invalid)
+        pred_results['invalid_prediction_fraction'] = float(total_invalid / total_scored) if total_scored > 0 else 0.0
+        pred_results['invalid_prediction_threshold'] = _get_active_invalid_pred_frac_threshold()
+        pred_results['task_invalid_prediction_counts'] = task_invalid_counts
+        pred_results['task_invalid_prediction_fractions'] = task_invalid_fracs
 
         return pred_results
 
@@ -1155,13 +1439,13 @@ class KFoldClassificationPerfData(ClassificationPerfData):
                 # If more than 2 classes, real_vals is indicator matrix (one-hot encoded). 
                 task_real_vals = np.squeeze(real_vals[nzrows,i,:])
                 task_class_probs =np.squeeze(class_probs[nzrows,i,:])
-                scores.append(roc_auc_score(task_real_vals, task_class_probs, average='macro'))
+                scores.append(_safe_classification_score('roc_auc', task_real_vals, task_class_probs, average='macro'))
             else:
                 # For binary classifier, sklearn metrics functions are expecting single array of 1s and 0s for real_vals_list,
                 # and class_probs for class 1 only.
                 task_real_vals = np.squeeze(real_vals[nzrows,i])
                 task_class_probs = np.squeeze(class_probs[nzrows,i,1])
-                scores.append(roc_auc_score(task_real_vals, task_class_probs))
+                scores.append(_safe_classification_score('roc_auc', task_real_vals, task_class_probs))
         self.perf_metrics.append(np.array(scores))
         return float(np.mean(scores))
 
@@ -1370,9 +1654,9 @@ class SimpleRegressionPerfData(RegressionPerfData):
             nzrows = np.where(weights[:,i] != 0)[0]
             task_real_vals = np.squeeze(real_vals[nzrows,i])
             task_pred_vals = np.squeeze(pred_vals[nzrows,i])
-            scores.append(r2_score(task_real_vals, task_pred_vals))
+            scores.append(_safe_regression_score('r2', task_real_vals, task_pred_vals))
         self.perf_metrics.append(np.array(scores))
-        return float(np.mean(scores))
+        return _safe_mean(scores)
 
 
     # ****************************************************************************************
@@ -1591,13 +1875,13 @@ class SimpleClassificationPerfData(ClassificationPerfData):
                 task_real_vals = np.squeeze(real_vals[nzrows,i,:])
                 task_class_probs = np.squeeze(class_probs[nzrows,i,:])
 
-                scores.append(roc_auc_score(task_real_vals, task_class_probs, average='macro'))
+                scores.append(_safe_classification_score('roc_auc', task_real_vals, task_class_probs, average='macro'))
             else:
                 # For binary classifier, sklearn metrics functions are expecting single array of 1s and 0s for real_vals_list,
                 # and class_probs for class 1 only.
                 task_real_vals = np.squeeze(real_vals[nzrows,i])
                 task_class_probs = np.squeeze(class_probs[nzrows,i,1])
-                scores.append(roc_auc_score(task_real_vals, task_class_probs))
+                scores.append(_safe_classification_score('roc_auc', task_real_vals, task_class_probs))
         self.perf_metrics.append(np.array(scores))
         return float(np.mean(scores))
 
@@ -1800,19 +2084,19 @@ class SimpleHybridPerfData(HybridPerfData):
         bind_real_vals = np.squeeze(real_vals[rowbind,0])
         bind_pred_vals = np.squeeze(pred_vals[rowbind,0])
         if len(rowki) > 0:
-            scores.append(r2_score(ki_real_vals, ki_pred_vals))
+            scores.append(_safe_regression_score('r2', ki_real_vals, ki_pred_vals))
             if len(rowbind) > 0:
-                scores.append(r2_score(bind_real_vals, bind_pred_vals))
+                scores.append(_safe_regression_score('r2', bind_real_vals, bind_pred_vals))
             else:
                 # if all values are dose response activities, use the r2_score above.
                 scores.append(scores[0])
         elif len(rowbind) > 0:
             # all values are single concentration activities.
-            scores.append(r2_score(bind_real_vals, bind_pred_vals))
+            scores.append(_safe_regression_score('r2', bind_real_vals, bind_pred_vals))
             scores.append(scores[0])
 
         self.perf_metrics.append(np.array(scores))
-        return float(np.mean(scores))
+        return _safe_mean(scores)
 
     # ****************************************************************************************
     # class SimpleHybridPerfData
