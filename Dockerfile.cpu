@@ -1,12 +1,21 @@
 FROM python:3.10-slim
 
-RUN pip install uv
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir uv
+
 WORKDIR /app
 
 COPY pyproject.toml .
-COPY atomsci ./atomsci
 COPY VERSION .
+COPY uv.lock.cpu ./uv.lock
+COPY atomsci ./atomsci
 
-RUN uv sync --extra cpu
+RUN uv sync --frozen --extra cpu --group docker --no-dev
 
 CMD ["uv", "run", "python", "-c", "import atomsci; print('cpu ok')"]

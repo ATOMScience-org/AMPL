@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     git \
     curl \
-    ca-certificates
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN python3.10 -m pip install --no-cache-dir uv
 
@@ -15,8 +16,9 @@ WORKDIR /app
 
 COPY pyproject.toml .
 COPY VERSION .
+COPY uv.lock.rocm ./uv.lock
 COPY atomsci ./atomsci
 
-RUN uv sync --extra rocm --group docker --no-dev
+RUN uv sync --frozen --extra rocm --group docker --no-dev
 
 CMD ["uv", "run", "python3.10", "-c", "import atomsci; print('rocm ok')"]

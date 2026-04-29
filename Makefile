@@ -28,7 +28,7 @@ VERSION=$(shell cat VERSION)
 ifeq ($(ENV), prod)
     TAG = v$(VERSION)-$(SUBTAG)
 else
-    TAG = $(ENV)-$(PLATFORM)
+    TAG = $(ENV)-$(SUBTAG)
 endif
 
 # IMAGE REPOSITORY

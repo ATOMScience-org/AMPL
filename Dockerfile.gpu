@@ -1,13 +1,24 @@
 FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 
-RUN apt-get update && apt-get install -y python3.10 python3-pip
-RUN python3.10 -m pip install uv
+RUN apt-get update && apt-get install -y \
+    python3.10 \
+    python3-pip \
+    python3.10-venv \
+    build-essential \
+    git \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3.10 -m pip install --no-cache-dir uv
 
 WORKDIR /app
-COPY pyproject.toml .
-COPY atomsci ./atomsci
-COPY VERSION .
 
-RUN uv sync --extra cuda
+COPY pyproject.toml .
+COPY VERSION .
+COPY uv.lock.cuda ./uv.lock
+COPY atomsci ./atomsci
+
+RUN uv sync --frozen --extra cuda --group docker --no-dev
 
 CMD ["uv", "run", "python3.10", "-c", "import atomsci; print('cuda ok')"]

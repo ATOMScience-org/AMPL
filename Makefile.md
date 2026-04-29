@@ -39,6 +39,24 @@ This Makefile is designed to manage Jupyter environments, Docker images, and the
   - `make save-docker`: Save the Docker image to a tarball (`ampl-$(PLATFORM)-$(ENV).tar.gz`).
   - `make build-docker`: Build the Docker image for the specified platform and environment.
 
+***Note:***
+
+Usage for docker build:
+
+```
+make build-docker PLATFORM=<variant> ARCH=<docker-platform> ENV=<env>
+```
+
+Examples:
+
+```
+make build-docker PLATFORM=cpu ARCH=linux/amd64 ENV=prod
+make build-docker PLATFORM=gpu ARCH=linux/amd64 ENV=prod
+make build-docker PLATFORM=rocm ARCH=linux/amd64 ENV=prod
+make build-docker PLATFORM=rocm ARCH=linux/amd64 ENV=prod
+make build-docker PLATFORM=cpu ARCH=linux/arm64 ENV=prod
+```
+
 - **Jupyter Notebook and Lab:**
 
   - `make jupyter-notebook`: Start a Jupyter Notebook server.

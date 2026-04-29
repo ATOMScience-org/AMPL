@@ -1,4 +1,5 @@
-FROM --platform=linux/arm64 python:3.10-slim
+#  This applies to mchip on arm64
+FROM python:3.10-slim
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -13,8 +14,9 @@ WORKDIR /app
 
 COPY pyproject.toml .
 COPY VERSION .
+COPY uv.lock.mchip ./uv.lock
 COPY atomsci ./atomsci
 
-RUN uv sync --extra mchip --group docker --no-dev
+RUN uv sync --frozen --extra mchip --group docker --no-dev
 
 CMD ["uv", "run", "python", "-c", "import atomsci; print('arm64/mchip-style ok')"]
