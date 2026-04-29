@@ -6,17 +6,24 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     ca-certificates \
+    libxrender1 \
+    libxext6 \
+    libsm6 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir uv
 
 WORKDIR /app
 
-COPY pyproject.toml .
-COPY VERSION .
+COPY pyproject.toml VERSION README.md LICENSE build.sh install.sh ./
 COPY uv.lock.mchip ./uv.lock
 COPY atomsci ./atomsci
 
-RUN uv sync --frozen --extra mchip --group docker --no-dev
+RUN uv sync --frozen --extra mchip --group docker --group dev
+ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["uv", "run", "python", "-c", "import atomsci; print('arm64/mchip-style ok')"]
+# Install atomsci-ampl
+RUN ./build.sh
+RUN ./install.sh
+
+CMD ["uv", "run", "python", "-c", "import atomsci.ddm; print('arm64/mchip-style ok')"]

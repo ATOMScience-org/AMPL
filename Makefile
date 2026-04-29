@@ -58,9 +58,24 @@ load-docker:
 pull-docker:
 	docker pull $(IMAGE_REPO):$(TAG)
 
-# Push Docker image
+# Push Docker image.
+# if cpu, also set those as default tags. like atomsci/atomsci-ampl:vx.x.x, atomsci/atomsci-ampl:latest
 push-docker:
-	docker buildx build --no-cache -t $(IMAGE_REPO):$(TAG) -t $(IMAGE_REPO):latest-$(SUBTAG) --build-arg ENV=$(ENV) $(PLATFORM_ARG) --push -f Dockerfile.$(PLATFORM) .
+ifeq ($(PLATFORM),cpu)
+	docker buildx build --no-cache \
+		-t $(IMAGE_REPO):$(TAG) \
+		-t $(IMAGE_REPO):v$(VERSION) \
+		-t $(IMAGE_REPO):latest \
+		-t $(IMAGE_REPO):latest-$(SUBTAG) \
+		--build-arg ENV=$(ENV) $(PLATFORM_ARG) --push \
+		-f Dockerfile.$(PLATFORM) .
+else
+	docker buildx build --no-cache \
+		-t $(IMAGE_REPO):$(TAG) \
+		-t $(IMAGE_REPO):latest-$(SUBTAG) \
+		--build-arg ENV=$(ENV) $(PLATFORM_ARG) --push \
+		-f Dockerfile.$(PLATFORM) .
+endif
 
 # Save Docker image
 save-docker:

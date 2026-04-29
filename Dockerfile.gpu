@@ -8,17 +8,24 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     ca-certificates \
+    libxrender1 \
+    libxext6 \
+    libsm6 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3.10 -m pip install --no-cache-dir uv
 
 WORKDIR /app
 
-COPY pyproject.toml .
-COPY VERSION .
+COPY pyproject.toml VERSION README.md LICENSE build.sh install.sh ./
 COPY uv.lock.cuda ./uv.lock
 COPY atomsci ./atomsci
 
-RUN uv sync --frozen --extra cuda --group docker --no-dev
+RUN uv sync --frozen --extra cuda --group docker --group dev
+ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["uv", "run", "python3.10", "-c", "import atomsci; print('cuda ok')"]
+# Install atomsci-ampl
+RUN ./build.sh
+RUN ./install.sh
+
+CMD ["uv", "run", "python", "-c", "import atomsci.ddm; print('cuda ok')"]
