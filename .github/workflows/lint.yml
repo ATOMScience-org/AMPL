@@ -54,5 +54,5 @@ jobs:
         run: |
           # Check all lint rules
           . .venv/bin/activate
-          uv run ruff check atomsci/
+          ruff check atomsci/
 
