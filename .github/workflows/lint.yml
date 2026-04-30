@@ -45,10 +45,9 @@ jobs:
         run: |
           uv venv .venv
 
-      - name: Install dependencies
+      - name: Install ruff
         run: |
           . .venv/bin/activate
-          if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
           uv pip install ruff
 
       - name: Lint with ruff
