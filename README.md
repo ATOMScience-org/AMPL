@@ -293,6 +293,10 @@ python -m ipykernel install --user --name atomsci-env
 - Create a workspace folder to mount with Docker environment and transfer files.
 - Get the Docker image and run it. Since 1.6.3, there are some changes with the AMPL Docker.
 
+The AMPL Docker image is available on Docker Hub:
+
+[https://hub.docker.com/r/atomsci/atomsci-ampl](https://hub.docker.com/r/atomsci/atomsci-ampl)
+
 To retrieve, run version 1.6.2 or earlier, please specify the desired version tag:
   ```
   docker pull atomsci/atomsci-ampl:v1.6.2

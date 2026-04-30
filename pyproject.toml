@@ -117,6 +117,7 @@ pattern = "(?P<version>\\d+\\.\\d+\\.\\d+.*)"
 [tool.hatch.build.targets.wheel]
 packages = ["atomsci"]
 exclude = [
+  "uv.lock*",
   "atomsci/ddm/examples/archive/**",        # old tutorials
   "atomsci/ddm/test/test_datasets/**",      # test datasets
   "**/*.tar.gz",
@@ -126,6 +127,7 @@ exclude = [
 
 [tool.hatch.build.targets.sdist]
 exclude = [
+  "uv.lock*",
   "atomsci/ddm/examples/archive/**",        # old tutorials
   "atomsci/ddm/test/test_datasets/**",      # test datasets
   "**/*.tar.gz",
