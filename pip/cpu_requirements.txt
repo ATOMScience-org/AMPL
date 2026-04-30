@@ -20,7 +20,7 @@
 # =============================
 
 # PyTorch CPU; Python 3.10 compatible; aligned with DGL torch-2.1 wheels
-torch==2.1.2+cpu
+torch==2.7.1+cpu
 torchdata==0.7.1
 
 # Lightning; pin to a recent stable series to avoid breaking changes
