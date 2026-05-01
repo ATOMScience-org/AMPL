@@ -1,12 +1,28 @@
 FROM python:3.10-slim
 
-RUN pip install uv
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    curl \
+    ca-certificates \
+    libxrender1 \
+    libxext6 \
+    libsm6 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir uv
+
 WORKDIR /app
 
-COPY pyproject.toml .
+COPY pyproject.toml VERSION README.md LICENSE build.sh install.sh ./
+COPY uv.lock.cpu ./uv.lock
 COPY atomsci ./atomsci
-COPY VERSION .
 
-RUN uv sync --extra cpu
+RUN uv sync --frozen --extra cpu --group docker --group dev
+ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["uv", "run", "python", "-c", "import atomsci; print('cpu ok')"]
+# Install atomsci-ampl
+RUN ./build.sh
+RUN ./install.sh
+
+CMD ["uv", "run", "python", "-c", "import atomsci.ddm; print('cpu ok')"]

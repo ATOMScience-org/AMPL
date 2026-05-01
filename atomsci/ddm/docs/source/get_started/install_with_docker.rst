@@ -6,7 +6,7 @@ This page provides an option to use Docker to install `AMPL <https://github.com/
 
 To install `AMPL <https://github.com/ATOMScience-org/AMPL>`_ software using Docker, the major steps are:
 
-* :ref:`Create Docker`
+* :ref:`Create or download a Docker`
 * :ref:`Start container`
 * :ref:`Start Jupyter notebook`
 
@@ -29,7 +29,7 @@ You can either pull a prebuilt `AMPL <https://github.com/ATOMScience-org/AMPL>`_
 Option 1: Pull a Prebuilt AMPL Image from Docker Repo
 =====================================================
 
-The simplest method is to download a prebuilt Docker image from DockerHub. For every official `AMPL <https://github.com/ATOMScience-org/AMPL>`_ release, a docker image will be pushed to its `Docker Hub <https://hub.docker.com/r/atomsci/atomsci-ampl>`_. 
+The simplest method is to download a prebuilt Docker image from DockerHub. For every official `AMPL <https://github.com/ATOMScience-org/AMPL>`_ release, a docker image will be pushed to its `Docker Hub <https://hub.docker.com/r/atomsci/atomsci-ampl>`_.
 
 To pull a prebuilt `AMPL <https://github.com/ATOMScience-org/AMPL>`_ image, the method varies based on its version.
 
@@ -39,11 +39,11 @@ For a pre-1.6.3 release:
 
    docker pull atomsci/atomsci-ampl:v1.6.2   # Specify a version to pull, ie, v1.6.2.
 
-For 1.6.3 and later, you can download the latest images for various platforms (CPU, GPU, or Linux/ARM64), an example: 
+For 1.6.3 and later, you can download the latest images for various platforms (CPU, GPU, or Linux/ARM64), an example:
 
 .. code-block::
 
-   docker pull atomsci/atomsci-ampl:latest-cpu   # Specify the latest image built for a platform (use those for tags 'cpu', 'gpu', or 'arm') 
+   docker pull atomsci/atomsci-ampl:latest-cpu   # Specify the latest image built for a platform (use those for tags 'cpu', 'gpu', or 'arm')
 
 After that, please follow the instruction from the ":ref:`Start container`" step.
 
@@ -60,7 +60,7 @@ First clone `AMPL <https://github.com/ATOMScience-org/AMPL>`_  github repo, then
 
 .. code-block::
 
-   git clone https://github.com/ATOMScience-org/AMPL.git  
+   git clone https://github.com/ATOMScience-org/AMPL.git
    ### The following line is _optional_. If you want to check out a development branch instead of the default branch (master).
    git checkout 1.6.3                    # (optional) checkout a dev branch, 1.6.3 for example
    cd AMPL
@@ -82,7 +82,7 @@ This normally takes about 15-20 minutes to build. Once it's built on your machin
 Run a Docker Container
 **********************
 
-To see what images are running on your machine, type "docker images". 
+To see what images are running on your machine, type "docker images".
 
 
 .. image:: ../_static/img/install_with_docker_files/docker_run.png
@@ -93,13 +93,13 @@ Use "docker run ... `<IMAGE>`" command to start the container. The command synta
 
    docker run -it -p <port>:<port> -v <local_folder>:<directory_in_docker> <IMAGE> bash
 
-Use the following example to start the container. For images created or downloaded from version 1.6.3 or later, append 'bash' to the end of the docker run command to open a bash session. By default, the container starts with a Python interpreter session. 
+Use the following example to start the container. For images created or downloaded from version 1.6.3 or later, append 'bash' to the end of the docker run command to open a bash session. By default, the container starts with a Python interpreter session.
 
 .. code-block::
 
     docker run -it -p 8888:8888 -v ${PWD}:/home atomsci/atomsci-ampl:latest-cpu bash   # replace with your <IMAGE>:<TAG>
 
-To get more info for the "docker run" command options, type "docker run --help": 
+To get more info for the "docker run" command options, type "docker run --help":
 
 .. code-block::
 
@@ -135,10 +135,10 @@ Copy and paste the URL from the output message (highlighted in yellow from above
 .. note::
 
     *If this doesn't work, exit the container and choose a different port
-    such as "7777" or "8899" (in all 3 places it's 
-    written), then rerun both commands in "Start a Docker container" and 
-    "Start the Jupyter notebook from a container". 
-    Be sure to save any work in your container. See instructions on how to "Save work from Docker Jupyter".*  
+    such as "7777" or "8899" (in all 3 places it's
+    written), then rerun both commands in "Start a Docker container" and
+    "Start the Jupyter notebook from a container".
+    Be sure to save any work in your container. See instructions on how to "Save work from Docker Jupyter".*
 
 Once connected, you will see a screen like this:
 
