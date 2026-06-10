@@ -7,7 +7,7 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 dependencies = [
-  "lightning==2.2.5",
+  "lightning==2.3.3",
   "pydantic>=1.10,<2",
   "numpy<2",
   "scipy>=1.10",
