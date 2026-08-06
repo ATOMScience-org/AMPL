@@ -27,7 +27,8 @@ torchdata==0.7.1
 lightning>=2.2,<2.7
 
 # TensorFlow CPU; compatible with DeepChem 2.8
-tensorflow-cpu~=2.14.0
+tensorflow~=2.14.0
+=======
 
 
 # ==========================
