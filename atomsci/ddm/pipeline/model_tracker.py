@@ -48,7 +48,7 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
     """
     
     if pipeline is None:
-        raise Exception('pipeline cannot be None.')
+        raise ValueError('pipeline cannot be None.')
 
     if not mlmt_supported:
         logger.error("Model tracker not supported in your environment; can save models in filesystem only.")
@@ -205,9 +205,8 @@ def get_model_collection_by_uuid(model_uuid, mlmt_client=None):
 
     collections = mlmt_client.collections.get_collection_names().result()
     for col in collections:
-        if not col.startswith('old_'):
-            if mlmt_client.count_models(collection_name=col, model_uuid=model_uuid) > 0:
-                return col
+        if not col.startswith('old_') and mlmt_client.count_models(collection_name=col, model_uuid=model_uuid) > 0:
+            return col
 
     raise ValueError('Collection not found for uuid: ' + model_uuid)
 
@@ -291,25 +290,23 @@ def extract_datastore_model_tarball(model_uuid, model_bucket, output_dir, model_
 
     # Download the tarball to a temporary file so we can analyze it and extract its contents. Unfortunately the tarfile
     # module prevents us from using the datastore client stream directly because it requires that the stream be seekable.
-    tarfile_fp = tempfile.NamedTemporaryFile(suffix='.tar.gz', delete=False)
-    tarfile_path = tarfile_fp.name
-    with ds_client.open_bucket_dataset(model_bucket, model_dataset_key, mode='b') as dstore_fp:
-        for chunk in dstore_fp:
-            if chunk:
-                tarfile_fp.write(chunk)
-    tarfile_fp.close()
+    with tempfile.NamedTemporaryFile(suffix='.tar.gz', delete=False) as tarfile_fp:
+        tarfile_path = tarfile_fp.name
+        with ds_client.open_bucket_dataset(model_bucket, model_dataset_key, mode='b') as dstore_fp:
+            for chunk in dstore_fp:
+                if chunk:
+                    tarfile_fp.write(chunk)
 
     # Look at the tarball contents and figure out which format it's in. If it already has the metadata.json
     # and transformers, extract it into output_dir; otherwise into model_dir.
-    with open(tarfile_path, 'rb') as tarfile_fp:
-        with tarfile.open(fileobj=tarfile_fp, mode='r:gz') as tfile:
-            tar_contents = tfile.getnames()
-            if './model_metadata.json' in tar_contents:
-                extract_dir = output_dir
-            else:
-                extract_dir = model_dir
-            os.makedirs(extract_dir, exist_ok=True)
-            futils.safe_extract(tfile, path=extract_dir)
+    with open(tarfile_path, 'rb') as tarfile_fp, tarfile.open(fileobj=tarfile_fp, mode='r:gz') as tfile:
+        tar_contents = tfile.getnames()
+        if './model_metadata.json' in tar_contents:
+            extract_dir = output_dir
+        else:
+            extract_dir = model_dir
+        os.makedirs(extract_dir, exist_ok=True)
+        futils.safe_extract(tfile, path=extract_dir)
 
     os.remove(tarfile_path)
     logger.info(f"Extracted model tarball contents to {extract_dir}")
@@ -352,7 +349,7 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
     if 'model_parameters' in metadata_dict:
         model_parameters = metadata_dict['model_parameters']
     else:
-        raise Exception(f"Bad metadata for model UUID {model_uuid}")
+        raise ValueError(f"Bad metadata for model UUID {model_uuid}")
 
 
     model_params = parse.wrapper(metadata_dict)
@@ -383,13 +380,11 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
                     transformer_key = f'transformers_{model_uuid}.pkl'
                 else:
                     transformer_key = model_params.transformer_key
-                trans_fp = ds_client.open_bucket_dataset(model_params.transformer_bucket, transformer_key, mode='b')
-                trans_data = trans_fp.read()
-                trans_fp.close()
+                with ds_client.open_bucket_dataset(model_params.transformer_bucket, transformer_key, mode='b') as trans_fp:
+                    trans_data = trans_fp.read()
                 trans_path = f"{output_dir}/transformers.pkl"
-                trans_out = open(trans_path, mode='wb')
-                trans_out.write(trans_data)
-                trans_out.close()
+                with open(trans_path, mode='wb') as trans_out:
+                    trans_out.write(trans_data)
                 del model_parameters['transformer_oid']
                 model_parameters['transformer_key'] = 'transformers.pkl'
         
@@ -414,9 +409,8 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
 
     # Create a new tarball containing both the metadata and the parameters from the retrieved model tarball
     new_tarpath = f"{output_dir}.tar.gz"
-    tarball = tarfile.open(new_tarpath, mode='w:gz')
-    tarball.add(output_dir, arcname='.')
-    tarball.close()
+    with tarfile.open(new_tarpath, mode='w:gz') as tarball:
+        tarball.add(output_dir, arcname='.')
     logger.info(f"Wrote model files to {new_tarpath}")
 
 
