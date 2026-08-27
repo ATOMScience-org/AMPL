@@ -53,11 +53,11 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     log = logging.getLogger('ATOM')
     num_cmpds = dataset.X.shape[0]
     if num_cmpds > 50000:
-        log.warning("Dataset has %d compounds, too big to calculate distance matrix" % num_cmpds)
+        log.warning(f"Dataset has {num_cmpds} compounds, too big to calculate distance matrix")
         return
-    log.warning("Starting distance matrix calculation for %d compounds" % num_cmpds)
+    log.warning(f"Starting distance matrix calculation for {num_cmpds} compounds")
     dists = cd.calc_dist_diskdataset(feat_type, dist_metric, dataset, calc_type='all', **metric_kwargs)
-    log.warning("Finished calculation of %d distances" % len(dists))
+    log.warning(f"Finished calculation of {len(dists)} distances")
     if len(dists) > ndist_max:
         # Sample a subset of the distances so KDE doesn't take so long
         dist_sample = np.random.choice(dists, size=ndist_max)
@@ -113,7 +113,7 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset',
     # TODO: Make max compounds a parameter, rather than hardcoding to 50000. Better yet, calculate a sample
     # of distances of size ndist_max for each non-reference subset, and plot KDEs based on the samples.
     if num_cmpds > 50000:
-        log.warning("Dataset has %d compounds, too big to calculate distance matrix" % num_cmpds)
+        log.warning(f"Dataset has {num_cmpds} compounds, too big to calculate distance matrix")
         return
 
     if subsets and subset_col not in df.columns:
@@ -210,11 +210,11 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
     if is_base_smiles:
         base_mols = np.array([Chem.MolFromSmiles(s) for s in smiles_strs])
     else:
-        print("Canonicalizing %d molecules..." % ncmpds)
+        print(f"Canonicalizing {ncmpds} molecules...")
         base_mols = np.array([struct_utils.base_mol_from_smiles(smiles) for smiles in smiles_strs])
         for i, mol in enumerate(base_mols):
             if mol is None:
-                print('Unable to get base molecule for compound %d = %s' % (i, compound_ids[i]))
+                print(f'Unable to get base molecule for compound {i} = {compound_ids[i]}')
         print("Done")
 
     has_good_smiles = np.array([mol is not None for mol in base_mols])
@@ -271,11 +271,11 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
             for k in range(10):
                 mol_i = base_mols[dist_df.i.values[k]]
                 mol_j = base_mols[dist_df.j.values[k]]
-                img_file_i = '%s/%d_%s.png' % (out_dir, k, compound_ids[dist_df.i.values[k]])
-                img_file_j = '%s/%d_%s.png' % (out_dir, k, compound_ids[dist_df.j.values[k]])
+                img_file_i = f'{out_dir}/{k}_{compound_ids[dist_df.i.values[k]]}.png'
+                img_file_j = f'{out_dir}/{k}_{compound_ids[dist_df.j.values[k]]}.png'
                 Draw.MolToFile(mol_i, img_file_i, size=(500,500), fitImage=False)
                 Draw.MolToFile(mol_j, img_file_j, size=(500,500), fitImage=False)
-    
+
         mcs_linkage = linkage(mcs_dist, method='complete')
         mcs_df = pd.DataFrame(mcs_dist, columns=compound_ids, index=compound_ids)
         if out_dir is not None:
@@ -285,7 +285,7 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
         if out_dir is not None:
             pdf.savefig(g.fig)
             pdf.close()
-    
+
         # Draw a UMAP projection based on MCS distance
         mapper = umap.UMAP(n_neighbors=20, min_dist=0.1, n_components=2, metric='precomputed', random_state=17)
         reps = mapper.fit_transform(mcs_dist)
