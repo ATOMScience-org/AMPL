@@ -98,16 +98,16 @@ def check_task_columns(params, dset_df):
         dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks
 
     Raises:
-        Exception:
+        ValueError:
             If response columns not set in params.
             If input dataset is missing response columns
 
     """
     if params.response_cols is None:
-        raise Exception("Unable to determine prediction tasks for dataset")
+        raise ValueError("Unable to determine prediction tasks for dataset")
     missing_tasks = list(set(params.response_cols) - set(dset_df.columns.values))
     if len(missing_tasks) > 0:
-        raise Exception(f"Requested prediction task columns {missing_tasks} are missing from training dataset")
+        raise ValueError(f"Requested prediction task columns {missing_tasks} are missing from training dataset")
 
 
 # ****************************************************************************************
@@ -207,19 +207,19 @@ def create_split_dataset_from_metadata(model_metadata, ds_client, save_file=Fals
                                                           bucket=bucket)
         split_oid = split_metadata['dataset_oid'].values[0]
         split_df = dsf.retrieve_dataset_by_dataset_oid(split_oid, client=ds_client)
-    except Exception as e:
+    except (KeyError, IndexError, ValueError) as e:
         print(f"Error when loading split file:\n{e!s}")
         return None
     try:
         dataset_df = dsf.retrieve_dataset_by_datasetkey(dset_key, bucket, client=ds_client)
-    except Exception as e:
+    except (KeyError, ValueError) as e:
         print(f"Error when loading dataset:\n{e!s}")
         return None
     try:
         #TODO Need to investigate why these are not the same length
         #print(len(set(dataset_df['compound_id'].values.tolist()) - set(split_df['cmpd_id'].values.tolist())))
         joined_dataset = dataset_df.merge(split_df, how='inner', left_on='compound_id', right_on='cmpd_id').drop('cmpd_id', axis=1)
-    except Exception as e:
+    except (KeyError, ValueError) as e:
         print(f"Error when joining dataset with split dataset:\n{e!s}")
         return None
     if save_file:
@@ -355,7 +355,7 @@ class ModelDataset:
             self.featurization = featurization
 
         if self.params.previously_split and self.params.split_uuid is None:
-            raise Exception(
+            raise ValueError(
                     f"previously_split is set to True but no split_uuid provided for dataset {self.dataset_name}")
         if not self.params.previously_split and self.params.split_uuid is not None:
             self.log.info("previously_split is set False; ignoring split_uuid passed as parameter")
@@ -443,7 +443,7 @@ class ModelDataset:
                 return
             except AssertionError:
                 raise
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 self.log.debug(f"Exception when trying to load featurized data:\n{e!s}")
                 self.log.info(f"Featurized dataset not previously saved for dataset {self.dataset_name}, creating new")
         else:
@@ -466,7 +466,7 @@ class ModelDataset:
         self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
         if len(self.dataset) < params.min_compound_number:
-            self.log.info("Dataset of length %i is shorter than the recommended length %i" % (len(self.dataset), params.min_compound_number))
+            self.log.info(f"Dataset of length {len(self.dataset)} is shorter than the recommended length {params.min_compound_number}")
 
     # ****************************************************************************************
     def get_dataset_tasks(self, dset_df):
@@ -515,7 +515,7 @@ class ModelDataset:
         self.train_valid_dsets, self.test_dset, self.train_valid_attr, self.test_attr = \
             self.splitting.split_dataset(self.dataset, self.attr, self.params.smiles_col)
         if self.train_valid_dsets is None:
-            raise Exception(f"Dataset {self.dataset_name} did not split properly")
+            raise ValueError(f"Dataset {self.dataset_name} did not split properly")
         if self.params.prediction_type == 'classification':
             self._validate_classification_dataset()
 
@@ -657,7 +657,7 @@ class ModelDataset:
 
         try:
             split_df, split_kv = self.load_dataset_split_table(directory)
-        except Exception as e:
+        except (OSError, ValueError) as e:
             self.log.error(f"Error when loading dataset split table:\n{e!s}")
             sys.exit(1)
 
@@ -667,8 +667,7 @@ class ModelDataset:
         # Override the splitting-related model parameters, if they differ from the ones stored with the split table
         if split_kv is not None:
             for param in split.split_params:
-                if param in split_kv:
-                    if self.params.__dict__[param] != split_kv[param]:
+                if param in split_kv and self.params.__dict__[param] != split_kv[param]:
                         self.log.warning(f"Warning: {param} = {split_kv[param]!s} in split table, {self.params.__dict__[param]!s} in model params; using split table value.")
                         self.params.__dict__[param] = split_kv[param]
 
@@ -1055,9 +1054,9 @@ class DatastoreDataset(ModelDataset):
         self.dataset_oid = dataset_metadata['dataset_oid']
 
         if dset_df is None:
-            raise Exception(f"Failed to load dataset {self.dataset_key}")
+            raise ValueError(f"Failed to load dataset {self.dataset_key}")
         if dset_df.empty:
-            raise Exception(f"Dataset {self.dataset_key} is empty")
+            raise ValueError(f"Dataset {self.dataset_key} is empty")
         return dset_df
 
     # ****************************************************************************************
@@ -1084,16 +1083,16 @@ class DatastoreDataset(ModelDataset):
             # If not specified by user, get tasks from dataset info
             try:
                 dataset_info = self.ds_client.ds_datasets.get_bucket_dataset(bucket_name=self.params.bucket,
-                                                                             dataset_key=self.dataset_key).result()
+                                                                                dataset_key=self.dataset_key).result()
                 keyval_dict = key_value_list_to_dict(dataset_info['metadata'])
                 task_name = keyval_dict['task_name']
                 self.tasks = [task_name]
                 return True
-            except Exception:
+            except (KeyError, ValueError, AttributeError):
                 # Try to guess tasks from data frame columns, assuming that tasks are anything that doesn't look
                 # like a compound ID, SMILES string, other compound identifier, or feature
                 non_task_cols = {'compound_id', 'rdkit_smiles', self.params.id_col, self.params.smiles_col, 'inchi_key',
-                                 'inchi_string', 'smiles', 'smiles_out', 'lost_frags'} | set(
+                                  'inchi_string', 'smiles', 'smiles_out', 'lost_frags'} | set(
                     self.featurization.get_feature_columns())
                 self.tasks = sorted(set(dset_df.columns.values) - non_task_cols)
         if self.tasks is None or not self.tasks:
@@ -1327,20 +1326,20 @@ class FileDataset(ModelDataset):
         """
         dataset_path = self.params.dataset_key
         if not os.path.exists(dataset_path):
-            raise Exception(f"Dataset file {dataset_path} does not exist")
+            raise FileNotFoundError(f"Dataset file {dataset_path} does not exist")
         if dataset_path.endswith('.feather'):
             if not feather_supported:
-                raise Exception("feather package not installed in current environment")
+                raise ImportError("feather package not installed in current environment")
             dset_df = feather.read_dataframe(dataset_path)
         elif dataset_path.endswith('.csv'):
             dset_df = pd.read_csv(dataset_path, index_col=False)
         else:
-            raise Exception(f'Dataset {dataset_path} is not a recognized format (csv or feather)')
+            raise ValueError(f'Dataset {dataset_path} is not a recognized format (csv or feather)')
 
         if dset_df is None:
-            raise Exception(f"Failed to load dataset {dataset_path}")
+            raise ValueError(f"Failed to load dataset {dataset_path}")
         if dset_df.empty:
-            raise Exception(f"Dataset {dataset_path} is empty")
+            raise ValueError(f"Dataset {dataset_path} is empty")
         dset_df[self.params.id_col] = dset_df[self.params.id_col].astype(str)
         return dset_df
 
@@ -1523,7 +1522,7 @@ class EmbeddingDataset:
 
             except AssertionError:
                 raise
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 self.log.debug(f"Exception when trying to load featurized data:\n{e!s}")
                 self.log.info(f"Featurized dataset not previously saved for dataset {self.input_dataset.dataset_name}, creating new")
 
@@ -1556,7 +1555,7 @@ class EmbeddingDataset:
         self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
         if len(self.dataset) < params.min_compound_number:
-            self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), params.min_compound_number))
+            self.log.warning(f"Dataset of length {len(self.dataset)} is shorter than the required length {params.min_compound_number}")
 
 
     # ****************************************************************************************

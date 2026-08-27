@@ -222,7 +222,7 @@ def plot_hyper_perf(df, scoretype='r2_score', subset='valid', model_type='genera
         for feat in feats:
             try:
                 perf_track_df[feat]=perf_track_df[feat].round(3)
-            except Exception:
+            except (KeyError, TypeError, ValueError):
                 continue
                 
     fig, ax = plt.subplots(nrows,ncols,figsize=(ncols*4,nrows*4))
@@ -230,7 +230,7 @@ def plot_hyper_perf(df, scoretype='r2_score', subset='valid', model_type='genera
     for i, feat in enumerate(feats):
         try:
             rot,start=helix_dict[model_type]
-        except Exception:
+        except KeyError:
             rot,start=(-0.2,0)
         if feat in perf_track_df.columns:    
             if perf_track_df[feat].nunique()>12:
@@ -326,7 +326,7 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
             for i,bin in enumerate(bins):
                 try:
                     binstrings.append(f'({bin}, {bins[i+1]}]')
-                except Exception:
+                except IndexError:
                     pass
             nncmap=dict(zip(plot_df[f'{feat}_cut'].dtype.categories.tolist(),binstrings))
             plot_df[f'{feat}_cut']=plot_df[f'{feat}_cut'].map(nncmap)
