@@ -23,7 +23,7 @@ def predict_activity(args):
     input_df = pd.read_csv(args.input_file, index_col=False)
     colnames = set(input_df.columns.values)
     if args.id_col not in colnames:
-        input_df['compound_id'] = ['compound_%.6d' % i for i in range(input_df.shape[0])]
+        input_df['compound_id'] = [f'compound_{i:06d}' for i in range(input_df.shape[0])]
         args.id_col = 'compound_id'
     if args.smiles_col not in colnames:
         raise ValueError('smiles_col parameter not specified or column not in input file.')
@@ -67,7 +67,7 @@ def predict_activity(args):
         mcc = metrics.matthews_corrcoef(actual_vals, pred_classes)
         ncorrect = sum(actual_vals == pred_classes)
         print("Performance metrics:\n")
-        print("%d out of %d predictions correct." % (ncorrect, pred_df.shape[0]))
+        print(f"{ncorrect} out of {pred_df.shape[0]} predictions correct.")
         print(f"Accuracy: {accuracy:.3f}")
         print(f"Precision: {precision:.3f}")
         print(f"Recall: {recall:.3f}")
@@ -78,8 +78,8 @@ def predict_activity(args):
         print("Confusion matrix:")
         print("\t\tpredicted activity")
         print("actual\nactivity\t0\t1\n")
-        print("   0\t\t%d\t%d" % (conf_matrix[0][0], conf_matrix[0][1]))
-        print("   1\t\t%d\t%d" % (conf_matrix[1][0], conf_matrix[1][1]))
+        print(f"   0\t\t{conf_matrix[0][0]}\t{conf_matrix[0][1]}")
+        print(f"   1\t\t{conf_matrix[1][0]}\t{conf_matrix[1][1]}")
 
 
 
