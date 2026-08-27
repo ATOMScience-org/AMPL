@@ -31,5 +31,5 @@ exclude = [
 ]
 extend-exclude = ["*.ipynb"]
 
-[tool.ruff.lint]
+[lint]
 ignore = ["N999"]
