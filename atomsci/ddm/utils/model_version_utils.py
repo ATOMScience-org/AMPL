@@ -62,8 +62,8 @@ def get_ampl_version_from_dir(dirname):
         try:
             version = get_ampl_version_from_model(path.absolute())
             versions.append(f'{path.absolute()}, {version}')
-        except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
-            logger.exception(f"Exception message: {e}")
+        except (json.decoder.JSONDecodeError, FileNotFoundError):
+            logger.exception("Failed to get AMPL version from model")
             
     return '\n'.join(versions)
 
@@ -138,10 +138,8 @@ def check_version_compatible(input, ignore_check=False):
     match = (comp_dict.get(ampl_version, ampl_version)==comp_dict.get(model_ampl_version, model_ampl_version))
     
     # raise an exception if not match and we don't want to ignore
-    if not match:
-        if not ignore_check:
-            my_error = ValueError(f'Version compatible check: {input} version: "{model_ampl_version}" not matching AMPL compatible version group: "{ampl_version}"')
-            raise my_error
+    if not match and not ignore_check:
+        raise ValueError(f'Version compatible check: {input} version: "{model_ampl_version}" not matching AMPL compatible version group: "{ampl_version}"')
     return match
 
 #----------------

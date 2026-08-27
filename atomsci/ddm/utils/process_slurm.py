@@ -4,7 +4,7 @@ import socket
 import subprocess
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from os import listdir
 from os.path import isfile, join
 
@@ -25,7 +25,7 @@ def run_command(shell_script, python_path, script_dir, params_str):
     i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
     print(i)
     while i >= 85:
-        print("%d jobs in queue, sleeping" % i)
+        print(f"{i} jobs in queue, sleeping")
         time.sleep(60)
         i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
     print(slurm_command)
@@ -50,7 +50,7 @@ def move_failed_slurm(output_dirs):
                             shutil.move(os.path.join(output_dir, filename), os.path.join(failed_output_dir, filename))
                         else:
                             shutil.move(os.path.join(output_dir, filename), os.path.join(canceled_output_dir, filename))
-                except Exception as e:
+                except (OSError, ValueError, IndexError) as e:
                     print(e)
                     print(filename)
 
@@ -71,7 +71,7 @@ def rerun_failed(script_dir, python_path, output_dirs, result_dir):
                 try:
                     if 'Successfully inserted into the database' not in lines[-2]:
                         run_command(shell_script, python_path, script_dir, lines[0])
-                except Exception as e:
+                except (OSError, ValueError, IndexError) as e:
                     print(e)
                     print(filename)
 
@@ -93,7 +93,7 @@ def get_timings(output_dirs):
                     try:
                         tmp_dict = parse.wrapper(lines[0].split(' ')).__dict__
                         tmp_dict.update({'run_time': int(run_time), 'num_samples': int(num_samples), 'slurm_file': os.path.join(output_dir, filename)})
-                    except Exception as e:
+                    except (OSError, ValueError, IndexError) as e:
                         print(lines[0])
                         print(e)
                         continue
@@ -102,7 +102,7 @@ def get_timings(output_dirs):
                     print(f'{filename} did not work')
                     print(lines[-2])
     df = pd.DataFrame(output_stats)
-    df.to_csv(os.path.join('/p/lustre1/minnich2/', 'timing_results_{}.csv'.format(datetime.now().strftime("%Y%m%d-%H%M%S"))), index=False)
+    df.to_csv(f'timing_results_{datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")}.csv', index=False)
 
 def main():
     if sys.argv[1] == 'get_timings':

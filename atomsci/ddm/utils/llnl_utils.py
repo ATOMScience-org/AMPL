@@ -73,6 +73,6 @@ def throttle_jobs(max_jobs, retry_time=10, my_username=None, verbose=True):
     njobs = int(get_command_output(command)) - 1
     while njobs >= max_jobs:
         if verbose:
-            print("%d jobs in queue, sleeping" % njobs)
+            print(f"{njobs} jobs in queue, sleeping")
         time.sleep(retry_time)
         njobs = int(get_command_output(command)) - 1

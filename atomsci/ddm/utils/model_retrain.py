@@ -162,7 +162,7 @@ def train_model_from_tracker(model_uuid, output_dir, production=False, keep_seed
         result = dsf.retrieve_dataset_by_datasetkey(config['training_dataset']['dataset_key'], bucket=config['training_dataset']['bucket'])
         if result is not None:
             config['datastore']=True
-    except Exception:
+    except (ValueError, RuntimeError, KeyError):
         pass
     # fix weird old parameters
     #if config[]
@@ -216,16 +216,16 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
 
     try:
         df = pd.read_excel(input)
-    except Exception:
+    except (ValueError, pd.errors.EmptyDataError, pd.errors.ParserError):
         try:
             df = pd.read_csv(input)
-        except Exception:
-            raise Exception(f'Unable to parse input {input}. Only Excel or csv file is accepted.')
+        except (ValueError, pd.errors.EmptyDataError, pd.errors.ParserError) as e:
+            raise ValueError(f'Unable to parse input {input}. Only Excel or csv file is accepted.') from e
 
     # extract the public bucket, then dataset keys
     public_list = df.loc[df['bucket'] == 'public']
     dataset_keys = public_list['dataset_key'].tolist()
-    logger.debug('Found %d public dataset keys' % len(dataset_keys))
+    logger.debug(f'Found {len(dataset_keys)} public dataset keys')
 
     client = MLMTClient()
     collections = client.get_collection_names()
@@ -239,7 +239,7 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
             if (dset, bucket) in datasets:
                 colls_w_dset.append(coll)
     
-    logger.debug('Found the dataset_keys in %d collections' % len(colls_w_dset))
+    logger.debug(f'Found the dataset_keys in {len(colls_w_dset)} collections')
 
     logger.debug(f"Train the model using prediction type {pred_type}.")
 
@@ -260,10 +260,10 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
             try:
                 logger.debug(f'Training {model_uuid} in {output}')
                 train_model_from_tracker(model_uuid, output, production=production, keep_seed=keep_seed)
-            except Exception:
-                raise Exception(f'Error for model_uuid {model_uuid}')
-    except Exception as e:
-        raise Exception(f'Error: {e!s}' )
+            except (ValueError, RuntimeError, KeyError) as e:
+                raise RuntimeError(f'Error for model_uuid {model_uuid}') from e
+    except (ValueError, RuntimeError, KeyError) as e:
+        raise RuntimeError(f'Error: {e!s}') from e
 
 #----------------
 # main
@@ -306,8 +306,8 @@ def main(argv):
         try:
             # 3 try to process 'input' as uuid
             train_model_from_tracker(input, output, production=args.production, keep_seed=args.keep_seed)
-        except Exception:
-            raise Exception(f'Unrecognized input {input}')
+        except (ValueError, RuntimeError, KeyError) as e:
+            raise ValueError(f'Unrecognized input {input}') from e
 
     elapsed_time_secs = time.time() - start_time
     logger.info(f"Execution took: {timedelta(seconds=round(elapsed_time_secs))} secs")
