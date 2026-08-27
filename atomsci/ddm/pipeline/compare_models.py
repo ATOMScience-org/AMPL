@@ -156,7 +156,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
         print("No matching models returned")
         return
     else:
-        print("Found %d matching models" % len(metadata_list))
+        print(f"Found {len(metadata_list)} matching models")
 
     model_uuid_list = []
     model_type_list = []
@@ -224,7 +224,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             weight_decay_penalty_list.append(nn_params['weight_decay_penalty'])
             weight_decay_penalty_type_list.append(nn_params['weight_decay_penalty_type'])
             learning_rate_list.append(nn_params['learning_rate'])
-            layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
+            layer_sizes_list.append(','.join([f'{s:d}' for s in nn_params['layer_sizes']]))
             dropouts_list.append(','.join([f'{d:.2f}' for d in nn_params['dropouts']]))
             rf_estimators_list.append(nan)
             rf_max_features_list.append(nan)
@@ -351,7 +351,7 @@ def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
             model_info['weight_decay_penalty_type'] = nn_params['weight_decay_penalty_type']
             model_info['weight_decay_penalty'] = nn_params['weight_decay_penalty']
             model_info['learning_rate'] = nn_params['learning_rate']
-            model_info['layer_sizes'] = ','.join(['%d' % s for s in nn_params['layer_sizes']])
+            model_info['layer_sizes'] = ','.join([f'{s:d}' for s in nn_params['layer_sizes']])
             model_info['dropouts'] = ','.join([f'{d:.2f}' for d in nn_params['dropouts']])
         elif model_type == 'RF':
             rf_params = metadata_dict['rf_specific']
@@ -510,7 +510,7 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
         model_info['descriptor_type'] = 'NA'
     try:
         model_info['num_samples'] = dset_meta['num_row']
-    except Exception:
+    except KeyError:
         # KSM: Commented out because original dataset may no longer be accessible.
         #tmp_df = dsf.retrieve_dataset_by_datasetkey(model_info['dataset_key'], model_info['bucket'])
         #model_info['num_samples'] = tmp_df.shape[0]
@@ -650,20 +650,20 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
                                 query_params=query_params,
                                 limit=1
                             ).result())
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001
                             print(f"Error returned when querying the best model for dataset {dset_key} in collection {col_name}")
                             print(e)
                             continue
                         if len(metadata_list) == 0:
                             print(f"No models returned for dataset {dset_key} in collection {col_name}")
                             continue
-                        print('Query returned %d models' % len(metadata_list))
+                        print(f'Query returned {len(metadata_list)} models')
                         model = metadata_list[0]
                         model_info = get_best_perf_table(metric_type, col_name, metadata_dict=model, PK_pipe=PK_pipeline)
                         if model_info is not None:
                             res_df = pd.DataFrame.from_records([model_info])
                             dset_model_info.append(res_df)
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         print(e)
                         continue
             metric_col = f'{metric_type}_{subset}'
@@ -709,12 +709,11 @@ def get_tarball_perf_table(model_tarball, pred_type='classification'):
         tuple (pd.DataFrame, dict): Table of performance metrics and a dictionary of model metadata.
 
     """
-    tarf_content = tarfile.open(model_tarball, "r")
-    metadata_file = tarf_content.getmember("./model_metadata.json")
-    ext_metadata = tarf_content.extractfile(metadata_file)
+    with tarfile.open(model_tarball, "r") as tarf_content:
+        metadata_file = tarf_content.getmember("./model_metadata.json")
+        ext_metadata = tarf_content.extractfile(metadata_file)
 
-    meta_json = json.load(ext_metadata)
-    ext_metadata.close()
+        meta_json = json.load(ext_metadata)
 
     subsets = ['train', 'valid', 'test']
 
@@ -812,10 +811,10 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
                     with open(metrics_path, 'r') as metrics_fp:
                         metrics_dicts = json.load(metrics_fp)
                     metrics_list.append(metrics_dicts)
-            except Exception:
+            except (OSError, json.JSONDecodeError):
                 print(f"Can't access model {dirpath}")
 
-    print("Found data for %d models under %s" % (len(model_list), result_dir))
+    print(f"Found data for {len(model_list)} models under {result_dir}")
     if len(model_list) == 0:
         return pd.DataFrame()
 
@@ -864,7 +863,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
         feature_transform_type_list.append(feature_transform_type)
         try:
             weight_transform_type_list.append(metadata_dict['training_dataset']['weight_transform_type'])
-        except Exception:
+        except KeyError:
             weight_transform_type_list.append(None)
 
         param_list.append(extract_model_and_feature_parameters(metadata_dict, keep_required=expand))
@@ -873,7 +872,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
             for metric in metrics:
                 try:
                     score_dict[subset][metric].append(subset_metrics[subset][metric])
-                except Exception:
+                except KeyError:
                     score_dict[subset][metric].append(np.nan)
         score_dict['valid']['model_choice_score'].append(subset_metrics['valid']['model_choice_score'])
 
@@ -914,7 +913,7 @@ def get_filesystem_models(result_dir, pred_type):
         metric = 'valid_r2_score'
     else:
         metric = 'valid_roc_auc_score'
-    logging.debug(f"Metric: {metric}")
+    logger.debug(f"Metric: {metric}")
     #best_df = perf_df.sort_values(by=metric, ascending=False).drop_duplicates(subset='dataset_key').copy()
     perf_df['dataset_names'] = perf_df['dataset_key'].apply(lambda f: os.path.splitext(os.path.basename(f))[0])
     perf_df['tarball_names'] = perf_df.apply(lambda x: '{}_model_{}.tar.gz'.format(x['dataset_names'], x['model_uuid']), axis=1)
@@ -1074,10 +1073,10 @@ def get_summary_perf_tables(collection_names=None, filter_dict=None, result_dir=
                         metadata_dict = json.load(f)
                     metadata_list_dict[rd].append(metadata_dict)
 
-    for ss in metadata_list_dict:
-        for i, metadata_dict in enumerate(metadata_list_dict[ss]):
+    for ss, metadata_list in metadata_list_dict.items():
+        for i, metadata_dict in enumerate(metadata_list):
             if (i % 10 == 0) and verbose:
-                print('Processing collection %s model %d' % (ss, i))
+                print(f'Processing collection {ss} model {i}')
             # Check that model has metrics before we go on
             if 'training_metrics' not in metadata_dict:
                 continue
@@ -1262,7 +1261,7 @@ def get_summary_metadata_table(uuids, collections=None):
 
         try:
             split_uuid = model_meta['splitting_parameters']['split_uuid']
-        except Exception:
+        except KeyError:
             split_uuid = 'Not Available'
 
         if mdl_params['prediction_type'] == 'regression':
@@ -1275,13 +1274,13 @@ def get_summary_metadata_table(uuids, collections=None):
                          'r^2 (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
                          'MAE (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
                          'RMSE(Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
-                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Data Size (Train/Valid/Test)': f'{train_metrics["num_compounds"]}/{valid_metrics["num_compounds"]}/{test_metrics["num_compounds"]}',
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
                          'Layer Sizes':   nn_params['layer_sizes'],
                          'Optimizer':     nn_params['optimizer_type'],
                          'Learning Rate': nn_params['learning_rate'],
                          'Dropouts':      nn_params['dropouts'],
-                         'Best Epoch (Max)': '%i (%i)' % (nn_params['best_epoch'],nn_params['max_epochs']),
+                         'Best Epoch (Max)': f"{nn_params['best_epoch']} ({nn_params['max_epochs']})",
                          'Collection':    collection_name,
                          'UUID':          model_meta['model_uuid'],
                          'Split UUID':    split_uuid,
@@ -1298,7 +1297,7 @@ def get_summary_metadata_table(uuids, collections=None):
                          'r^2 (Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
                          'MAE (Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
                          'RMSE(Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
-                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Data Size (Train/Valid/Test)': f'{train_metrics["num_compounds"]}/{valid_metrics["num_compounds"]}/{test_metrics["num_compounds"]}',
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
                          'Collection':    collection_name,
                          'UUID':          model_meta['model_uuid'],
@@ -1320,7 +1319,7 @@ def get_summary_metadata_table(uuids, collections=None):
                          'r^2 (Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
                          'MAE (Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
                          'RMSE(Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
-                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Data Size (Train/Valid/Test)': f'{train_metrics["num_compounds"]}/{valid_metrics["num_compounds"]}/{test_metrics["num_compounds"]}',
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
                          'Collection':    collection_name,
                          'UUID':          model_meta['model_uuid'],
@@ -1346,7 +1345,7 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Matthews CC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
                          'Cross entropy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
                          'Confusion matrices (Train/Valid/Test)':     f"{train_metrics['confusion_matrix']!s}/{valid_metrics['confusion_matrix']!s}/{test_metrics['confusion_matrix']!s}",
-                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Data Size (Train/Valid/Test)': f'{train_metrics["num_compounds"]}/{valid_metrics["num_compounds"]}/{test_metrics["num_compounds"]}',
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
                          'Layer Sizes':   nn_params['layer_sizes'],
                          'Optimizer':     nn_params['optimizer_type'],
@@ -1354,7 +1353,7 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Weight decay penalty type': nn_params['weight_decay_penalty_type'],
                          'Weight decay penalty': nn_params['weight_decay_penalty'],
                          'Dropouts':      nn_params['dropouts'],
-                         'Best Epoch (Max)': '%i (%i)' % (nn_params['best_epoch'],nn_params['max_epochs']),
+                         'Best Epoch (Max)': f"{nn_params['best_epoch']} ({nn_params['max_epochs']})",
                          'Collection':    collection_name,
                          'UUID':          model_meta['model_uuid'],
                          'Split UUID':    split_uuid,
@@ -1379,7 +1378,7 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Matthews CC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
                          'Cross entropy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
                          'Confusion matrices (Train/Valid/Test)':     f"{train_metrics['confusion_matrix']}/{valid_metrics['confusion_matrix']}/{test_metrics['confusion_matrix']}",
-                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Data Size (Train/Valid/Test)': f'{train_metrics["num_compounds"]}/{valid_metrics["num_compounds"]}/{test_metrics["num_compounds"]}',
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
                          'Collection':    collection_name,
                          'UUID':          model_meta['model_uuid'],
@@ -1411,7 +1410,7 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Matthews CC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
                          'Cross entropy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
                          'Confusion matrices (Train/Valid/Test)':     f"{train_metrics['confusion_matrix']}/{valid_metrics['confusion_matrix']}/{test_metrics['confusion_matrix']}",
-                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Data Size (Train/Valid/Test)': f'{train_metrics["num_compounds"]}/{valid_metrics["num_compounds"]}/{test_metrics["num_compounds"]}',
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
                          'Collection':    collection_name,
                          'UUID':          model_meta['model_uuid'],
@@ -1495,7 +1494,7 @@ def get_dataset_models(collection_names, filter_dict=None):
             ).result()
             for i, metadata_dict in enumerate(metadata_list):
                 if i % 50 == 0:
-                    print('Processing collection %s model %d' % (collection_name, i))
+                    print(f'Processing collection {collection_name} model {i}')
                 model_uuid = metadata_dict['model_uuid']
                 result_dict.setdefault((dset_dict['dataset_key'],dset_dict['bucket']), []).append((collection_name, model_uuid))
 
@@ -1551,7 +1550,7 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
                 metrics_dicts = json.load(metrics_fp)
             metrics_list.append(metrics_dicts)
 
-    print("Found data for %d models under %s" % (len(model_list), result_dir))
+    print(f"Found data for {len(model_list)} models under {result_dir}")
 
     for metadata_dict, metrics_dicts in zip(model_list, metrics_list):
         model_uuid = metadata_dict['model_uuid']
@@ -1560,7 +1559,7 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
         # Get list of training run metrics for this model
         #print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
         if len(metrics_dicts) < 3:
-            raise Exception(f"Got no or incomplete metrics for model {model_uuid}, skipping...")
+            raise ValueError(f"Got no or incomplete metrics for model {model_uuid}, skipping...")
             #print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
             #continue
         subset_metrics = {}
@@ -1577,7 +1576,7 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
         max_epochs_list.append(nn_params['max_epochs'])
         best_epoch_list.append(nn_params['best_epoch'])
         learning_rate_list.append(nn_params['learning_rate'])
-        layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
+        layer_sizes_list.append(','.join([f'{s:d}' for s in nn_params['layer_sizes']]))
         dropouts_list.append(','.join([f'{d:.2f}' for d in nn_params['dropouts']]))
         for subset in subsets:
             for metric in metrics:
@@ -1603,12 +1602,12 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
                 vals.append(learning_rate_list[i])
                 vals.append(layer_sizes_list[i])
                 vals.append(dropouts_list[i])
-                vals.append('%d' % max_epochs_list[i])
-                vals.append('%d' % best_epoch_list[i])
+                vals.append(f'{max_epochs_list[i]:d}')
+                vals.append(f'{best_epoch_list[i]:d}')
             else:
                 vals = vals + ['']*6
             vals.append(subset)
-            vals.append('%d' % score_dict[subset]['num_compounds'][i])
+            vals.append(f"{score_dict[subset]['num_compounds'][i]:d}")
             if pred_type == 'regression':
                 vals.append('{:.3f}'.format(score_dict[subset]['r2_score'][i]))
                 vals = vals + [f'{v:.3f}' for v in score_dict[subset]['task_r2_scores'][i]]
@@ -1616,7 +1615,7 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
                 vals.append('{:.3f}'.format(score_dict[subset]['roc_auc_score'][i]))
                 vals = vals + [f'{v:.3f}' for v in score_dict[subset]['task_roc_auc_scores'][i]]
             colnum += 1
-            colname = 'col_%d' % colnum
+            colname = f'col_{colnum}'
             perf_df[colname] = vals
 
     return perf_df
@@ -1650,20 +1649,20 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
         return None
     if tar:
         for tar_file in tar_list:
-            with tarfile.open(tar_file, "r:gz") as tar:
-                if './model_metadata.json' in tar.getnames():
-                    with tar.extractfile('./model_metadata.json') as meta:
+            with tarfile.open(tar_file, "r:gz") as tarf:
+                if './model_metadata.json' in tarf.getnames():
+                    with tarf.extractfile('./model_metadata.json') as meta:
                         meta=json.loads(meta.read())
                         meta['model_path']=tar_file
-                elif 'model_metadata.json' in tar.getnames():
-                    with tar.extractfile('model_metadata.json') as meta:
+                elif 'model_metadata.json' in tarf.getnames():
+                    with tarf.extractfile('model_metadata.json') as meta:
                         meta=json.loads(meta.read())
                         meta['model_path']=tar_file
                 else:
                     continue
-            if meta['model_parameters']['prediction_type']==pred_type:
-                if (dataset_key is not None) and (meta['training_dataset']['dataset_key']==dataset_key) or dataset_key is None:
-                        model_list.append(meta)
+            if (meta['model_parameters']['prediction_type'] == pred_type and
+                ((dataset_key is not None and meta['training_dataset']['dataset_key'] == dataset_key) or dataset_key is None)):
+                model_list.append(meta)
     else:
         model_path_list=glob(f'{result_dir}/**/model_metadata.json', recursive=True)
         for model_path in model_path_list:
@@ -1672,11 +1671,11 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
                 tarfiles=[x for x in tar_list if meta['model_uuid'] in x]
                 try:
                     meta['model_path']=tarfiles[0]
-                except Exception:
+                except IndexError:
                     meta['model_path']=os.path.dirname(model_path)               
-            if meta['model_parameters']['prediction_type']==pred_type:
-                if (dataset_key is not None) and (meta['training_dataset']['dataset_key']==dataset_key) or dataset_key is None:
-                        model_list.append(meta)
+            if (meta['model_parameters']['prediction_type'] == pred_type and
+                ((dataset_key is not None and meta['training_dataset']['dataset_key'] == dataset_key) or dataset_key is None)):
+                model_list.append(meta)
 
     print(f'Found data for {len(model_list)} {pred_type} models under {result_dir}')
     if len(model_list) == 0:
@@ -1738,7 +1737,7 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
                 continue
             # check for > 1 dataset
             if len(set(models_df.dataset_key.astype(str)))>1:
-                raise Exception (f"Warning: you cannot export multitask model performances for more than one dataset at a time. Please provide the dataset_key as an additional parameter. Your {pred_type} options are: {list(set(models.dataset_key))}.")
+                raise ValueError(f"Warning: you cannot export multitask model performances for more than one dataset at a time. Please provide the dataset_key as an additional parameter. Your {pred_type} options are: {list(set(models.dataset_key))}.")
             
             # get metrics and metric label
             met=pd.DataFrame(tm[col].tolist())        
@@ -1864,7 +1863,7 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     for col in ['xgb_specific','nn_specific','rf_specific','ecfp_specific','auto_featurizer_specific','autoencoder_specific']:
         try: 
             models=models.drop(columns=col)
-        except Exception: 
+        except KeyError: 
             pass
     
     return models
@@ -1910,25 +1909,25 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
 
     # check inputs are correct
     if collection_name.startswith('old_'):
-        raise Exception("This function is not implemented for the old format of metadata.")
+        raise ValueError("This function is not implemented for the old format of metadata.")
     if isinstance(response_cols, list) or response_cols is None:
         pass
     elif isinstance(response_cols, str):
         response_cols=[x.strip() for x in response_cols.split(',')]
     else:
-        raise Exception("Please input response cols as None, list or comma separated string.")
+        raise ValueError("Please input response cols as None, list or comma separated string.")
     if isinstance(expand_responses, list) or expand_responses is None:
         pass
     elif isinstance(expand_responses, str):
         expand_responses=[x.strip() for x in expand_responses.split(',')]
     else:
-        raise Exception("Please input expand response col(s) as list or comma separated string.")
+        raise ValueError("Please input expand response col(s) as list or comma separated string.")
     if isinstance(expand_subsets, list) or expand_subsets is None:
         pass
     elif isinstance(expand_subsets, str):
         expand_subsets=[x.strip() for x in expand_subsets.split(',')]
     else:
-        raise Exception("Please input subset(s) as list or comma separated string.")
+        raise ValueError("Please input subset(s) as list or comma separated string.")
 
     # get metadata
     if response_cols is not None:
@@ -1937,7 +1936,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         filter_dict={}
     models = trkr.get_full_metadata(filter_dict, collection_name)
     if len(models)==0:
-        raise Exception("No models found with these response cols in this collection. To get a list of possible response cols, pass response_cols=None.")
+        raise ValueError("No models found with these response cols in this collection. To get a list of possible response cols, pass response_cols=None.")
     models = pd.DataFrame.from_records(models)
 
     # expand model metadata - deal with NA descriptors / NA other fields
@@ -1957,7 +1956,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         response_cols=alldat.response_cols[0]
         print("Response cols:", response_cols)
     else:
-        raise Exception(f"There is more than one set of response cols in this collection. Please choose from these lists: {alldat.response_cols.unique()}")
+        raise ValueError(f"There is more than one set of response cols in this collection. Please choose from these lists: {alldat.response_cols.unique()}")
 
     # expand training metrics - deal with NA's in columns
     metrics=pd.DataFrame.from_dict(models['training_metrics'].tolist())
@@ -2059,12 +2058,12 @@ def _aggregate_predictions(datasets, bucket, col_names, result_dir):
 
     results = []
     dsf.initialize_model_tracker()
-    for dset_key, bucket in datasets:
+    for dset_key, bucket_val in datasets:
         for model_type in ['NN', 'RF']:
             for split_type in ['scaffold', 'random']:
                 for descriptor_type in ['mordred_filtered', 'moe', 'rdkit_raw']:
                     model_filter = {"training_dataset.dataset_key" : dset_key,
-                                    "training_dataset.bucket" : bucket,
+                                    "training_dataset.bucket" : bucket_val,
                                     "ModelMetrics.TrainingRun.label" : "best",
                                     'ModelMetrics.TrainingRun.subset': 'valid',
                                     'ModelMetrics.TrainingRun.PredictionResults.r2_score': ['max', None],
