@@ -14,25 +14,26 @@
 #  -o OUTPUT, --output OUTPUT  output result directory
 
 import argparse
-from datetime import timedelta
 import json
-from pathlib import Path
+import logging
 import os
+import resource
 import sys
+import tarfile
 import tempfile
 import time
+from datetime import timedelta
+from pathlib import Path
 
-import tarfile
-import logging
 import pandas as pd
-import atomsci.ddm.pipeline.model_pipeline as mp
-import atomsci.ddm.pipeline.parameter_parser as parse
-import atomsci.ddm.pipeline.model_tracker as mt
-import atomsci.ddm.utils.datastore_functions as dsf
-from atomsci.ddm.pipeline import compare_models as cmp
-import atomsci.ddm.utils.file_utils as futils
 
-import resource
+import atomsci.ddm.pipeline.model_pipeline as mp
+import atomsci.ddm.pipeline.model_tracker as mt
+import atomsci.ddm.pipeline.parameter_parser as parse
+import atomsci.ddm.utils.datastore_functions as dsf
+import atomsci.ddm.utils.file_utils as futils
+from atomsci.ddm.pipeline import compare_models as cmp
+
 logging.basicConfig()
 
 logger = logging.getLogger(__name__)
@@ -71,7 +72,7 @@ def train_model(input, output, dskey='', production=False, keep_seed=False):
         config = json.loads(f.read())
 
     # set a new dataset key if necessary
-    if not dskey == '':
+    if dskey != '':
         config['dataset_key'] = dskey
 
     # Parse parameters
@@ -97,7 +98,7 @@ def train_model(input, output, dskey='', production=False, keep_seed=False):
     if not mlmt_supported:
         params.save_results=False
     # specify collection
-    logger.debug("model params %s" % str(params))
+    logger.debug(f"model params {params!s}")
     logger.debug(params.__dict__.items())
 
     # Create model pipeline
@@ -186,7 +187,7 @@ def train_model_from_tracker(model_uuid, output_dir, production=False, keep_seed
     if params.production and 'nn_specific' in config:
         params.max_epochs = config['nn_specific']['best_epoch']+1
 
-    logger.debug("model params %s" % str(params))
+    logger.debug(f"model params {params!s}")
 
     # Create model pipeline
     model = mp.ModelPipeline(params)
@@ -211,7 +212,7 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
     """
     df = pd.DataFrame()
     # parse the input file
-    logger.debug("Parsing %s file." % input)
+    logger.debug(f"Parsing {input} file.")
 
     try:
         df = pd.read_excel(input)
@@ -219,7 +220,7 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
         try:
             df = pd.read_csv(input)
         except Exception:
-            Exception('Unable to parse input %s. Only Excel or csv file is accepted.' % input)
+            raise Exception(f'Unable to parse input {input}. Only Excel or csv file is accepted.')
 
     # extract the public bucket, then dataset keys
     public_list = df.loc[df['bucket'] == 'public']
@@ -240,7 +241,7 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
     
     logger.debug('Found the dataset_keys in %d collections' % len(colls_w_dset))
 
-    logger.debug("Train the model using prediction type %s." % pred_type)
+    logger.debug(f"Train the model using prediction type {pred_type}.")
 
     metric_type = 'r2_score'
     
@@ -257,13 +258,12 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
         # retrain with uuid
         for model_uuid in best_mods.model_uuid.sort_values():
             try:
-                logger.debug('Training %s in %s' % (model_uuid, output))
+                logger.debug(f'Training {model_uuid} in {output}')
                 train_model_from_tracker(model_uuid, output, production=production, keep_seed=keep_seed)
             except Exception:
-                Exception(f'Error for model_uuid {model_uuid}')
-                pass
+                raise Exception(f'Error for model_uuid {model_uuid}')
     except Exception as e:
-        Exception('Error: %s' % str(e) )
+        raise Exception(f'Error: {e!s}' )
 
 #----------------
 # main
@@ -307,10 +307,10 @@ def main(argv):
             # 3 try to process 'input' as uuid
             train_model_from_tracker(input, output, production=args.production, keep_seed=args.keep_seed)
         except Exception:
-            Exception('Unrecognized input %s'%input)
+            raise Exception(f'Unrecognized input {input}')
 
     elapsed_time_secs = time.time() - start_time
-    logger.info("Execution took: %s secs" % timedelta(seconds=round(elapsed_time_secs)))
+    logger.info(f"Execution took: {timedelta(seconds=round(elapsed_time_secs))} secs")
 
 if __name__ == "__main__":
    main(sys.argv[1:])

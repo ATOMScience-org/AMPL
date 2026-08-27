@@ -8,15 +8,16 @@ accessible directory on the target computer so that it can be used for AD index 
 predicting from the model.
 """
 
+import glob
+import json
 import os
 import sys
 import tarfile
 import tempfile
-import json
-import glob
 
 from atomsci.ddm.utils import checksum_utils as cu
 from atomsci.ddm.utils import file_utils as futils
+
 
 def check_data_accessibility(model_path, verbose=True):
     """Check the dataset_key parameters in one or more AMPL model tarball files

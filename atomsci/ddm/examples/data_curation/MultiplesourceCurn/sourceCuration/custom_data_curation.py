@@ -1,17 +1,17 @@
 import matplotlib
-matplotlib.use('Agg')
-import pandas as pd
-import os
 
+matplotlib.use('Agg')
 import json
+import os
+from os import path
+
+import numpy as np
+import pandas as pd
+from target_data_curation import AMPLDataset
 
 #import custom_config as cc
 import atomsci.ddm.utils.pubchem_utils as pu
-from os import path
-from target_data_curation import AMPLDataset
 from atomsci.ddm.utils import data_curation_functions as dcf
-import numpy as np
-
 
 # Using data_curation_functions
 # Initial dataset downloaded org/record/173258#.XcXWHZJKhhE
@@ -185,7 +185,7 @@ class DrugTargetCommonsActivityDump(AMPLDataset):
          if not path.exists(self.smiles_file) :
             print("download from PubChem ")
             ## smiles are stored in 'smiles' column in returned dataframe
-            save_smiles_df,fail_lst,discard_lst=pu.download_smiles(myList)
+            save_smiles_df,_fail_lst,_discard_lst=pu.download_smiles(myList)
             save_smiles_df.to_csv(ofile, index=False)
          else :
             print("retrieve SMILES from predownloaded file",self.smiles_file)
@@ -262,7 +262,7 @@ class ChEMBLActivityDump(AMPLDataset):
            df_lst=[]
            for kv in raw_target_lst :
               tmp_df_lst=[]
-              for cid in dc[kv].keys() :
+              for cid in dc[kv] :
                  lst=dc[kv][cid]['pAct']
                  for it in range(len(lst)) :
                      row={ self.id_col : cid, self.value_col : dc[kv][cid]['pAct'][it], self.relation_col : dc[kv][cid]['relation'][it],

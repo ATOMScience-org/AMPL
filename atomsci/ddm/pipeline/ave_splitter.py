@@ -22,19 +22,20 @@ setting `splitter` to 'ave_min' in the model parameters when you train a model.
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-from deepchem.splits.splitters import Splitter
-from scipy.spatial.distance import cdist, pdist, squareform
-import numpy as np
-import pandas as pd
-from numpy.random import shuffle, permutation
+import logging
 import random
 from multiprocessing import Pool
 
-from atomsci.ddm.utils import datastore_functions as dsf
+import numpy as np
+import pandas as pd
+from deepchem.splits.splitters import Splitter
+from numpy.random import permutation, shuffle
+from scipy.spatial.distance import cdist, pdist, squareform
+
 from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import model_datasets as md
+from atomsci.ddm.utils import datastore_functions as dsf
 
-import logging
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 # Set up logging
 log = logging.getLogger('ATOM')
@@ -87,7 +88,7 @@ def _calc_dist_mat(feat1, feat2, metric, pool, num_workers):
 
     """
     if (num_workers > 1 ):
-        interval, remainder = divmod( len(feat1), min( len(feat1), num_workers-1 ) )
+        interval, _remainder = divmod( len(feat1), min( len(feat1), num_workers-1 ) )
         interval = max( interval, 1 )
         chunks = pool.map( _Cdist, [ (feat1[r:min(r+interval, len(feat1) ) ], feat2, metric) for r in range( 0, len(feat1), interval ) ] )
         dist_mat = np.vstack( chunks ) 
@@ -127,14 +128,14 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
         split_oid = split_metadata['dataset_oid'].values[0]
         split_df = dsf.retrieve_dataset_by_dataset_oid(split_oid, client=ds_client)
     except Exception as e:
-        print("Error when loading split file:\n%s" % str(e))
+        print(f"Error when loading split file:\n{e!s}")
         raise
     
     try:
         dataset_df = dsf.retrieve_dataset_by_datasetkey(dset_key, bucket, client=ds_client)
         dataset_meta = dsf.retrieve_dataset_by_datasetkey(dset_key, bucket, client=ds_client, return_metadata=True)
     except Exception as e:
-        print("Error when loading dataset:\n%s" % str(e))
+        print(f"Error when loading dataset:\n{e!s}")
         raise
     kv_dict = dsf.get_key_val(dataset_meta['metadata'])
     id_col = kv_dict.get('id_col', id_col)
@@ -147,7 +148,7 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
 
         dset_df = dataset_df.merge(split_df, how='inner', left_on=id_col, right_on='cmpd_id').drop('cmpd_id', axis=1)
     except Exception as e:
-        print("Error when joining dataset with split dataset:\n%s" % str(e))
+        print(f"Error when joining dataset with split dataset:\n{e!s}")
         raise
 
     featurization = feat.create_featurization(params)
@@ -156,7 +157,7 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
     feat_arr = data.dataset.X
     # TODO: impute missing values if necessary
     y = data.dataset.y.flatten()
-    if len(set(y) - set([0,1])) > 0:
+    if len(set(y) - {0,1}) > 0:
         raise ValueError('AVEMinSplitter only works on binary classification datasets')
     ids = data.dataset.ids
     active_ind = np.where(y == 1)[0]
@@ -218,14 +219,14 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
 
         taI = subset_active_ind['train']
         tiI = subset_inactive_ind['train']
-        print("Results for %s split with %s %s features:" % (params.splitter, params.descriptor_type, params.featurizer))
+        print(f"Results for {params.splitter} split with {params.descriptor_type} {params.featurizer} features:")
         for valid_set in ['valid', 'test']:
             vaI = subset_active_ind[valid_set]
             viI = subset_inactive_ind[valid_set]
             split_params = ((vaI, viI, taI, tiI), aa_dist, ii_dist, ai_dist, ia_dist, dist_thresh)
             _plot_nn_dist_distr(split_params)
             bias = _plot_bias(split_params, niter=0)
-            print("For train/%s split: AVE bias = %.5f" % (valid_set, bias))
+            print(f"For train/{valid_set} split: AVE bias = {bias:.5f}")
     else:
         # TODO: deal with k-fold splits later
         print('k-fold CV splits not supported yet')
@@ -253,7 +254,7 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
         size_list.append(subset_size)
         frac_list.append(subset_size/dset_size)
         active_frac_list.append(active_frac)
-    frac_df = pd.DataFrame(dict(subset=subset_list, size=size_list, fraction=frac_list, active_frac=active_frac_list))
+    frac_df = pd.DataFrame({'subset': subset_list, 'size': size_list, 'fraction': frac_list, 'active_frac': active_frac_list})
     print('\nSplit subsets:')
     print(frac_df)
 
@@ -335,7 +336,7 @@ def _plot_nn_dist_distr(params):
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-    split_set, aa_dist, ii_dist, ai_dist, ia_dist, thresholds = params[:]
+    split_set, aa_dist, ii_dist, ai_dist, ia_dist, _thresholds = params[:]
     vaI, viI, taI, tiI = split_set
     
     # get the slices of the distance matrices
@@ -350,7 +351,7 @@ def _plot_nn_dist_distr(params):
     ii_nn_dist = np.min(iTest_iTrain_D, axis=1)
 
     # Plot distributions of nearest-neighbor distances
-    fig, axes = plt.subplots(2, 2, figsize=(12,12))
+    _fig, axes = plt.subplots(2, 2, figsize=(12,12))
     sns.kdeplot(aa_nn_dist, ax=axes[0,0])
     axes[0,0].set_title('AA')
     sns.kdeplot(ai_nn_dist, ax=axes[0,1])
@@ -406,7 +407,7 @@ def _plot_bias(params, niter):
     iBias = abs(iTest_iTrain_S - iTest_aTrain_S)
     bias = aBias + iBias
 
-    fig, axes = plt.subplots(1, 2, figsize=(18,10))
+    _fig, axes = plt.subplots(1, 2, figsize=(18,10))
     ax = axes[0]
     ax.plot(thresholds, aTest_aTrain_func, color='blue', label='AA')
     ax.plot(thresholds, aTest_iTrain_func, color='red', label='AI')
@@ -424,7 +425,7 @@ def _plot_bias(params, niter):
     ax.set_xlabel('Distance')
     ax.set_ylabel('NN Function')
     _legend = ax.legend()
-    title = "II - IA = %.3f\nTotal bias = %.3f" % (iBias, bias)
+    title = f"II - IA = {iBias:.3f}\nTotal bias = {bias:.3f}"
     ax.set_title(title)
 
     plt.show()
@@ -519,9 +520,9 @@ class AVEMinSplitter(Splitter):
             med_nn_dist = np.median(nn_dist)
             max_nn_dist = 3.0*med_nn_dist
             if self.debug_mode:
-                log.debug("Median NN distance = %.3f" % med_nn_dist)
+                log.debug(f"Median NN distance = {med_nn_dist:.3f}")
                 # Plot distribution of overall NN distances
-                fig, ax = plt.subplots(figsize=(8,8))
+                _fig, ax = plt.subplots(figsize=(8,8))
                 sns.kdeplot(nn_dist, ax=ax)
                 ax.set_title('Overall NN distance distribution')
                 plt.axvline(med_nn_dist, color='forestgreen', linestyle='--')
@@ -533,7 +534,7 @@ class AVEMinSplitter(Splitter):
         if len(y_dim) > 1 and y_dim[1] > 1:
             raise ValueError('AVEMinSplitter only works for single task datasets')
         y = dataset.y.flatten()
-        if len(set(y) - set([0,1])) > 0:
+        if len(set(y) - {0,1}) > 0:
             raise ValueError('AVEMinSplitter only works on binary classification datasets')
         active_ind = np.where(y == 1)[0]
         inactive_ind = np.where(y == 0)[0]
@@ -656,8 +657,8 @@ class AVEMinSplitter(Splitter):
                 # make sure there are no overlapping molecules between training/validation sets
                 newActiveIndices = list(np.hstack((newActiveIndicesV, newActiveIndicesT) ) )
                 newInactiveIndices = list(np.hstack((newInactiveIndicesV, newInactiveIndicesT) ) )
-                overlapActives = list(set([ x for x in newActiveIndices if newActiveIndices.count(x ) > 1 ] ) )
-                overlapInactives = list(set([ x for x in newInactiveIndices if newInactiveIndices.count(x ) > 1 ] ) )
+                overlapActives = list({ x for x in newActiveIndices if newActiveIndices.count(x ) > 1  } )
+                overlapInactives = list({ x for x in newInactiveIndices if newInactiveIndices.count(x ) > 1  } )
                 shuffle(overlapActives )
                 shuffle(overlapInactives )
                 for idx, overlapA in enumerate(overlapActives ):
@@ -673,8 +674,8 @@ class AVEMinSplitter(Splitter):
   
                 newActiveIndices = list(np.hstack((newActiveIndicesV, newActiveIndicesT) ) )
                 newInactiveIndices = list(np.hstack((newInactiveIndicesV, newInactiveIndicesT) ) )
-                assert(len(set([ x for x in newActiveIndices if newActiveIndices.count(x ) > 1 ] ) ) == 0 ) 
-                assert(len(set([ x for x in newInactiveIndices if newInactiveIndices.count(x ) > 1 ] ) ) == 0 ) 
+                assert(len({ x for x in newActiveIndices if newActiveIndices.count(x ) > 1  } ) == 0 ) 
+                assert(len({ x for x in newInactiveIndices if newInactiveIndices.count(x ) > 1  } ) == 0 ) 
   
                 avSize = min(avSize, len(newActiveIndicesV ) )
                 ivSize = min(ivSize, len(newInactiveIndicesV ) )

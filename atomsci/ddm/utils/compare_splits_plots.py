@@ -1,16 +1,17 @@
 import argparse
-import pandas as pd
 import os
+
 import numpy as np
-
-from atomsci.ddm.pipeline import chem_diversity as cd
-from atomsci.ddm.pipeline import MultitaskScaffoldSplit as mss
-
+import pandas as pd
 import seaborn as sns
+import umap
 from matplotlib import pyplot
 from rdkit import Chem
 from rdkit.Chem import AllChem
-import umap
+
+from atomsci.ddm.pipeline import MultitaskScaffoldSplit as mss
+from atomsci.ddm.pipeline import chem_diversity as cd
+
 
 class SplitStats:
     """This object manages a dataset and a given split dataframe."""
@@ -76,16 +77,11 @@ class SplitStats:
 
     def print_stats(self):
         """Prints useful statistics to stdout"""
-        print("dist tvt mean: %0.2f, median: %0.2f, std: %0.2f"%\
-            (np.mean(self.dists_tvt), np.median(self.dists_tvt), np.std(self.dists_tvt)))
-        print("dist tvv mean: %0.2f, median: %0.2f, std: %0.2f"%\
-            (np.mean(self.dists_tvv), np.median(self.dists_tvv), np.std(self.dists_tvv)))
-        print("train frac mean: %0.2f, median: %0.2f, std: %0.2f"%\
-           (np.mean(self.train_fracs), np.median(self.train_fracs), np.std(self.train_fracs)))
-        print("test frac mean: %0.2f, median: %0.2f, std: %0.2f"%\
-            (np.mean(self.test_fracs), np.median(self.test_fracs), np.std(self.test_fracs)))
-        print("valid frac mean: %0.2f, median: %0.2f, std: %0.2f"%\
-            (np.mean(self.valid_fracs), np.median(self.valid_fracs), np.std(self.valid_fracs)))
+        print(f"dist tvt mean: {np.mean(self.dists_tvt):0.2f}, median: {np.median(self.dists_tvt):0.2f}, std: {np.std(self.dists_tvt):0.2f}")
+        print(f"dist tvv mean: {np.mean(self.dists_tvv):0.2f}, median: {np.median(self.dists_tvv):0.2f}, std: {np.std(self.dists_tvv):0.2f}")
+        print(f"train frac mean: {np.mean(self.train_fracs):0.2f}, median: {np.median(self.train_fracs):0.2f}, std: {np.std(self.train_fracs):0.2f}")
+        print(f"test frac mean: {np.mean(self.test_fracs):0.2f}, median: {np.median(self.test_fracs):0.2f}, std: {np.std(self.test_fracs):0.2f}")
+        print(f"valid frac mean: {np.mean(self.valid_fracs):0.2f}, median: {np.median(self.valid_fracs):0.2f}, std: {np.std(self.valid_fracs):0.2f}")
 
     def dist_hist_train_v_test_plot(self, ax=None):
         """Plots histogram of nearest neighbor Tanimoto distances between test and training subset compounds.

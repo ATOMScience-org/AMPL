@@ -1,29 +1,26 @@
 """Functions to assess feature importance in AMPL models"""
 
-import numpy as np
-import pandas as pd
+import logging
 from collections import defaultdict
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from deepchem.data.datasets import NumpyDataset
+from scipy import stats
+from scipy.cluster import hierarchy
+from scipy.stats import spearmanr
+from sklearn import metrics
+from sklearn.base import BaseEstimator
+
+# The following import requires scikit-learn >= 0.23.1
+from sklearn.inspection import permutation_importance
 
 from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline.perf_data import negative_predictive_value
 
-from deepchem.data.datasets import NumpyDataset
-
-from sklearn import metrics
-from scipy import stats
-from scipy.stats import spearmanr
-from scipy.cluster import hierarchy
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# The following import requires scikit-learn >= 0.23.1
-from sklearn.inspection import permutation_importance
-from sklearn.base import BaseEstimator
-
-import logging
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 
@@ -125,13 +122,13 @@ def _get_scorer(score_type):
         return metrics.make_scorer(metrics.cohen_kappa_score)
 
     # Otherwise, map the score types used in AMPL to the ones used in scikit-learn in the cases where they are different
-    score_type_map = dict(
-            mae = 'neg_mean_absolute_error',
-            rmse = 'neg_root_mean_squared_error',
-            ppv = 'precision',
-            cross_entropy = 'neg_log_loss',
-            bal_accuracy = 'balanced_accuracy',
-            avg_precision = 'average_precision')
+    score_type_map = {
+            'mae': 'neg_mean_absolute_error',
+            'rmse': 'neg_root_mean_squared_error',
+            'ppv': 'precision',
+            'cross_entropy': 'neg_log_loss',
+            'bal_accuracy': 'balanced_accuracy',
+            'avg_precision': 'average_precision'}
     sklearn_score_type = score_type_map.get(score_type, score_type)
     return metrics.get_scorer(sklearn_score_type)
 
@@ -270,7 +267,7 @@ def permutation_feature_importance(model_pipeline=None, params=None, score_type=
     # Get the training, validation and test sets (we assume we're not using K-fold CV). These are DeepChem Dataset objects.
     (train_dset, valid_dset) = model_pipeline.data.train_valid_dsets[0]
     test_dset = model_pipeline.data.test_dset
-    subsets = dict(train=train_dset, valid=valid_dset, test=test_dset)
+    subsets = {'train': train_dset, 'valid': valid_dset, 'test': test_dset}
     for subset, dset in subsets.items():
         log.debug(f"Computing permutation importance for {subset} set...")
         pi_result = permutation_importance(estimator, dset.X, dset.y, scoring=scorer, n_repeats=nreps, 
@@ -302,7 +299,7 @@ def plot_feature_importances(imp_df, importance_col='valid_perm_importance_mean'
     Returns:
         None
     """
-    fig, ax = plt.subplots(figsize=(20,15))
+    _fig, ax = plt.subplots(figsize=(20,15))
     fi_df = imp_df.sort_values(by=importance_col,  ascending=ascending)
     if 'cluster_id' in fi_df.columns.values.tolist():
         feat_col = 'features'
@@ -340,11 +337,11 @@ def display_feature_clusters(model_pipeline=None, params=None, clust_height=1,
 
     """
     log = logging.getLogger('ATOM')
-    imp_df, model_pipeline, pparams = base_feature_importance(model_pipeline, params)
+    imp_df, model_pipeline, _pparams = base_feature_importance(model_pipeline, params)
     features = imp_df.feature.values
 
     # Get the training, validation and test sets (we assume we're not using K-fold CV). These are DeepChem Dataset objects.
-    (train_dset, valid_dset) = model_pipeline.data.train_valid_dsets[0]
+    (train_dset, _valid_dset) = model_pipeline.data.train_valid_dsets[0]
 
     # Eliminate features that don't vary over the training set (and thus have zero importance)
     feat_idx = []
@@ -360,7 +357,7 @@ def display_feature_clusters(model_pipeline=None, params=None, clust_height=1,
 
     # Cluster the training set features
     corr = spearmanr(clust_X, nan_policy='omit').correlation
-    corr_df = pd.DataFrame(dict(feature=var_features))
+    corr_df = pd.DataFrame({'feature': var_features})
     for i, feat in enumerate(var_features):
         corr_df[feat] = corr[:,i]
     if corr_file is not None:
@@ -452,7 +449,7 @@ def cluster_permutation_importance(model_pipeline=None, params=None, score_type=
 
     # Cluster the training set features
     corr = spearmanr(clust_X, nan_policy='omit').correlation
-    corr_df = pd.DataFrame(dict(feature=var_features))
+    corr_df = pd.DataFrame({'feature': var_features})
     for i, feat in enumerate(var_features):
         corr_df[feat] = corr[:,i]
     corr_linkage = hierarchy.ward(corr)
@@ -464,17 +461,17 @@ def cluster_permutation_importance(model_pipeline=None, params=None, score_type=
         # clust_to_feat_ids will contain indices in original feature list
         clust_to_feat_ids[cluster_id].append(feat_idx[i])
         clust_to_feat_names[cluster_id].append(var_features[i])
-    clust_idx = sorted(list(clust_to_feat_ids.keys()))
+    clust_idx = sorted(clust_to_feat_ids.keys())
     clust_sizes = np.array([len(clust_to_feat_ids[clust]) for clust in clust_idx])
     clust_labels = [';'.join(clust_to_feat_names[clust]) for clust in clust_idx]
     n_non_sing = sum(clust_sizes > 1)
     log.info(f"Cutting dendrogram at height {clust_height} yields {len(set(cluster_ids))} clusters")
     log.info(f"{n_non_sing} are non-singletons")
-    clust_df = pd.DataFrame(dict(cluster_id=clust_idx, num_feat=clust_sizes, features=clust_labels))
+    clust_df = pd.DataFrame({'cluster_id': clust_idx, 'num_feat': clust_sizes, 'features': clust_labels})
     clust_df = clust_df.sort_values(by='num_feat', ascending=False)
 
     # Now iterate through clusters; for each cluster, permute all the features in the cluster
-    subsets = dict(train=train_dset, valid=valid_dset, test=test_dset)
+    subsets = {'train': train_dset, 'valid': valid_dset, 'test': test_dset}
     for subset, dset in subsets.items():
         log.debug(f"Computing permutation importance for {subset} set...")
         # First the score without permuting anything

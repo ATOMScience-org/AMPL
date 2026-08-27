@@ -7,12 +7,13 @@
 # May 20, 2020
 #
 import matplotlib
+
 matplotlib.use('Agg')
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 import atomsci.ddm.pipeline.chem_diversity as cd
-import atomsci.ddm.utils.curate_data as curate_data
+from atomsci.ddm.utils import curate_data
 
 
 #=====================================
@@ -235,7 +236,7 @@ def aggregate_basesmiles(assay_df, value_col='pIC50', output_value_col=None,
     uniq_smiles_strs = list(set(smiles_strs))
     nuniq = len(uniq_smiles_strs)
     print("%d unique SMILES strings are reduced to %d unique base SMILES strings" % (norig, nuniq))
-    smiles_map = dict([(smiles,i) for i, smiles in enumerate(uniq_smiles_strs)])
+    smiles_map = {smiles: i for i, smiles in enumerate(uniq_smiles_strs)}
     smiles_indices = np.array([smiles_map.get(smiles, nuniq) for smiles in smiles_strs])
 
     _assay_vals = assay_df[value_col].values
@@ -257,13 +258,13 @@ def aggregate_basesmiles(assay_df, value_col='pIC50', output_value_col=None,
         reported_assay_val[i], reported_value_flags[i] = curate_data.mle_censored_mean(cmpd_df, std_est, value_col=value_col,
                                                                            relation_col=relation_col)
         # When multiple compound IDs map to the same base SMILES string, use the lexicographically smallest one.
-        reported_cmpd_ids[i] = sorted(set(cmpd_ids[cmpd_ind]))[0]
+        reported_cmpd_ids[i] = min(set(cmpd_ids[cmpd_ind]))
 
         # If a date column is specified, use the earliest one among replicates
         if date_col is not None:
             # np.datetime64 doesn't seem to understand the date format in GSK's crit res tables
             #earliest_date = sorted([np.datetime64(d) for d in cmpd_df[date_col].values])[0]
-            earliest_date = sorted(pd.to_datetime(cmpd_df[date_col], infer_datetime_format=True).values)[0]
+            earliest_date = min(pd.to_datetime(cmpd_df[date_col], infer_datetime_format=True).values)
             reported_dates[i] = np.datetime_as_string(earliest_date)
 
     if output_value_col is None:

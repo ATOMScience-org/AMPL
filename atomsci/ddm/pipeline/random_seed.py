@@ -1,10 +1,12 @@
 """ Used to set random seed from parameter_parser for reproducibility. """
-import numpy as np 
-import uuid 
-import random
-import torch
-import tensorflow as tf
 import logging
+import random
+import uuid
+
+import numpy as np
+import tensorflow as tf
+import torch
+
 logging.basicConfig(format='%(asctime)-15s %(message)s') 
 #----------------------------------------------------------------------------------
 class RandomStateGenerator:

@@ -3,11 +3,13 @@ a dataframe of model performance metrics and hyperparameter specifications from
 compare_models.py. For models on the tracker, use get_multitask_perf_from_tracker().
 For models in the file system, use get_filesystem_perf_results().
 """
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
+
 from atomsci.ddm.pipeline import parameter_parser as pp
+
 # Create an array with the colors you want to use
 colors = ["#7682A4","#A7DDD8","#373C50","#694691","#BE2369","#EB1E23","#6EC8BE","#FFC30F",]
 # Set your custom color palette
@@ -23,7 +25,7 @@ d=vars(pp.get_parser().parse_args([]))
 keywords=['AttentiveFPModel','GCNModel','GraphConvModel','MPNNModel','PytorchMPNNModel','rf_','xgb_']
 plot_dict={}
 for word in keywords:
-    tmplist=[x for x in d.keys() if x.startswith(word)]
+    tmplist=[x for x in d if x.startswith(word)]
     if word=='rf_':
         word='RF'
     elif word=='xgb_':
@@ -276,9 +278,9 @@ def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
         plot_df[f'{feat2}_cut']=pd.qcut(plot_df[feat2], 5, precision=0)
         hue=feat3
         plot_df = plot_df.sort_values([f'{feat1}_cut', f'{feat2}_cut',feat3], ascending=True)
-        plot_df.loc[:,f'{feat1}/{feat2}'] = ['%s / %s' % (mf,est) for mf,est in zip(plot_df[f'{feat1}_cut'], plot_df[f'{feat2}_cut'])]
+        plot_df.loc[:,f'{feat1}/{feat2}'] = [f'{mf} / {est}' for mf,est in zip(plot_df[f'{feat1}_cut'], plot_df[f'{feat2}_cut'])]
         with sns.axes_style("whitegrid"):
-            fig,ax = plt.subplots(1,figsize=(40,15))
+            _fig,ax = plt.subplots(1,figsize=(40,15))
             if plot_df[hue].nunique()<13:
                 palette=sns.cubehelix_palette(plot_df[hue].nunique())
             else:
@@ -314,11 +316,11 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
         plot_df[f'{feat1}_cut']=pd.qcut(plot_df[feat1],5)
         plot_df[f'{feat2}_cut']=pd.qcut(plot_df[feat2],5)
         plot_df = plot_df.sort_values([f'{feat1}_cut', f'{feat2}_cut',feat3], ascending=True)
-        bins=['{:,}'.format(int(round(x,-3))) for x in pd.qcut(plot_df[feat1],5,retbins=True)[1]]
+        bins=[f'{int(round(x,-3)):,}' for x in pd.qcut(plot_df[feat1],5,retbins=True)[1]]
         bins.pop(0)
         bins1=[0]
         bins1.extend(bins)
-        bins2=['{:.2e}'.format(x) for x in pd.qcut(plot_df[feat2],5,retbins=True)[1]]
+        bins2=[f'{x:.2e}' for x in pd.qcut(plot_df[feat2],5,retbins=True)[1]]
         for bins, feat in zip([bins1,bins2],[feat1,feat2]):
             binstrings=[]
             for i,bin in enumerate(bins):
@@ -329,9 +331,9 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
             nncmap=dict(zip(plot_df[f'{feat}_cut'].dtype.categories.tolist(),binstrings))
             plot_df[f'{feat}_cut']=plot_df[f'{feat}_cut'].map(nncmap)
         hue=feat3
-        plot_df[f'{feat1}/{feat2}'] = ['%s / %s' % (mf,est) for mf,est in zip(plot_df[f'{feat1}_cut'], plot_df[f'{feat2}_cut'])]
+        plot_df[f'{feat1}/{feat2}'] = [f'{mf} / {est}' for mf,est in zip(plot_df[f'{feat1}_cut'], plot_df[f'{feat2}_cut'])]
         with sns.axes_style("whitegrid"):
-            fig,ax = plt.subplots(1,figsize=(40,15))
+            _fig,ax = plt.subplots(1,figsize=(40,15))
             if plot_df[hue].nunique()<13:
                 palette=sns.cubehelix_palette(plot_df[hue].nunique())
             else:
@@ -369,7 +371,7 @@ def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
         plot_df = plot_df.sort_values([feat1, feat2])
         #plot_df[f'{feat1}/{feat2}'] = ['%s / %s' % (mf,est) for mf,est in zip(plot_df[feat1], plot_df[feat2])]
         with sns.axes_style("whitegrid"):
-            fig,ax = plt.subplots(1,figsize=(40,15))
+            _fig,ax = plt.subplots(1,figsize=(40,15))
             if plot_df[hue].nunique()<13:
                 palette=sns.cubehelix_palette(plot_df[hue].nunique())
             else:

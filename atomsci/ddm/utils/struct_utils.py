@@ -5,12 +5,12 @@ the calculation is parallelized across multiple threads; this can save significa
 molecules.
 """
 
-import re
-import numpy as np
 import logging
+import re
 
+import numpy as np
 from rdkit import Chem
-from rdkit.Chem import AllChem, Draw, Descriptors
+from rdkit.Chem import AllChem, Descriptors, Draw
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
 uncharger = rdMolStandardize.Uncharger()
@@ -350,11 +350,11 @@ def _standardize_chemistry(df, standard='rdkit', smiles_col='rdkit_smiles', work
                 mol = Chem.MolFromSmiles(smi)
                 out.append(Chem.inchi.MolToInchi(mol))
             except Exception:
-                out.append('Invalid SMILES: %s' % (smi))
+                out.append(f'Invalid SMILES: {smi}')
     elif standard.lower() == 'name':
         print('Name technique currently not implemented')
     else:
-        raise Exception('Unrecognized standardization type: %s' % (standard))
+        raise Exception(f'Unrecognized standardization type: {standard}')
     df[col] = out
 
     return df, col
@@ -388,7 +388,7 @@ def _merge_values(values, strategy='list'):
     elif strategy == 'min':
         val = min(values)
     else:
-        raise Exception('Unknown column merge strategy: %s' % (strategy) )
+        raise Exception(f'Unknown column merge strategy: {strategy}' )
 
     if type(val) is list and len(val) == 1:
         val = val[0]

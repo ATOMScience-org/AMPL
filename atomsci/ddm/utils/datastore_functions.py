@@ -4,28 +4,27 @@
 
 # -------------setup section-----------------
 
-import csv
 import bz2
-import pprint
-import pickle
-import tarfile
-import tempfile
+import csv
 import getpass
-import sys
 import io
 import json
-import urllib3
-import bravado
-import os
-import pandas as pd
-import numpy as np
 import logging
+import os
+import pickle
+import pprint
+import sys
+import tarfile
+import tempfile
 
-
-
+import bravado
+import numpy as np
+import pandas as pd
+import urllib3
 from IPython.display import display
-from atomsci.ddm.utils.llnl_utils import is_lc_system
+
 import atomsci.ddm.utils.file_utils as futils
+from atomsci.ddm.utils.llnl_utils import is_lc_system
 
 logger = logging.getLogger('ATOM')
 urllib3.disable_warnings()
@@ -35,16 +34,18 @@ urllib3.disable_warnings()
 
 feather_supported = True
 try:
-    import pyarrow.feather as feather
+    from pyarrow import feather
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 
 clients_supported = True
 try:
-    from atomsci.clients import DatastoreClient
-    from atomsci.clients import DatastoreClientSingleton
-    from atomsci.clients import MLMTClient
-    from atomsci.clients import MLMTClientSingleton
+    from atomsci.clients import (
+        DatastoreClient,
+        DatastoreClientSingleton,
+        MLMTClient,
+        MLMTClientSingleton,
+    )
 except (ModuleNotFoundError, ImportError):
     logger.info("atomsci.clients package missing, is currently unsupported for non-ATOM users.\n" +
                 "ATOM users should run 'pip install clients --user' to install.")
@@ -103,7 +104,7 @@ def config_client(
 
     if not client.api_token:
         if not token_str:
-            logger.error("token file not found: {}".format(token))
+            logger.error(f"token file not found: {token}")
             
         logger.error("and none of {} token env vars set".format(",".join(
             DatastoreClient.api_token_env_str)))
@@ -403,10 +404,9 @@ def retrieve_dataset_by_datasetkey(dataset_key, bucket, client=None, return_meta
         i_row = 1
         for row in dict_reader:
             table.append(row)
-            if nrows is not None:
-                if i_row >= nrows:
-                    #i_row += 1
-                    break
+            if nrows is not None and i_row >= nrows:
+                #i_row += 1
+                break
             i_row += 1
 
         dataset = pd.DataFrame(table)
@@ -441,7 +441,7 @@ def retrieve_dataset_by_datasetkey(dataset_key, bucket, client=None, return_meta
                 break
             logger.debug("Read %d bytes of data from datastore" % len(data))
             tmp_fp.write(data)
-        logger.debug("Wrote data to %s" % tmp_path)
+        logger.debug(f"Wrote data to {tmp_path}")
         tmp_fp.close()
         fp.close()
         logger.debug("Reading data into data frame")
@@ -455,7 +455,7 @@ def retrieve_dataset_by_datasetkey(dataset_key, bucket, client=None, return_meta
         dataset = pd.read_excel(fp, sheet_name=None)
         num_sheets = len(dataset)
         sheet_names = dataset.keys()
-        print('Excel workbook has %s sheets' %(num_sheets), 'Sheet names = ', sheet_names)
+        print(f'Excel workbook has {num_sheets} sheets', 'Sheet names = ', sheet_names)
         print('tip: use OrderedDict.get(sheet_name) to extract a specific sheet')
 
     elif file_type == 'gz' or file_type == 'tgz':
@@ -508,9 +508,9 @@ def retrieve_dataset_by_dataset_oid(dataset_oid, client=None, return_metadata=Fa
        optionally, return a dictionary of the metadata only if 'return_metadata' is set to TRUE.
     """
 
-    print("")
+    print()
     print('caution: dataset_oid is version specific. Newer versions of this file might be available.')
-    print("")
+    print()
 
 
     if client is None:
@@ -536,10 +536,9 @@ def retrieve_dataset_by_dataset_oid(dataset_oid, client=None, return_metadata=Fa
         i_row = 1
         for row in dict_reader:
             table.append(row)
-            if nrows is not None:
-                if i_row >= nrows:
-                    #i_row += 1
-                    break
+            if nrows is not None and i_row >= nrows:
+                #i_row += 1
+                break
             i_row += 1
 
         dataset = pd.DataFrame(table)
@@ -566,7 +565,7 @@ def retrieve_dataset_by_dataset_oid(dataset_oid, client=None, return_metadata=Fa
         dataset = pd.read_excel(fp, sheet_name=None)
         num_sheets = len(dataset)
         sheet_names = dataset.keys()
-        print('Excel workbook has %s sheets' %(num_sheets), 'Sheet names = ', sheet_names)
+        print(f'Excel workbook has {num_sheets} sheets', 'Sheet names = ', sheet_names)
         print('tip: use OrderedDict.get(sheet_name) to extract a specific sheet')
 
     elif file_type == 'gz' or file_type == 'tgz':
@@ -742,10 +741,9 @@ def retrieve_columns_from_dataset (bucket, dataset_key, client=None, max_rows=0,
         if i_row % 1000 == 0:
             print (i_row, 'rows                    ', end='\r', flush=True)
 
-        if max_rows:
-            if i_row >= max_rows:
-                i_row += 1
-                break
+        if max_rows and i_row >= max_rows:
+            i_row += 1
+            break
 
         i_row += 1
 
@@ -815,15 +813,15 @@ def filter_datasets_interactive (bucket='all', client=None, save_search=False, r
     key = input('Enter a key: ')
 
     # provide list of values and have user select option
-    print("")
+    print()
     print('Select value(s) for key=', key, 'from the following list: ')
     values_for_key = retrieve_values_for_key(key=key, bucket=bucket)
     if restrict_value:
         approved_values = list(kv_lookup[key].unique())
         values_for_key  = list(set(values_for_key ) & set(approved_values))
-    print("")
+    print()
     display(values_for_key)
-    print("")
+    print()
     value = input('Enter value(s) (comma separated for multiple values):  ')
     print(type(value))
     value = value.replace("'","")
@@ -840,13 +838,13 @@ def filter_datasets_interactive (bucket='all', client=None, save_search=False, r
     dataset_list = search_datasets_by_key_value(key=key, value=value, bucket=bucket, display_all_columns=display_all_columns)
     print('Number of datasets found meeting criteria =', len(dataset_list))
     if len(dataset_list) > max_rows:
-        print('Displaying first %s results' %(max_rows))
+        print(f'Displaying first {max_rows} results')
     display(dataset_list.iloc[0:max_rows])
 
     if len(dataset_list) < 2:
         return dataset_list
 
-    print("")
+    print()
     repeat = input('Apply additional filter? (y/n)')
 
  #   if repeat == 'n':
@@ -867,7 +865,7 @@ def filter_datasets_interactive (bucket='all', client=None, save_search=False, r
         print('key_val size',key_val.shape[:])
 
         unique_keys = key_val['key'].unique()
-        print("")
+        print()
         print('Select a key from the following list:')
         if restrict_key:
             unique_keys = list(set(unique_keys) & set(approved_keys))
@@ -883,7 +881,7 @@ def filter_datasets_interactive (bucket='all', client=None, save_search=False, r
 
         new_key = input('Enter a key: ')
 
-        print("")
+        print()
         print('Select value(s) for key=', new_key, 'from the following list: ')
 
         new_value = key_val[key_val['key'] == new_key]
@@ -893,9 +891,9 @@ def filter_datasets_interactive (bucket='all', client=None, save_search=False, r
             approved_values = list(kv_lookup[new_key].unique())
             new_value  = list(set(new_value) & set(approved_values))
             print('if statement true')
-        print("")
+        print()
         display(new_value)
-        print("")
+        print()
         new_value = input('Enter value(s) (comma separated for multiple values):  ')
         new_value = new_value.replace("'","")
         new_value = new_value.replace(" ","")
@@ -931,10 +929,10 @@ def filter_datasets_interactive (bucket='all', client=None, save_search=False, r
 
         print('Number of datasets found meeting criteria =', len(dataset_list2))
         if len(dataset_list2) > max_rows:
-            print('Displaying first %s results' %(max_rows))
+            print(f'Displaying first {max_rows} results')
         display(dataset_list2.iloc[0:max_rows])
 
-        print("")
+        print()
         dataset_list = dataset_list2[:]
         print('--dataset_list length = ', len(dataset_list))
 
@@ -1095,18 +1093,18 @@ def check_key_val(key_values, client=None, df=None, enforced=True):
         i+=1
 
     if key_values['file_category'] not in valid_file_category:
-        raise ValueError('invalid file_category. Must be one of the following: %s' %valid_file_category)
+        raise ValueError(f'invalid file_category. Must be one of the following: {valid_file_category}')
 
     # generate dataset_key to retrieve the appropriate key:value lookup table
     file_cat = key_values['file_category']
-    kv_lookup_dskey = ''.join(['kv_lookup_',file_cat])  #will need to enable to switch to auto-look up by category in default
+    kv_lookup_dskey = f'kv_lookup_{file_cat}'  #will need to enable to switch to auto-look up by category in default
     kv_lookup = retrieve_dataset_by_datasetkey(bucket='default', client=client, dataset_key=kv_lookup_dskey)
     #kv_lookup = pd.read_csv(kv_lookup_dskey+'.csv')
 
     # check that all keys are valid
     for key in key_values:
         if key not in kv_lookup:
-            raise ValueError('key=%s invalid' %key,' Valid options include:', kv_lookup.iloc[:,0:-3].columns)
+            raise ValueError(f'key={key} invalid',' Valid options include:', kv_lookup.iloc[:,0:-3].columns)
 
         # check that specified values are valid for given key
         if len(kv_lookup[key].unique()) > 1 :
@@ -1115,7 +1113,7 @@ def check_key_val(key_values, client=None, df=None, enforced=True):
                 values = [values]
             for value in values:
                 if not(any(kv_lookup[key] == value)):
-                    raise ValueError('value=%s invalid' %value,'valid values for key=%s include:' %key, list(kv_lookup[key].unique()))
+                    raise ValueError(f'value={value} invalid',f'valid values for key={key} include:', list(kv_lookup[key].unique()))
 
         # when applicable, check that the values input for id_col, smiles_col, and response_col are all headings that exist
         if df is not None :
@@ -1125,7 +1123,7 @@ def check_key_val(key_values, client=None, df=None, enforced=True):
                     avail_headings = list(df.columns)
                     col_head_value = key_values.get(col)
                     if col_head_value not in avail_headings:
-                        raise ValueError('value for key=%s invalid. Pick from these column headings:' %col, avail_headings)
+                        raise ValueError(f'value for key={col} invalid. Pick from these column headings:', avail_headings)
 
     if enforced:
         """ This section checks to make sure all relevent keys have been filled in based on other selections made
@@ -1140,12 +1138,12 @@ def check_key_val(key_values, client=None, df=None, enforced=True):
         while i < num_enforced_key:
             enforced_key = kv_lookup['enforced_on_key'][i]
             enforced_value = kv_lookup['enforced_on_value'][i]
-            if enforced_key in key_values.keys():
+            if enforced_key in key_values:
                 if enforced_value in key_values[enforced_key]:
                     required = (kv_lookup['required_keys'][i]).split(', ')
                     for key in required:
                         if key not in key_values:
-                            raise ValueError('Required key missing: %s' %key)
+                            raise ValueError(f'Required key missing: {key}')
 
             i += 1
 
@@ -1527,9 +1525,8 @@ def get_keyval(dataset_oid=None, dataset_key=None, bucket=None, client=None):
         ds_metadata = retrieve_dataset_by_dataset_oid(dataset_oid=dataset_oid, return_metadata=True, client=client)
     if dataset_key:
         ds_metadata = retrieve_dataset_by_datasetkey(bucket=bucket, dataset_key=dataset_key, return_metadata=True, client=client)
-    if not dataset_oid:
-        if not dataset_key:
-            raise ValueError('dataset_oid or dataset_key + bucket required')
+    if not dataset_oid and not dataset_key:
+        raise ValueError('dataset_oid or dataset_key + bucket required')
 
     # convert
     ds_metadata = ds_metadata['metadata']
@@ -1722,12 +1719,12 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
     used_keys.append(input_key)
 
     # provide list of values and have user select option
-    print("")
+    print()
     print('Select value(s) for key=', input_key, 'from the following list: ')
     values_for_key = retrieve_values_for_key(key=input_key, bucket=bucket)
-    print("")
+    print()
     print(values_for_key)
-    print("")
+    print()
 
     values_valid=False
     operator='in'
@@ -1763,7 +1760,7 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
         for value in value:
             if value not in values_for_key:
                 invalid_value = True
-                print('value %s is not valid ' %value)
+                print(f'value {value} is not valid ')
         if not invalid_value:
             values_valid = True
 
@@ -1774,13 +1771,13 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
     dataset_list = search_datasets_by_key_value(key=input_key, value=value, operator=operator, bucket=bucket, display_all_columns=display_all_columns)
     print('Number of datasets found meeting criteria =', len(dataset_list))
     if len(dataset_list) > max_rows:
-        print('Displaying first %s results' %(max_rows))
+        print(f'Displaying first {max_rows} results')
     print(dataset_list.iloc[0:max_rows])
 
     if len(dataset_list) < 2:
         return dataset_list
 
-    print("")
+    print()
 
     repeat = ""
     while repeat not in ['y','n']:
@@ -1800,7 +1797,7 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
             i = i+1
 
         unique_keys = key_val['key'].unique()
-        print("")
+        print()
         print('Select a key from the following list:')
         unique_keys = list(set(unique_keys) & set(approved_keys))
         for key in used_keys:
@@ -1818,7 +1815,7 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
             new_key = input('Enter a key: ')
         used_keys.append(new_key)
 
-        print("")
+        print()
         print('Select value(s) for key=', new_key, 'from the following list: ')
 
         values_for_key = key_val[key_val['key'] == new_key]
@@ -1827,9 +1824,9 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
         approved_values = list(kv_lookup[new_key].unique())
         values_for_key  = list(set(values_for_key) & set(approved_values))
 
-        print("")
+        print()
         print(values_for_key)
-        print("")
+        print()
         ##
         values_valid=False
         while not values_valid:
@@ -1837,7 +1834,7 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
             new_value = input("Enter value(s) (comma separated for multiple values) or Enter 'change key' to change the key':  ")
             if new_value == "change key":
                     used_keys.pop()
-                    print("")
+                    print()
                     print('Select a key from the following list:')
                     unique_keys = list(set(unique_keys) & set(approved_keys))
                     unique_keys = sorted(unique_keys, key = str.lower)
@@ -1853,7 +1850,7 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
                         new_key = input('Enter a key: ')
                     used_keys.append(new_key)
 
-                    print("")
+                    print()
                     print('Select value(s) for key=', new_key, 'from the following list: ')
 
                     values_for_key = key_val[key_val['key'] == new_key]
@@ -1862,9 +1859,9 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
                     approved_values = list(kv_lookup[new_key].unique())
                     values_for_key  = list(set(values_for_key) & set(approved_values))
 
-                    print("")
+                    print()
                     print(values_for_key)
-                    print("")
+                    print()
 
             new_value = new_value.replace("'","")
             new_value = new_value.replace("[","")
@@ -1876,7 +1873,7 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
             for value in new_value:
                 if value not in values_for_key:
                     invalid_value = True
-                    print('value %s is not valid ' %value)
+                    print(f'value {value} is not valid ')
             if not invalid_value:
                 values_valid = True
         print('values selected =', new_value, type(new_value))
@@ -1909,10 +1906,10 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
 
         print('Number of datasets found meeting criteria =', len(dataset_list2))
         if len(dataset_list2) > max_rows:
-            print('Displaying first %s results' %(max_rows))
+            print(f'Displaying first {max_rows} results')
         print(dataset_list2.iloc[0:max_rows])
 
-        print("")
+        print()
         dataset_list = dataset_list2[:]
         print('--dataset_list length = ', len(dataset_list))
 
@@ -2060,7 +2057,7 @@ def get_key_val(metadata, key=None):
         returns dictionary for the list of key,value pairs when a query key is not provided.
     """
     if key is None :
-        return dict([(kv['key'], kv['value']) for kv in metadata])
+        return {kv['key']: kv['value'] for kv in metadata}
     else :
         ret_val=None
         for elem in metadata :
@@ -2095,9 +2092,9 @@ def copy_datasets_to_bucket(dataset_keys, from_bucket, to_bucket, ds_client=None
         try:
             ds_client.ds_datasets.copy_dataset(bucket_name=from_bucket, dataset_key=dataset_key, to_bucket_name=to_bucket).result()
         except Exception as e:
-            print('Error copying dataset %s\nfrom bucket %s to %s' % (dataset_key, from_bucket, to_bucket))
+            print(f'Error copying dataset {dataset_key}\nfrom bucket {from_bucket} to {to_bucket}')
             print(e)
             continue
-        print('Copied dataset %s to %s' % (dataset_key, to_bucket))
+        print(f'Copied dataset {dataset_key} to {to_bucket}')
 
 

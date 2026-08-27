@@ -4,34 +4,33 @@
 metrics for that model. Works for a variety of featurizers, splitters and other parameters on a generic dataset
 """
 
+import copy
+import io
 import json
 import logging
 import os
-import io
 import sys
+import tarfile
+import tempfile
 import time
 import uuid
-import tempfile
-import tarfile
+
 import deepchem as dc
 import numpy as np
 import pandas as pd
 import scipy as sp
 from sklearn.metrics import pairwise_distances
-import copy
 
-from atomsci.ddm.utils import datastore_functions as dsf
-import atomsci.ddm.utils.model_version_utils as mu
 import atomsci.ddm.utils.file_utils as futils
-
-from atomsci.ddm.pipeline import model_datasets as model_datasets
-from atomsci.ddm.pipeline import model_wrapper as model_wrapper
+import atomsci.ddm.utils.model_version_utils as mu
 from atomsci.ddm.pipeline import featurization as feat
-from atomsci.ddm.pipeline import parameter_parser as parse
+from atomsci.ddm.pipeline import model_datasets, model_wrapper
 from atomsci.ddm.pipeline import model_tracker as trkr
-from atomsci.ddm.pipeline import transformations as trans
+from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import random_seed as rs
 from atomsci.ddm.pipeline import sampling as sample
+from atomsci.ddm.pipeline import transformations as trans
+from atomsci.ddm.utils import datastore_functions as dsf
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
@@ -125,7 +124,7 @@ def build_tarball_name(dataset_name, model_uuid, result_dir=''):
     Returns:
        The path or filename of the tarball for this model
     """
-    model_tarball_path = os.path.join(str(result_dir), "{}_model_{}.tar.gz".format(dataset_name, model_uuid))
+    model_tarball_path = os.path.join(str(result_dir), f"{dataset_name}_model_{model_uuid}.tar.gz")
     return model_tarball_path
 
 # ---------------------------------------------
@@ -231,7 +230,7 @@ class ModelPipeline:
         else:
             self.random_state = random_state
         # log the seed used 
-        self.log.info('Initiating ModelPipeline with seed {}'.format(self.seed))
+        self.log.info(f'Initiating ModelPipeline with seed {self.seed}')
 
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
@@ -267,11 +266,7 @@ class ModelPipeline:
             else:
                 self.metric_type = 'roc_auc_score'
         if self.params.output_dir is None:
-            self.params.output_dir = os.path.join(self.params.result_dir, self.params.dataset_name, '%s_%s_%s_%s' %
-                                                  (
-                                                    self.params.model_type,
-                                                      self.params.featurizer,
-                                                      self.params.splitter, self.params.prediction_type),
+            self.params.output_dir = os.path.join(self.params.result_dir, self.params.dataset_name, f'{self.params.model_type}_{self.params.featurizer}_{self.params.splitter}_{self.params.prediction_type}',
                                                   self.params.model_uuid)
         if not os.path.isdir(self.params.output_dir):
             os.makedirs(self.params.output_dir, exist_ok=True)
@@ -355,44 +350,44 @@ class ModelPipeline:
         if 'dataset_hash' not in self.params:
             self.params.dataset_hash=None
 
-        train_dset_data = dict(
-            datastore=self.params.datastore,
-            dataset_key=self.params.dataset_key,
-            bucket=self.params.bucket,
-            dataset_oid=self.data.dataset_oid,
-            dataset_hash=self.params.dataset_hash,
-            id_col=self.params.id_col,
-            smiles_col=self.params.smiles_col,
-            response_cols=self.params.response_cols,
-            feature_transform_type=self.params.feature_transform_type,
-            response_transform_type=self.params.response_transform_type,
-            weight_transform_type=self.params.weight_transform_type,
-            external_export_parameters=dict(
-                result_dir=self.params.result_dir),
-            dataset_metadata=dataset_metadata,
-            production=self.params.production
-        )
+        train_dset_data = {
+            'datastore': self.params.datastore,
+            'dataset_key': self.params.dataset_key,
+            'bucket': self.params.bucket,
+            'dataset_oid': self.data.dataset_oid,
+            'dataset_hash': self.params.dataset_hash,
+            'id_col': self.params.id_col,
+            'smiles_col': self.params.smiles_col,
+            'response_cols': self.params.response_cols,
+            'feature_transform_type': self.params.feature_transform_type,
+            'response_transform_type': self.params.response_transform_type,
+            'weight_transform_type': self.params.weight_transform_type,
+            'external_export_parameters': {
+                'result_dir': self.params.result_dir},
+            'dataset_metadata': dataset_metadata,
+            'production': self.params.production
+        }
 
-        model_params = dict(
-            model_bucket=self.params.model_bucket,
-            system=self.params.system,
-            model_type=self.params.model_type,
-            featurizer=self.params.featurizer,
-            prediction_type=self.params.prediction_type,
-            model_choice_score_type=self.params.model_choice_score_type,
-            max_invalid_pred_frac=self.params.max_invalid_pred_frac,
-            num_model_tasks=self.params.num_model_tasks,
-            class_number=self.params.class_number,
-            transformers=self.params.transformers,
-            transformer_key=self.params.transformer_key,
-            transformer_bucket=self.params.transformer_bucket,
-            transformer_oid=self.params.transformer_oid,
-            uncertainty=self.params.uncertainty,
-            time_generated=time.time(),
-            save_results=self.params.save_results,
-            hyperparam_uuid=self.params.hyperparam_uuid,
-            ampl_version=mu.get_ampl_version()
-        )
+        model_params = {
+            'model_bucket': self.params.model_bucket,
+            'system': self.params.system,
+            'model_type': self.params.model_type,
+            'featurizer': self.params.featurizer,
+            'prediction_type': self.params.prediction_type,
+            'model_choice_score_type': self.params.model_choice_score_type,
+            'max_invalid_pred_frac': self.params.max_invalid_pred_frac,
+            'num_model_tasks': self.params.num_model_tasks,
+            'class_number': self.params.class_number,
+            'transformers': self.params.transformers,
+            'transformer_key': self.params.transformer_key,
+            'transformer_bucket': self.params.transformer_bucket,
+            'transformer_oid': self.params.transformer_oid,
+            'uncertainty': self.params.uncertainty,
+            'time_generated': time.time(),
+            'save_results': self.params.save_results,
+            'hyperparam_uuid': self.params.hyperparam_uuid,
+            'ampl_version': mu.get_ampl_version()
+        }
         # add in sampling method parameters for documentation/reproducibility
         if self.params.sampling_method is not None:
             model_params['sampling_method'] = self.params.sampling_method
@@ -402,13 +397,13 @@ class ModelPipeline:
             model_params['sampling_k_neighbors'] = self.params.sampling_k_neighbors
 
         splitting_metadata = self.data.get_split_metadata()
-        model_metadata = dict(
-            model_uuid=self.params.model_uuid,
-            time_built=time.time(),
-            model_parameters=model_params,
-            training_dataset=train_dset_data,
-            splitting_parameters=splitting_metadata
-        )
+        model_metadata = {
+            'model_uuid': self.params.model_uuid,
+            'time_built': time.time(),
+            'model_parameters': model_params,
+            'training_dataset': train_dset_data,
+            'splitting_parameters': splitting_metadata
+        }
 
         model_spec_metadata = self.model_wrapper.get_model_specific_metadata()
         for key, data in model_spec_metadata.items():
@@ -477,13 +472,13 @@ class ModelPipeline:
     def create_split_metadata(self):
         """Creates metadata for each split dataset. 
         It will save the seed used to create the split dataset and relevant parameters."""
-        self.split_data = dict(
-            dataset_key = self.params.dataset_key,
-            id_col = self.params.id_col, 
-            smiles_col = self.params.smiles_col, 
-            response_cols = self.params.response_cols,
-            seed = self.seed
-        )
+        self.split_data = {
+            'dataset_key': self.params.dataset_key,
+            'id_col': self.params.id_col, 
+            'smiles_col': self.params.smiles_col, 
+            'response_cols': self.params.response_cols,
+            'seed': self.seed
+        }
         self.splitting_metadata = self.data.get_split_metadata() 
         self.split_data['splitting_metadata'] = self.splitting_metadata
 
@@ -508,19 +503,19 @@ class ModelPipeline:
             dataset_metadata = dsf.get_keyval(dataset_key=self.params.dataset_key, bucket=self.params.bucket)
         else:
             dataset_metadata = {}
-        prediction_metadata = dict(
-            metrics_type='prediction',
-            model_uuid=self.params.model_uuid,
-            time_run=time.time(),
-            dataset_key=self.params.dataset_key,
-            bucket=self.params.bucket,
-            dataset_oid=self.data.dataset_oid,
-            id_col=self.params.id_col,
-            smiles_col=self.params.smiles_col,
-            response_cols=self.params.response_cols,
-            prediction_results=prediction_results,
-            dataset_metadata=dataset_metadata
-        )
+        prediction_metadata = {
+            'metrics_type': 'prediction',
+            'model_uuid': self.params.model_uuid,
+            'time_run': time.time(),
+            'dataset_key': self.params.dataset_key,
+            'bucket': self.params.bucket,
+            'dataset_oid': self.data.dataset_oid,
+            'id_col': self.params.id_col,
+            'smiles_col': self.params.smiles_col,
+            'response_cols': self.params.response_cols,
+            'prediction_results': prediction_results,
+            'dataset_metadata': dataset_metadata
+        }
         return prediction_metadata
 
     # ****************************************************************************************
@@ -566,7 +561,7 @@ class ModelPipeline:
         if prefix is None:
             out_file = os.path.join(self.output_dir, 'model_metrics.json')
         else:
-            out_file = os.path.join(self.output_dir, '%s_model_metrics.json' % prefix)
+            out_file = os.path.join(self.output_dir, f'{prefix}_model_metrics.json')
 
         with open(out_file, 'w') as out:
             json.dump(model_metrics, out, sort_keys=True, indent=4, separators=(',', ': '))
@@ -674,10 +669,10 @@ class ModelPipeline:
         training_metrics = []
         for label in ['best']:
             for subset in ['train', 'valid', 'test']:
-                training_dict = dict(
-                    metrics_type='training',
-                    label=label,
-                    subset=subset)
+                training_dict = {
+                    'metrics_type': 'training',
+                    'label': label,
+                    'subset': subset}
                 training_dict['prediction_results'] = self.model_wrapper.get_pred_results(subset, label)
                 training_metrics.append(training_dict)
 
@@ -730,12 +725,12 @@ class ModelPipeline:
 
         # Get the metrics from previous prediction runs, if any, and append the new results to them
         # in the model tracker DB
-        model_metrics = dict(
-            model_uuid=self.params.model_uuid,
-            metrics_type='prediction'
-        )
+        model_metrics = {
+            'model_uuid': self.params.model_uuid,
+            'metrics_type': 'prediction'
+        }
         model_metrics.update(prediction_metadata)
-        self.save_metrics(model_metrics, 'prediction_%s' % self.params.dataset_name)
+        self.save_metrics(model_metrics, f'prediction_{self.params.dataset_name}')
 
     # ****************************************************************************************
     def calc_train_dset_pair_dis(self, metric="euclidean"):
@@ -774,7 +769,7 @@ class ModelPipeline:
             colname = self.params.response_cols[0]
             for suff in suffixes:
                 for c in result_df.columns:
-                    if c.startswith('%s_%s'%(colname, suff)):
+                    if c.startswith(f'{colname}_{suff}'):
                         rename_map[c] = c[len(colname+'_'):] # chop off response_col_ prefix
 
             # rename columns for backwards compatibility
@@ -911,7 +906,7 @@ class ModelPipeline:
         # assign unique ids to each row
         old_ids = dset_df[self.params.id_col].values
         new_ids = [str(i) for i in range(len(dset_df))]
-        id_map = dict([(i, id) for i, id in zip(new_ids, old_ids)])
+        id_map = {i: id for i, id in zip(new_ids, old_ids)}
         dset_df[self.params.id_col] = new_ids
 
         self.data = model_datasets.create_minimal_dataset(self.params, self.featurization, contains_responses)
@@ -935,22 +930,22 @@ class ModelPipeline:
         if self.params.model_type != "hybrid":
             if contains_responses:
                 for i, colname in enumerate(self.params.response_cols):
-                    result_df["%s_actual" % colname] = self.data.vals[:,i]
+                    result_df[f"{colname}_actual"] = self.data.vals[:,i]
             for i, colname in enumerate(self.params.response_cols):
                 if self.params.prediction_type == 'regression':
-                    result_df["%s_pred" % colname] = preds[:,i,0]
+                    result_df[f"{colname}_pred"] = preds[:,i,0]
                 else:
                     class_probs = preds[:,i,:]
                     nclass = preds.shape[2]
                     if nclass == 2:
-                        result_df["%s_prob" % colname] = class_probs[:,1]
+                        result_df[f"{colname}_prob"] = class_probs[:,1]
                     else:
                         for k in range(nclass):
                             result_df["%s_prob_%d" % (colname, k)] = class_probs[:,k]
-                    result_df["%s_pred" % colname] = np.argmax(class_probs, axis=1)
+                    result_df[f"{colname}_pred"] = np.argmax(class_probs, axis=1)
             if self.params.uncertainty and self.params.prediction_type == 'regression':
                 for i, colname in enumerate(self.params.response_cols):
-                    std_colname = '%s_std' % colname
+                    std_colname = f'{colname}_std'
                     result_df[std_colname] = stds[:,i,0]
         else:
             # hybrid model should handled differently
@@ -1112,7 +1107,7 @@ def run_models(params, shared_featurization=None, generator=False):
     for metadata_dict in metadata_iter:
         model_uuid = metadata_dict['model_uuid']
 
-        log.info("Got metadata for model UUID %s" % model_uuid)
+        log.info(f"Got metadata for model UUID {model_uuid}")
 
         # Parse the saved model metadata to obtain the parameters used to train the model
         model_params = parse.wrapper(metadata_dict)
@@ -1164,7 +1159,7 @@ def run_models(params, shared_featurization=None, generator=False):
         model_dir = dsf.retrieve_dataset_by_dataset_oid(model_dataset_oid, client=ds_client, return_metadata=False,
                                                         nrows=None, print_metadata=False, sep=False,
                                                         tarpath=pipeline.model_wrapper.model_dir)
-        pipeline.log.info("Extracted model tarball to %s" % model_dir)
+        pipeline.log.info(f"Extracted model tarball to {model_dir}")
 
         # If that worked, reload the saved model training state
         pipeline.model_wrapper.reload_model(pipeline.model_wrapper.model_dir)
@@ -1222,7 +1217,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
 
     model_uuid = model_params.model_uuid
 
-    log.info("Got metadata for model UUID %s" % model_uuid)
+    log.info(f"Got metadata for model UUID {model_uuid}")
 
     model_params.result_dir = result_dir
 
@@ -1244,7 +1239,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
     else:
         featurization = shared_featurization
 
-    log.info("Featurization = %s" % str(featurization))
+    log.info(f"Featurization = {featurization!s}")
     # Create the ModelWrapper object.
 
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
@@ -1305,9 +1300,9 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
 
     metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
     if not metadata_dict:
-        raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
+        raise Exception(f"No model found with UUID {model_uuid} in collection {collection_name}")
 
-    print("Got metadata for model UUID %s" % model_uuid)
+    print(f"Got metadata for model UUID {model_uuid}")
 
     model_ampl_version = metadata_dict['model_parameters']['ampl_version']
     # check the model version to make sure it's compatible with the running ampl version
@@ -1438,7 +1433,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     try:
         has_transformers = config['model_parameters']['transformers']
         if has_transformers:
-            config['model_parameters']['transformer_key'] = "%s/transformers.pkl" % reload_dir
+            config['model_parameters']['transformer_key'] = f"{reload_dir}/transformers.pkl"
     except KeyError:
         pass
 
@@ -1472,7 +1467,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     if featurization is None:
         featurization = feat.create_featurization(model_params)
 
-    log.info("Featurization = %s" % str(featurization))
+    log.info(f"Featurization = {featurization!s}")
     # Create a ModelPipeline object
     pipeline = ModelPipeline(model_params)
     pipeline.orig_params = orig_params
@@ -1538,9 +1533,9 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
 
     metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
     if not metadata_dict:
-        raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
+        raise Exception(f"No model found with UUID {model_uuid} in collection {collection_name}")
 
-    logger.info("Got metadata for model UUID %s" % model_uuid)
+    logger.info(f"Got metadata for model UUID {model_uuid}")
 
     # Parse the saved model metadata to obtain the parameters used to train the model
     pparams = parse.wrapper(metadata_dict)
@@ -1603,12 +1598,12 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
 
     ok_labels = []
     for i, (model_uuid, collection_name, label) in enumerate(zip(model_uuids, collections, labels)):
-        log.info("Loading model %s from collection %s" % (model_uuid, collection_name))
+        log.info(f"Loading model {model_uuid} from collection {collection_name}")
         metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
         if not metadata_dict:
-            raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
+            raise Exception(f"No model found with UUID {model_uuid} in collection {collection_name}")
 
-        log.info("Got metadata for model UUID %s" % model_uuid)
+        log.info(f"Got metadata for model UUID {model_uuid}")
 
         # Parse the saved model metadata to obtain the parameters used to train the model
         model_pparams = parse.wrapper(metadata_dict)
@@ -1618,7 +1613,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
 
         if splitters is not None:
             if model_pparams.splitter != splitters[i]:
-                log.info("Replacing %s splitter in stored model with %s" % (model_pparams.splitter, splitters[i]))
+                log.info(f"Replacing {model_pparams.splitter} splitter in stored model with {splitters[i]}")
                 model_pparams.splitter = splitters[i]
 
         if dset_params is not None:
@@ -1657,22 +1652,22 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
         try:
             preds, stds = pipe.model_wrapper.generate_predictions(pipe.data.dataset)
         except ValueError:
-            log.error("\n***** Prediction failed for model %s %s\n" % (label, model_uuid))
+            log.error(f"\n***** Prediction failed for model {label} {model_uuid}\n")
             continue
         i = 0
         if pipe.params.prediction_type == 'regression':
-            result_df["pred_%s" % label] = preds[:, i, 0]
+            result_df[f"pred_{label}"] = preds[:, i, 0]
         else:
             # Assume binary classifier for now. We're going to aggregate the probabilities for class 1.
-            result_df["pred_%s" % label] = preds[:, i, 1]
+            result_df[f"pred_{label}"] = preds[:, i, 1]
         if pipe.params.uncertainty and pipe.params.prediction_type == 'regression':
-            std_colname = 'std_%s' % label
+            std_colname = f'std_{label}'
             result_df[std_colname] = stds[:, i, 0]
         pred_df = pred_df.merge(result_df, how='left', on=model_pparams.id_col)
         ok_labels.append(label)
 
     # Aggregate the ensemble of predictions
-    pred_cols = ["pred_%s" % label for label in ok_labels]
+    pred_cols = [f"pred_{label}" for label in ok_labels]
     pred_vals = pred_df[pred_cols].values
     if aggregate == 'mean':
         agg_pred = np.nanmean(pred_vals, axis=1)
@@ -1683,7 +1678,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
     elif aggregate == 'min':
         agg_pred = np.nanmin(pred_vals, axis=1)
     elif aggregate == 'weighted':
-        std_cols = ["std_%s" % label for label in ok_labels]
+        std_cols = [f"std_{label}" for label in ok_labels]
         std_vals = pred_df[std_cols].values
         if len(set(std_cols) - set(pred_df.columns.values)) > 0:
             raise Exception("Weighted ensemble needs uncertainties for all component models.")
@@ -1691,7 +1686,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
             raise Exception("Can't compute weighted ensemble because some standard deviations are zero")
         agg_pred = np.nansum(pred_vals / std_vals, axis=1) / np.nansum(1.0 / std_vals, axis=1)
     else:
-        raise ValueError("Unknown aggregate value %s" % aggregate)
+        raise ValueError(f"Unknown aggregate value {aggregate}")
 
     if pipe.params.prediction_type == 'regression':
         pred_df["ensemble_pred"] = agg_pred
@@ -1730,10 +1725,10 @@ def retrain_model(model_uuid, collection_name=None, result_dir=None, mt_client=N
     if not result_dir:
         _mlmt_client = dsf.initialize_model_tracker()
 
-        log.info("Loading model %s from collection %s" % (model_uuid, collection_name))
+        log.info(f"Loading model {model_uuid} from collection {collection_name}")
         metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
         if not metadata_dict:
-            raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
+            raise Exception(f"No model found with UUID {model_uuid} in collection {collection_name}")
     else:
         for dirpath, dirnames, filenames in os.walk(result_dir):
             if model_uuid in dirnames:
@@ -1743,14 +1738,14 @@ def retrain_model(model_uuid, collection_name=None, result_dir=None, mt_client=N
         with open(os.path.join(model_dir, 'model_metadata.json')) as f:
             metadata_dict = json.load(f)
 
-    log.info("Got metadata for model UUID %s" % model_uuid)
+    log.info(f"Got metadata for model UUID {model_uuid}")
 
     # Parse the saved model metadata to obtain the parameters used to train the model
     model_pparams = parse.wrapper(metadata_dict)
 
     model_pparams.result_dir = tempfile.mkdtemp()
     # TODO: This is a hack; possibly the datastore parameter isn't being stored in the metadata?
-    model_pparams.datastore = True if not result_dir else False
+    model_pparams.datastore = bool(not result_dir)
     pipe = ModelPipeline(model_pparams)
     pipe.train_model()
 
@@ -1782,7 +1777,7 @@ def main():
             logger.setLevel(logging.CRITICAL)
         mp = ModelPipeline(params)
         mp.train_model()
-        mp.log.warn("Dataset size: {}".format(mp.data.dataset.get_shape()[0][0]))
+        mp.log.warning(f"Dataset size: {mp.data.dataset.get_shape()[0][0]}")
 
 
 # -----------------------------------------------------------------------------------------------------

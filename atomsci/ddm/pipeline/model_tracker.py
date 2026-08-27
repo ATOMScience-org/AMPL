@@ -1,16 +1,17 @@
 """Module to interface model pipeline to model tracker service."""
 
-import os
-import tempfile
-import pandas as pd
 import json
-import tarfile
 import logging
+import os
+import tarfile
+import tempfile
 
-from atomsci.ddm.utils import datastore_functions as dsf
+import pandas as pd
+
+import atomsci.ddm.utils.file_utils as futils
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import transformations as trans
-import atomsci.ddm.utils.file_utils as futils
+from atomsci.ddm.utils import datastore_functions as dsf
 
 logger = logging.getLogger('ATOM')
 
@@ -75,7 +76,7 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
             filename=tarball_path, dataset_key=ds_key, client=pipeline.ds_client,
             return_metadata=True)
         if uploaded_results is None:
-            raise DatastoreInsertionException('Unable to upload title={title} to datastore.'.format(title=title))
+            raise DatastoreInsertionException(f'Unable to upload title={title} to datastore.')
     # Get the dataset_oid for actual metadata file stored in datastore.
     model_dataset_oid = uploaded_results['dataset_oid']
     # By adding dataset_oid to the dict, we can immediately find the datastore file asssociated with a model.
@@ -88,7 +89,7 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
                                     model_uuid=metadata_dict['model_uuid'],
                                     model_metadata=metadata_dict)
     if log:
-        logger.info('Successfully inserted into the database with model_uuid %s.' % model_uuid)
+        logger.info(f'Successfully inserted into the database with model_uuid {model_uuid}.')
 
 # *********************************************************************************************************************************
 def get_full_metadata(filter_dict, collection_name=None):
@@ -286,7 +287,7 @@ def extract_datastore_model_tarball(model_uuid, model_bucket, output_dir, model_
     """
 
     ds_client = dsf.config_client()
-    model_dataset_key = 'model_%s_tarball' % model_uuid
+    model_dataset_key = f'model_{model_uuid}_tarball'
 
     # Download the tarball to a temporary file so we can analyze it and extract its contents. Unfortunately the tarfile
     # module prevents us from using the datastore client stream directly because it requires that the stream be seekable.
@@ -351,7 +352,7 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
     if 'model_parameters' in metadata_dict:
         model_parameters = metadata_dict['model_parameters']
     else:
-        raise Exception("Bad metadata for model UUID %s" % model_uuid)
+        raise Exception(f"Bad metadata for model UUID {model_uuid}")
 
 
     model_params = parse.wrapper(metadata_dict)
@@ -379,13 +380,13 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
         if trans.transformers_needed(model_params):
             try:
                 if model_params.transformer_key is None:
-                    transformer_key = 'transformers_%s.pkl' % model_uuid
+                    transformer_key = f'transformers_{model_uuid}.pkl'
                 else:
                     transformer_key = model_params.transformer_key
                 trans_fp = ds_client.open_bucket_dataset(model_params.transformer_bucket, transformer_key, mode='b')
                 trans_data = trans_fp.read()
                 trans_fp.close()
-                trans_path = "%s/transformers.pkl" % output_dir
+                trans_path = f"{output_dir}/transformers.pkl"
                 trans_out = open(trans_path, mode='wb')
                 trans_out.write(trans_data)
                 trans_out.close()
@@ -393,8 +394,7 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
                 model_parameters['transformer_key'] = 'transformers.pkl'
         
             except:
-                logger.info("Transformers expected but not found in datastore in bucket %s with key\n%s" 
-                             % (model_params.transformer_bucket, transformer_key))
+                logger.info(f"Transformers expected but not found in datastore in bucket {model_params.transformer_bucket} with key\n{transformer_key}")
                 raise
     
         # Save the metadata params
@@ -413,11 +413,11 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
             logger.info(f"No metrics saved for model {model_uuid}")
 
     # Create a new tarball containing both the metadata and the parameters from the retrieved model tarball
-    new_tarpath = "%s.tar.gz" % output_dir
+    new_tarpath = f"{output_dir}.tar.gz"
     tarball = tarfile.open(new_tarpath, mode='w:gz')
     tarball.add(output_dir, arcname='.')
     tarball.close()
-    logger.info("Wrote model files to %s" % new_tarpath)
+    logger.info(f"Wrote model files to {new_tarpath}")
 
 
 # *********************************************************************************************************************************

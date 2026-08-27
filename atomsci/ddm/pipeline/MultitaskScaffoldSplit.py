@@ -1,29 +1,27 @@
 import argparse
 import logging
 import tempfile
-from typing import List, Optional, Set, Tuple
 from functools import partial
-import numpy as np
-import pandas as pd
-from scipy import stats
 
 import deepchem as dc
+import numpy as np
+import pandas as pd
+import rdkit
 from deepchem.data import Dataset
 from deepchem.splits import Splitter
 from deepchem.splits.splitters import _generate_scaffold
-
-import rdkit
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from scipy import stats
 
+from atomsci.ddm.pipeline import GeneticAlgorithm as ga
 from atomsci.ddm.pipeline import chem_diversity as cd
 from atomsci.ddm.pipeline import dist_metrics
-from atomsci.ddm.pipeline import GeneticAlgorithm as ga
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 logger = logging.getLogger('ATOM')
 
-def _generate_scaffold_hists(scaffold_sets: List[np.ndarray], 
+def _generate_scaffold_hists(scaffold_sets: list[np.ndarray], 
                                 w: np.array) -> np.array:
     """Counts the number of labelled samples per task per scaffold
 
@@ -54,8 +52,8 @@ def _generate_scaffold_hists(scaffold_sets: List[np.ndarray],
 
     return scaffold_hists
 
-def smush_small_scaffolds(scaffolds: List[Set[int]], 
-                            num_super_scaffolds: int = 100) -> List[np.ndarray]:
+def smush_small_scaffolds(scaffolds: list[set[int]], 
+                            num_super_scaffolds: int = 100) -> list[np.ndarray]:
     """Combines small scaffolds into super scaffolds
 
     Since using Murcko scaffolds
@@ -100,8 +98,8 @@ def smush_small_scaffolds(scaffolds: List[Set[int]],
     new_scaffolds = [np.array(list(s)) for s in new_scaffolds]
     return new_scaffolds
 
-def calc_ecfp(smiles: List[str],
-                workers: int = 8) -> List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]:
+def calc_ecfp(smiles: list[str],
+                workers: int = 8) -> list[rdkit.DataStructs.cDataStructs.ExplicitBitVect]:
     """Giving a list of strings return a list of ecfp features
 
     Calls AllChem.GetMorganFingerprintAsBitVect for each smiles in parallel
@@ -135,8 +133,8 @@ def calc_ecfp(smiles: List[str],
 
     return fprints
 
-def dist_smiles_from_ecfp(ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect],
-                            ecfp2: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]) -> List[float]:
+def dist_smiles_from_ecfp(ecfp1: list[rdkit.DataStructs.cDataStructs.ExplicitBitVect],
+                            ecfp2: list[rdkit.DataStructs.cDataStructs.ExplicitBitVect]) -> list[float]:
     """Calculate tanimoto distance distribution between two lists of ecpf features
 
     Parameters
@@ -174,7 +172,7 @@ class MultitaskScaffoldSplitter(Splitter):
     """
 
     def generate_scaffolds(self,
-                            dataset: Dataset) -> List[Set[int]]:
+                            dataset: Dataset) -> list[set[int]]:
         """Returns all scaffolds from the dataset.
 
         Parameters
@@ -268,7 +266,7 @@ class MultitaskScaffoldSplitter(Splitter):
 
 
     def expand_scaffolds(self,
-                        scaffold_list: List[int]) -> List[int]:
+                        scaffold_list: list[int]) -> list[int]:
         """Turns a list of scaffold indices into a list of compound indices
 
         Given a list of scaffold indices in self.ss return a list of compound
@@ -289,7 +287,7 @@ class MultitaskScaffoldSplitter(Splitter):
         return compound_list
 
     def split_chromosome_to_compound_split(self, 
-                            split_chromosome: List[str]) -> Tuple:
+                            split_chromosome: list[str]) -> tuple:
         """Turns a split of scaffolds into a split of compounds
 
         A chromosome is represented as a list of strings. Each string is
@@ -318,7 +316,7 @@ class MultitaskScaffoldSplitter(Splitter):
         return split
 
     def scaffold_diff_fitness(self, 
-                            split_chromosome: List[str],
+                            split_chromosome: list[str],
                             part_a: str,
                             part_b: str) -> float:
         """Grades a chromosome based on how well the partitions are separated
@@ -349,7 +347,7 @@ class MultitaskScaffoldSplitter(Splitter):
         min_dist = 1e20
         for ind1 in train_scaffolds:
             for ind2 in test_scaffolds:
-                assert(not (ind1 == ind2))
+                assert(ind1 != ind2)
                 # use the cached distance matrix to speed up computation
                 dist = self.scaff_scaff_distmat[ind1, ind2]
                 min_dist = np.min([min_dist, np.min(dist)])
@@ -357,7 +355,7 @@ class MultitaskScaffoldSplitter(Splitter):
         return min_dist
 
     def far_frac_fitness(self, 
-                            split_chromosome: List[str],
+                            split_chromosome: list[str],
                             train_part: str,
                             test_part: str) -> float:
         """Grades a split according to the fraction of valid/test compounds with
@@ -404,7 +402,7 @@ class MultitaskScaffoldSplitter(Splitter):
         for test_ind in test_scaffolds:
             has_nn = None
             for train_ind in train_scaffolds:
-                assert(not (train_ind == test_ind))
+                assert(train_ind != test_ind)
                 if has_nn is None:
                     has_nn = self.has_near_neighbor_mat[test_ind, train_ind]
                 else:
@@ -417,7 +415,7 @@ class MultitaskScaffoldSplitter(Splitter):
         return far_frac
 
 
-    def ratio_fitness(self, split_chromosome: List[str]) -> float:
+    def ratio_fitness(self, split_chromosome: list[str]) -> float:
         """Calculates a fitness score based on how well the subset proportions for each task, taking
         only labeled compounds into account, match the proportions requested by the user.
 
@@ -466,7 +464,7 @@ class MultitaskScaffoldSplitter(Splitter):
 
         return ratio_fit
 
-    def response_distr_fitness(self, split_chromosome: List[str]) -> float:
+    def response_distr_fitness(self, split_chromosome: list[str]) -> float:
         """Calculates a fitness score based on how well the validation and test set response
         value distributions match that of the train subset. We measure the degree of 
         matching using the Wasserstein distance.
@@ -507,7 +505,7 @@ class MultitaskScaffoldSplitter(Splitter):
         avg_dist = dist_sum/(ntasks*2)
         return 1 - avg_dist
 
-    def sanity_check_chromosome(self, split_chromosome: List[str]) -> bool:
+    def sanity_check_chromosome(self, split_chromosome: list[str]) -> bool:
         """Sanity checks a chromosome
 
         Checks to see that each subset has at least 1 labelled compound
@@ -541,7 +539,7 @@ class MultitaskScaffoldSplitter(Splitter):
 
         return True
 
-    def grade(self, split_chromosome: List[str]) -> float:
+    def grade(self, split_chromosome: list[str]) -> float:
         """Assigns a score to a given chromosome
 
         Returns a total fitness score for a candidate split, as a weighted sum of
@@ -644,7 +642,7 @@ class MultitaskScaffoldSplitter(Splitter):
             frac_train: float = 0.8,
             frac_valid: float = 0.1,
             frac_test: float = 0.1,
-            seed: Optional[int] = None,
+            seed: int | None = None,
             diff_fitness_weight_tvt: float = 0,
             diff_fitness_weight_tvv: float = 0,
             response_distr_fitness_weight: float = 0,
@@ -655,7 +653,7 @@ class MultitaskScaffoldSplitter(Splitter):
             dist_thresh: float = 0.3,
             print_timings: bool = False,
             early_stopping_generations = 25,
-            log_every_n: int = 10) -> Tuple:
+            log_every_n: int = 10) -> tuple:
         """Creates a split for the given datset.
 
         This function splits the dataset into a list of super scaffolds, then
@@ -770,7 +768,7 @@ class MultitaskScaffoldSplitter(Splitter):
     def _split(self,
             frac_train: float = 0.8,
             frac_valid: float = 0.1,
-            frac_test: float = 0.1) -> List[str]:
+            frac_test: float = 0.1) -> list[str]:
         """Return indices for specified split
         Parameters
         ----------
@@ -810,7 +808,7 @@ class MultitaskScaffoldSplitter(Splitter):
         test_counts = np.zeros(n_tasks, int)
         set_target = [train_target, valid_target, test_target]
         set_counts = [train_counts, valid_counts, test_counts]
-        set_inds: List[List[int]] = [[], [], []]
+        set_inds: list[list[int]] = [[], [], []]
         assigned = set()
         for i in range(len(self.scaffold_hists)):
             for task in range(n_tasks):
@@ -842,7 +840,7 @@ class MultitaskScaffoldSplitter(Splitter):
             frac_train: float = 0.8,
             frac_valid: float = 0.1,
             frac_test: float = 0.1,
-            seed: Optional[int] = None,
+            seed: int | None = None,
             diff_fitness_weight_tvt: float = 0,
             diff_fitness_weight_tvv: float = 0,
             ratio_fitness_weight: float = 1,
@@ -850,11 +848,11 @@ class MultitaskScaffoldSplitter(Splitter):
             num_super_scaffolds: int = 20,
             num_pop: int = 100,
             num_generations: int=30,
-            train_dir: Optional[str] = None,
-            valid_dir: Optional[str] = None,
-            test_dir: Optional[str] = None,
+            train_dir: str | None = None,
+            valid_dir: str | None = None,
+            test_dir: str | None = None,
             dist_thresh: float = 0.3,
-            log_every_n: int = 10) -> Tuple[Dataset, Dataset, Dataset]:
+            log_every_n: int = 10) -> tuple[Dataset, Dataset, Dataset]:
         """Creates a split for the given datset
 
         This split splits the dataset into a list of super scaffolds then
@@ -939,9 +937,9 @@ class MultitaskScaffoldSplitter(Splitter):
 
         return train_dataset, valid_dataset, test_dataset
 
-def ga_crossover(parents: List[List[str]],
+def ga_crossover(parents: list[list[str]],
                 num_pop: int,
-                random_state: np.random.Generator) -> List[List[str]]:
+                random_state: np.random.Generator) -> list[list[str]]:
     """Create the next generation from parents
 
     A random index is chosen and genes up to that index from
@@ -972,9 +970,9 @@ def ga_crossover(parents: List[List[str]],
 
     return new_pop
 
-def ga_mutate(new_pop: List[List[str]],
+def ga_mutate(new_pop: list[list[str]],
             random_state: np.random.Generator,
-            mutation_rate: float = .02,) -> List[List[str]]:
+            mutation_rate: float = .02,) -> list[list[str]]:
     """Mutate the population
 
     Each chromosome is copied and mutated at mutation_rate.
@@ -1006,7 +1004,7 @@ def ga_mutate(new_pop: List[List[str]],
     return mutated
 
 def make_y_w(dataframe: pd.DataFrame, 
-            columns: List[str]) -> Tuple:
+            columns: list[str]) -> tuple:
     """Create y and w matrices for Deepchem's Dataset
 
     Extracts labels and builds the w matrix for a dataset.
@@ -1034,7 +1032,7 @@ def make_y_w(dataframe: pd.DataFrame,
 
 def split_using_MultitaskScaffoldSplit(df: pd.DataFrame,
                     id_col: str,
-                    target_cols: List[str],
+                    target_cols: list[str],
                     smiles_col: str,
                     **kwargs) -> pd.DataFrame:
     """Produces an AMPL compatible split file given a dataframe

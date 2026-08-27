@@ -1,36 +1,32 @@
 """Classes providing different methods of featurizing compounds and other data entities"""
 import collections
+import copy
 import logging
 import os
 import tempfile
 import time
-import copy
 
-import numpy as np
 import deepchem as dc
+import numpy as np
 import pandas as pd
-
-from atomsci.ddm.utils import datastore_functions as dsf
-from atomsci.ddm.pipeline import transformations as trans
-from atomsci.ddm.pipeline import parameter_parser as pp
-from atomsci.ddm.pipeline import model_datasets as md
-from atomsci.ddm.pipeline import model_pipeline as mp
-
 from rdkit import Chem
-from rdkit.Chem import AllChem
-from rdkit.Chem import rdmolfiles
-from rdkit.Chem import rdmolops
-from rdkit.Chem import Descriptors
+from rdkit.Chem import AllChem, Descriptors, rdmolfiles, rdmolops
 from rdkit.ML.Descriptors import MoleculeDescriptors
-
-from sklearn.preprocessing import RobustScaler, PowerTransformer
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import PowerTransformer, RobustScaler
+
+from atomsci.ddm.pipeline import model_datasets as md
+from atomsci.ddm.pipeline import model_pipeline as mp
+from atomsci.ddm.pipeline import parameter_parser as pp
+from atomsci.ddm.pipeline import transformations as trans
+from atomsci.ddm.utils import datastore_functions as dsf
+
 subclassed_mordred_classes = ['EState', 'MolecularDistanceEdge']
 try:
     from mordred import Calculator, descriptors
-    from mordred.EState import AtomTypeEState, AggrType
+    from mordred.EState import AggrType, AtomTypeEState
     from mordred.MolecularDistanceEdge import MolecularDistanceEdge
     mordred_supported = True
 except ImportError:
@@ -38,7 +34,7 @@ except ImportError:
 
 feather_supported = True
 try:
-    import pyarrow.feather as feather
+    from pyarrow import feather
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 
@@ -108,7 +104,7 @@ def create_featurization(params):
     elif params.featurizer in ('computed_descriptors'):
         return ComputedDescriptorFeaturization(params)
     else:
-        raise ValueError("Unknown featurization type %s" % params.featurizer)
+        raise ValueError(f"Unknown featurization type {params.featurizer}")
 
 # ****************************************************************************************
 def copy_featurizer_params(source, dest):
@@ -381,7 +377,7 @@ def compute_mordred_descriptors_from_smiles(smiles_strs, max_cpus=None, quiet=Tr
     mols3d, is_valid = get_3d_mols(smiles_strs)
     if not np.any(is_valid):
         log.error("No valid SMILES strings input to compute_mordred_descriptors_from_smiles.")
-        log.error("First input SMILES = %s" % smiles_strs[0])
+        log.error(f"First input SMILES = {smiles_strs[0]}")
         return None, is_valid
     desc_df = compute_all_mordred_descrs(mols3d, max_cpus, quiet=quiet)
     valid_smiles = np.array(smiles_strs)[is_valid]
@@ -461,7 +457,7 @@ def get_mordred_calculator(exclude=subclassed_mordred_classes, ignore_3D=False):
 
     """
     calc = Calculator(ignore_3D=ignore_3D)
-    exclude = ['mordred.%s' % mod for mod in exclude]
+    exclude = [f'mordred.{mod}' for mod in exclude]
     for desc_mod in descriptors.all:
         if desc_mod.__name__ not in exclude:
             calc.register(desc_mod, ignore_3D=ignore_3D)
@@ -504,7 +500,7 @@ def compute_all_moe_descriptors(smiles_df, params):
         'data', 'moe_svl')
 
     moe_args = []
-    moe_args.append("{moePath}/moebatch".format(moePath=moe_path))
+    moe_args.append(f"{moe_path}/moebatch")
     moe_args.append("-mpu")
     if params.moe_threads < 0:
         # By default use all available cores but one, times 2 for hyperthreading
@@ -526,36 +522,36 @@ def compute_all_moe_descriptors(smiles_df, params):
     curdir = os.getcwd()
     if True:
         # Write SMILES strings and compound IDs to a temp file
-        smiles_file = '%s/smiles4moe.csv' % tmpdir
+        smiles_file = f'{tmpdir}/smiles4moe.csv'
         file_mdb = 'smiles4moe.mdb'
         smiles_df.to_csv(smiles_file, index=False, columns=[params.smiles_col, params.id_col])
-        log.debug("Wrote SMILES strings to %s" % smiles_file)
+        log.debug(f"Wrote SMILES strings to {smiles_file}")
         os.chdir(tmpdir)
         moe_cmds = '"' + moe_template.format(moe_svl_root=moe_svl_root, smilesFile=smiles_file, fileMDB=file_mdb) + '"'
         moe_args.append(moe_cmds)
         moe_args.append("-exit")
         log.debug('Computing MOE descriptors')
         command = " ".join(moe_args)
-        log.debug('Command: %s' % command)
+        log.debug(f'Command: {command}')
         try:
-            shellcmd = '%s >& %s/moe_err.txt' % (command, tmpdir)
+            shellcmd = f'{command} >& {tmpdir}/moe_err.txt'
             retcode = os.system(shellcmd)
             log.debug('MOE descriptor calculation done')
             log.debug("Return status: %d" % retcode)
-            errbuf = open('%s/moe_err.txt' % tmpdir, 'r').read()
-            log.debug("\nStderr:\n%s" % errbuf)
-            output_file = '%s/smiles4moe.txt' % tmpdir
+            errbuf = open(f'{tmpdir}/moe_err.txt', 'r').read()
+            log.debug(f"\nStderr:\n{errbuf}")
+            output_file = f'{tmpdir}/smiles4moe.txt'
             if not os.path.exists(output_file):
                 log.error('MOE descriptor calculation failed.')
                 return None
-            log.debug("Reading descriptors from %s" % output_file)
+            log.debug(f"Reading descriptors from {output_file}")
             result_df = pd.read_csv(output_file, index_col=False,
                             dtype={'cmpd_id':'string'}) # IDs should always be treated as strings
             result_df = result_df.rename(columns={'cmpd_id' : params.id_col, 'original_smiles' : params.smiles_col})
             os.chdir(curdir)
             return result_df
         except Exception as e:
-            log.error('Failed to invoke MOE to compute descriptors: %s' % str(e))
+            log.error(f'Failed to invoke MOE to compute descriptors: {e!s}')
             os.chdir(curdir)
             raise
 
@@ -566,7 +562,7 @@ def compute_all_moe_descriptors(smiles_df, params):
 # ****************************************************************************************
 
 
-class Featurization(object):
+class Featurization:
     """Abstract base class for featurization code
 
     Attributes:
@@ -736,7 +732,7 @@ class DynamicFeaturization(Featurization):
         #elif self.feat_type == 'molvae':
         #    self.featurizer_obj = MoleculeVAEFeaturizer(params.mol_vae_model_file)
         else:
-            raise ValueError("Unknown featurization type %s" % self.feat_type)
+            raise ValueError(f"Unknown featurization type {self.feat_type}")
 
     # ****************************************************************************************
     def __str__(self):
@@ -745,7 +741,7 @@ class DynamicFeaturization(Featurization):
         Returns:
             (str): Describes the featurization type
         """
-        return "DynamicFeaturization with %s features" % self.feat_type
+        return f"DynamicFeaturization with {self.feat_type} features"
 
     # ****************************************************************************************
     def featurize(self,mols) :
@@ -825,7 +821,7 @@ class DynamicFeaturization(Featurization):
         if len(features.shape) > 1:
             feat_df = pd.DataFrame(features, columns=[f"c{i}" for i in range(features.shape[1])])
         else:
-            feat_df = pd.DataFrame(dict(c0=features))
+            feat_df = pd.DataFrame({'c0': features})
         featurized_dset_df = pd.concat([keep_df, feat_df], ignore_index=False, axis=1)
 
         is_class=params.prediction_type=='classification'
@@ -934,8 +930,8 @@ class DynamicFeaturization(Featurization):
         feat_metadata = {}
         # MJT: I changed params.featurizer in this instance to self.feat_type to be syntactically consistent
         if self.feat_type == 'ecfp':
-            ecfp_params = dict(ecfp_radius = params.ecfp_radius,
-                               ecfp_size = params.ecfp_size)
+            ecfp_params = {'ecfp_radius': params.ecfp_radius,
+                               'ecfp_size': params.ecfp_size}
             feat_metadata['ecfp_specific'] = ecfp_params
         elif self.feat_type == 'graphconv':
             # No graph conv specific params at present
@@ -987,7 +983,7 @@ class EmbeddingFeaturization(DynamicFeaturization):
         self.input_featurization = self.embedding_pipeline.model_wrapper.featurization
         self.embedding_pipeline.featurization = self.input_featurization
 
-        self.embedding_and_features = params.embedding_and_features and not self.input_data_params.featurizer=='graphconv'
+        self.embedding_and_features = params.embedding_and_features and self.input_data_params.featurizer != 'graphconv'
 
     # ****************************************************************************************
     def __str__(self):
@@ -1114,11 +1110,11 @@ class EmbeddingFeaturization(DynamicFeaturization):
         """
         feat_metadata = {}
 
-        embedding_params = dict(
-            embedding_model_uuid = params.embedding_model_uuid,
-            embedding_model_collection = params.embedding_model_collection,
-            embedding_model_path = params.embedding_model_path,
-            embedding_and_features = params.embedding_and_features)
+        embedding_params = {
+            'embedding_model_uuid': params.embedding_model_uuid,
+            'embedding_model_collection': params.embedding_model_collection,
+            'embedding_model_path': params.embedding_model_path,
+            'embedding_and_features': params.embedding_and_features}
         feat_metadata['embedding_specific'] = embedding_params
 
         return feat_metadata
@@ -1291,10 +1287,10 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         if ds_client is None or desc_spec_bucket == '':
             if os.path.exists(desc_spec_key):
-                log.debug("Reading descriptor spec table from %s" % desc_spec_key)
+                log.debug(f"Reading descriptor spec table from {desc_spec_key}")
                 desc_spec_df = pd.read_csv(desc_spec_key, index_col=False)
             else:
-                log.debug("Reading descriptor spec table from %s" % desc_spec_key_fallback)
+                log.debug(f"Reading descriptor spec table from {desc_spec_key_fallback}")
                 desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
         else :
             # Try the descriptor_spec_key parameter first, then fall back to package file
@@ -1349,7 +1345,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             cls.load_descriptor_spec(params.descriptor_spec_bucket, params.descriptor_spec_key)
 
         if params.descriptor_type not in cls.supported_descriptor_types:
-            raise ValueError("Unsupported descriptor type %s" % params.descriptor_type)
+            raise ValueError(f"Unsupported descriptor type {params.descriptor_type}")
         self.descriptor_type = params.descriptor_type
         self.descriptor_key = params.descriptor_key
         if self.descriptor_key is not None:
@@ -1369,7 +1365,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         Returns:
             (str): Describes the featurization type
         """
-        return "DescriptorFeaturization with %s descriptors" % self.descriptor_type
+        return f"DescriptorFeaturization with {self.descriptor_type} descriptors"
 
 
     # ****************************************************************************************
@@ -1456,25 +1452,24 @@ class DescriptorFeaturization(PersistentFeaturization):
             if params.system == 'LC' :
                 local_path = lc_path
             if self.precomp_descr_table.empty and not os.path.exists(local_path):
-                log.info("Reading descriptor table from datastore key=%s bucket=%s" %
-                         (self.descriptor_key, params.descriptor_bucket))
+                log.info(f"Reading descriptor table from datastore key={self.descriptor_key} bucket={params.descriptor_bucket}")
                 self.precomp_descr_table = dsf.retrieve_dataset_by_datasetkey(self.descriptor_key,
                                                                               params.descriptor_bucket, ds_client)
                 log.info("Done reading descriptor table from datastore")
 
         if self.precomp_descr_table.empty:
-            log.info("Loading descriptor table from %s" % local_path)
+            log.info(f"Loading descriptor table from {local_path}")
             if local_path.endswith('.csv') or (file_type != '' and file_type == 'csv') :
                 ## DeepChem's transformer complained that the elements were not float, if I don't cast them as such here
                 ## not sure why this is happening (JEA)
-                dtype_map=dict((el,np.float64) for el in self.get_feature_columns())
+                dtype_map={el: np.float64 for el in self.get_feature_columns()}
                 self.precomp_descr_table = pd.read_csv( open(local_path, mode='rt'),dtype=dtype_map)
             elif local_path.endswith('.feather') or (file_type != '' and file_type == 'feather'):
                 if not feather_supported:
                     raise Exception("feather package not installed in current environment")
                 self.precomp_descr_table = feather.read_dataframe(local_path)
             else:
-                raise ValueError("Unknown descriptor table file format: %s" % local_path)
+                raise ValueError(f"Unknown descriptor table file format: {local_path}")
             log.info("Done loading descriptor table from filesystem.")
 
         # If ID column not in metadata, see if descriptor table has one of the same name as the
@@ -1536,7 +1531,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         # properties of the precomputed descriptor table
         self.load_descriptor_table(params)
         if self.desc_id_col is None:
-            raise Exception('Unable to find compound ID column in descriptor table %s' % params.descriptor_key)
+            raise Exception(f'Unable to find compound ID column in descriptor table {params.descriptor_key}')
 
         attr = get_dataset_attributes(dset_df, params)
         dset_cols = [params.id_col]
@@ -1586,7 +1581,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         Returns:
             (str): A name for the feauturized dataset
         """
-        return 'subset_%s_%s.csv' % (self.descriptor_base, dataset_name)
+        return f'subset_{self.descriptor_base}_{dataset_name}.csv'
 
 
     # ****************************************************************************************
@@ -1678,9 +1673,9 @@ class DescriptorFeaturization(PersistentFeaturization):
         elif params.feature_transform_type == 'Identity':
             transformers_x = []
         else:
-            raise ValueError((
+            raise ValueError(
                 "feature_transform_type must be normalization, RobustScaler, "
-                f"PowerTransformer, or Identity. Got {params.feature_transform_type}"))
+                f"PowerTransformer, or Identity. Got {params.feature_transform_type}")
 
         return transformers_x
 
@@ -1694,9 +1689,9 @@ class DescriptorFeaturization(PersistentFeaturization):
             params (Namespace): Argparse Namespace argument containing the parameters
         """
         feat_metadata = {}
-        desc_params = dict(descriptor_type = self.descriptor_type,
-                           descriptor_key = self.descriptor_key,
-                           descriptor_bucket = params.descriptor_bucket)
+        desc_params = {'descriptor_type': self.descriptor_type,
+                           'descriptor_key': self.descriptor_key,
+                           'descriptor_bucket': params.descriptor_bucket}
         feat_metadata['descriptor_specific'] = desc_params
         return feat_metadata
 
@@ -1748,7 +1743,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         super().__init__(params)
         cls = self.__class__
         if params.descriptor_type not in cls.supported_descriptor_types:
-            raise ValueError("Descriptor type %s is not in the supported descriptor_type list" % params.descriptor_type)
+            raise ValueError(f"Descriptor type {params.descriptor_type} is not in the supported descriptor_type list")
 
 
 
@@ -1797,7 +1792,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             self.load_descriptor_table(params)
         if not self.precomp_descr_table.empty:
             if self.desc_smiles_col is None or self.desc_id_col is None:
-                log.warning("Precomputed descriptor table %s lacks a SMILES column and/or an ID column." % params.descriptor_key)
+                log.warning(f"Precomputed descriptor table {params.descriptor_key} lacks a SMILES column and/or an ID column.")
                 log.warning("Will compute all descriptors on the fly.")
                 self.precomp_descr_table = pd.DataFrame()
             else:
@@ -1805,8 +1800,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                 # If not, it's of no use to us.
                 absent_cols = sorted(set(descr_cols) - set(self.precomp_descr_table.columns.values))
                 if len(absent_cols) > 0:
-                    log.warning("Precomputed descriptor table %s lacks columns needed for descriptor type %s:" % (
-                                 params.descriptor_key, params.descriptor_type))
+                    log.warning(f"Precomputed descriptor table {params.descriptor_key} lacks columns needed for descriptor type {params.descriptor_type}:")
                     log.warning(", ".join(absent_cols))
                     log.warning("Will compute all descriptors on the fly.")
                 else:
@@ -1931,7 +1925,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             (str): A name for the feauturized dataset
 
         """
-        return '%s_with_%s_descriptors.csv' % (dataset_name, self.descriptor_type)
+        return f'{dataset_name}_with_{self.descriptor_type}_descriptors.csv'
 
 
     # ****************************************************************************************
@@ -1991,7 +1985,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                 ret_df = desc_df
 
         else:
-            raise ValueError('Unsupported descriptor_type %s' % params.descriptor_type)
+            raise ValueError(f'Unsupported descriptor_type {params.descriptor_type}')
 
         return ret_df, is_valid
 
@@ -2158,7 +2152,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         Returns:
             (str): Describes the featurization type
         """
-        return "ComputedDescriptorFeaturization with %s descriptors" % self.descriptor_type
+        return f"ComputedDescriptorFeaturization with {self.descriptor_type} descriptors"
 
 # ****************************************************************************************
 def get_user_specified_features(df, featurizer, verbose=False):

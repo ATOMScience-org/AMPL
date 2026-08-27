@@ -10,13 +10,14 @@ setting `splitter` to 'temporal' and setting appropriate values for the `cutoff_
 parameters when you train a model.
 """
 
-from deepchem.splits.splitters import Splitter, RandomSplitter, ScaffoldSplitter
-import numpy as np
+import logging
 import tempfile
+
+import numpy as np
+from deepchem.splits.splitters import RandomSplitter, ScaffoldSplitter, Splitter
 
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
 
-import logging
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 # Set up logging
 log = logging.getLogger('ATOM')

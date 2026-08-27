@@ -2,7 +2,8 @@
 Utilities for file related functions
 """
 
-import os 
+import os
+
 
 def is_within_directory(directory, target):
    """Check if the member target is within the directory"""

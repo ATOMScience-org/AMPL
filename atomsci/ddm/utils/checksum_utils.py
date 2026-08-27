@@ -4,9 +4,9 @@ Utilities for checksum related functions
 """
 
 import hashlib
-import tarfile
 import json
 import logging
+import tarfile
 
 log = logging.getLogger(__name__)
 

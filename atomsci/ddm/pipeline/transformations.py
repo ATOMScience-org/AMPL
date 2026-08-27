@@ -6,10 +6,12 @@ import logging
 
 import numpy as np
 import pandas as pd
-
-from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
-
 import sklearn.utils as sku
+from deepchem.trans.transformers import (
+    BalancingTransformer,
+    NormalizationTransformer,
+    Transformer,
+)
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
@@ -126,21 +128,21 @@ def get_transformer_specific_metadata(params):
         meta_dict (dict): Nested dictionary of parameters and values for each currently active
         transformer.
     """
-    meta_dict = dict(
-        robustscaler_with_centering = params.robustscaler_with_centering,
-        robustscaler_with_scaling = params.robustscaler_with_scaling,
-        robustscaler_quartile_range = params.robustscaler_quartile_range,
-        robustscaler_unit_variance = params.robustscaler_unit_variance,
-        powertransformer_method = params.powertransformer_method,
-        powertransformer_standardize = params.powertransformer_standardize,
-        imputer_strategy = params.imputer_strategy)
+    meta_dict = {
+        'robustscaler_with_centering': params.robustscaler_with_centering,
+        'robustscaler_with_scaling': params.robustscaler_with_scaling,
+        'robustscaler_quartile_range': params.robustscaler_quartile_range,
+        'robustscaler_unit_variance': params.robustscaler_unit_variance,
+        'powertransformer_method': params.powertransformer_method,
+        'powertransformer_standardize': params.powertransformer_standardize,
+        'imputer_strategy': params.imputer_strategy}
 
     # this parameter is set only if transformations have been loaded
     # from an outside source
     if hasattr(params, 'transformer_dataset_key_configs'):
         meta_dict['transformer_dataset_key_configs'] = params.transformer_dataset_key_configs
 
-    return dict(transformer_specific=meta_dict)
+    return {'transformer_specific': meta_dict}
 
 # ****************************************************************************************
 def get_transformer_keys(params):

@@ -1,16 +1,17 @@
 import os
+import shutil
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import shutil
-from scipy.stats import norm
 from scipy.optimize import minimize_scalar
+from scipy.stats import norm
 
 from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
 
 feather_supported = True
 try:
-    import pyarrow.feather as feather # noqa: F401
+    from pyarrow import feather  # noqa: F401
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 
@@ -56,8 +57,8 @@ def set_group_permissions(path, system='AD', owner='GSK'):
     # Currently, if we're not on an LC machine, we're on an AD-controlled system. This could change.
     if system != 'LC':
         system = 'AD'
-    owner_group_map = dict(GSK = {'LC' : 'gskcraa', 'AD' : 'gskusers-ad'},
-                           public = {'LC' : 'atom', 'AD' : 'atom'} )
+    owner_group_map = {'GSK': {'LC' : 'gskcraa', 'AD' : 'gskusers-ad'},
+                           'public': {'LC' : 'atom', 'AD' : 'atom'} }
     group = owner_group_map[owner][system]
     shutil.chown(path, group=group)
     os.chmod(path, 0o770)
@@ -158,8 +159,8 @@ def mle_censored_mean(cmpd_df, std_est, value_col='PIC50', relation_col='relatio
         # Then minimize it
         opt_res = minimize_scalar(loglik, method='brent')
         if not opt_res.success:
-            if 'message' in opt_res.keys():
-                print('Likelihood maximization failed, message is: "%s"' % opt_res.message)
+            if 'message' in opt_res:
+                print(f'Likelihood maximization failed, message is: "{opt_res.message}"')
             else:
                 print('Likelihood maximization failed')
             mle_value = nan
@@ -226,7 +227,7 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
     nuniq = len(uniq_smiles_strs)
     if verbose:
         print("%d unique SMILES strings are reduced to %d unique base SMILES strings" % (norig, nuniq))
-    smiles_map = dict([(smiles,i) for i, smiles in enumerate(uniq_smiles_strs)])
+    smiles_map = {smiles: i for i, smiles in enumerate(uniq_smiles_strs)}
     smiles_indices = np.array([smiles_map.get(smiles, nuniq) for smiles in smiles_strs])
 
     _assay_vals = assay_df[value_col].values
@@ -248,13 +249,13 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
         reported_assay_val[i], reported_value_flags[i] = mle_censored_mean(cmpd_df, std_est, value_col=value_col,
                                                                            relation_col=relation_col)
         # When multiple compound IDs map to the same base SMILES string, use the lexicographically smallest one.
-        reported_cmpd_ids[i] = sorted(set(cmpd_ids[cmpd_ind]))[0]
+        reported_cmpd_ids[i] = min(set(cmpd_ids[cmpd_ind]))
 
         # If a date column is specified, use the earliest one among replicates
         if date_col is not None:
             # np.datetime64 doesn't seem to understand the date format in GSK's crit res tables
             #earliest_date = sorted([np.datetime64(d) for d in cmpd_df[date_col].values])[0]
-            earliest_date = sorted(pd.to_datetime(cmpd_df[date_col], infer_datetime_format=True).values)[0]
+            earliest_date = min(pd.to_datetime(cmpd_df[date_col], infer_datetime_format=True).values)
             reported_dates[i] = np.datetime_as_string(earliest_date)
 
     if output_value_col is None:
@@ -343,7 +344,7 @@ def labeled_freq_table(dset_df, columns, min_freq=1):
     for uniq_id in uniq_ids:
         subset_df = uniq_df[uniq_df[id_col] == uniq_id]
         if subset_df.shape[0] > 1:
-            raise Exception("Additional columns should be unique for ID %s" % uniq_id)
+            raise Exception(f"Additional columns should be unique for ID {uniq_id}")
         for colname in addl_cols:
             addl_vals[colname].append(subset_df[colname].values[0])
     for colname in addl_cols:
@@ -482,7 +483,7 @@ def get_rdkit_smiles_parent (data):
     Returns:
         DataFrame with column 'rdkit_smiles_parent' with salts stripped
     """
-    print ("")
+    print()
     print ("Adding SMILES column 'rdkit_smiles_parent' with salts stripped...(may take a while)", flush=True)
 
     i_max = data.shape[0]
@@ -638,7 +639,7 @@ def average_and_remove_duplicates (column, tolerance, list_bad_duplicates,
     # retain only instance of each unique rdkit_smiles_parent
     if not rm_duplicate_only:
         data = data.drop_duplicates(subset=smiles_col)
-        print("")
+        print()
         print("Dataset de-duplicated")
         print("Dataframe size", data.shape[:])
         print("New column created with averaged values: ", 'VALUE_NUM_mean')
@@ -683,13 +684,13 @@ def summarize_data(column, num_bins, title, units, filepath, data, log_column = 
     print('Post-processing dataset')
     if filepath != "" :
        print('file source: ', filepath)
-    print("")
+    print()
     print("Total Number of results =", data.shape[0])
     print("dataset mean =", dataset_mean, units)
     print("dataset stdev =", dataset_std, units)
     print("dataset max =", dataset_max, units)
     print("dataset min =", dataset_min, units)
-    print("")
+    print()
 
     if 'classification' in data.columns:
         print('___Data Counts by Classification___( 0 = low)')
@@ -711,7 +712,7 @@ def summarize_data(column, num_bins, title, units, filepath, data, log_column = 
             print('''***NOTE: To logify, values equal to or less than 0 removed. Data removed from plot only - not from dataset.
               ''', removed, "results removed.")
 
-        fig, ax = plt.subplots(1,2,figsize=(14, 5))
+        _fig, _ax = plt.subplots(1,2,figsize=(14, 5))
 
         plt.subplot(121)
         _plot1=plt.hist(data[column], edgecolor='k',linewidth=1.0,color='blue')
@@ -810,4 +811,4 @@ def xc50topxc50_for_nm(x) :
    Returns :
         float: -log10 value of x
    """
-   return -np.log10((x/1000000000.0))
+   return -np.log10(x/1000000000.0)

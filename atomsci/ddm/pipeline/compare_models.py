@@ -3,28 +3,29 @@ datastore services, which are not part of the standard AMPL installation, but se
 models saved as local files.
 """
 
-import os
-import pandas as pd
-import numpy as np
-import matplotlib
-import logging
 import json
+import logging
+import os
 import shutil
 import tarfile
 import tempfile
+from collections import OrderedDict
 from glob import glob
 
-from collections import OrderedDict
-from atomsci.ddm.utils import datastore_functions as dsf
-from atomsci.ddm.pipeline import model_tracker as trkr
+import matplotlib
+import numpy as np
+import pandas as pd
+
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
+from atomsci.ddm.pipeline import model_tracker as trkr
+from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import file_utils as futils
 
 logger = logging.getLogger('ATOM')
 mlmt_supported = True
 try:
-    from atomsci.clients import MLMTClient # noqa: F401
+    from atomsci.clients import MLMTClient  # noqa: F401
 except (ModuleNotFoundError, ImportError):
     logger.debug("Model tracker client not supported in your environment; can look at models in filesystem only.")
     mlmt_supported = False
@@ -100,12 +101,12 @@ def extract_collection_perf_metrics(collection_name, output_dir, pred_type='regr
     os.makedirs(output_dir, exist_ok=True)
     for dset_key, bucket in datasets:
         dset_perf_df = get_training_perf_table(dset_key, bucket, collection_name, pred_type=pred_type)
-        dset_perf_file = '%s/%s_%s_model_perf_metrics.csv' % (output_dir, os.path.basename(dset_key).replace('.csv', ''), collection_name)
+        dset_perf_file = '{}/{}_{}_model_perf_metrics.csv'.format(output_dir, os.path.basename(dset_key).replace('.csv', ''), collection_name)
         dset_perf_df.to_csv(dset_perf_file, index=False)
-        print('Wrote file %s' % dset_perf_file)
+        print(f'Wrote file {dset_perf_file}')
 
 #------------------------------------------------------------------------------------------------------------------
-def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='regression', other_filters = {}):
+def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='regression', other_filters = None):
     """Load performance metrics from model tracker for all models saved in the model tracker DB under
     a given collection that were trained against a particular dataset. Identify training parameters
     that vary between models, and generate plots of performance vs particular combinations of
@@ -126,11 +127,13 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
         pd.DataFrame: Table of models and performance metrics.
 
     """
+    if other_filters is None:
+        other_filters = {}
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
         return None
 
-    print("Finding models trained on %s dataset %s" % (bucket, dataset_key))
+    print(f"Finding models trained on {bucket} dataset {dataset_key}")
     mlmt_client = dsf.initialize_model_tracker()
     query_params = {
         "match_metadata": {
@@ -197,7 +200,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
         metrics_dicts = metadata_dict['training_metrics']
         #print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
         if len(metrics_dicts) < 3:
-            print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
+            print(f"Got no or incomplete metrics for model {model_uuid}, skipping...")
             continue
         subset_metrics = {}
         for metrics_dict in metrics_dicts:
@@ -222,7 +225,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             weight_decay_penalty_type_list.append(nn_params['weight_decay_penalty_type'])
             learning_rate_list.append(nn_params['learning_rate'])
             layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
-            dropouts_list.append(','.join(['%.2f' % d for d in nn_params['dropouts']]))
+            dropouts_list.append(','.join([f'{d:.2f}' for d in nn_params['dropouts']]))
             rf_estimators_list.append(nan)
             rf_max_features_list.append(nan)
             rf_max_depth_list.append(nan)
@@ -281,42 +284,42 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
         for subset in subsets:
             score_dict[subset].append(subset_metrics[subset][metric_type])
 
-    perf_df = pd.DataFrame(dict(
-                    model_uuid=model_uuid_list,
-                    model_type=model_type_list,
-                    dataset_key=dataset_key,
-                    featurizer=featurizer_list,
-                    splitter=splitter_list,
-                    max_epochs=max_epochs_list,
-                    best_epoch=best_epoch_list,
-                    learning_rate=learning_rate_list,
-                    weight_decay_penalty_type=weight_decay_penalty_type_list,
-                    weight_decay_penalty=weight_decay_penalty_list,
-                    layer_sizes=layer_sizes_list,
-                    dropouts=dropouts_list,
-                    rf_estimators=rf_estimators_list,
-                    rf_max_features=rf_max_features_list,
-                    rf_max_depth=rf_max_depth_list,
-                    xgb_learning_rate = xgb_learning_rate_list,
-                    xgb_gamma = xgb_gamma_list,
-                    xgb_alpha = xgb_alpha_list,
-                    xgb_lambda = xgb_lambda_list,
-                    xgb_max_depth = xgb_max_depth_list,
-                    xgb_colsample_bytree = xgb_colsample_bytree_list,
-                    xgb_subsample = xgb_subsample_list,
-                    xgb_n_estimators = xgb_n_estimators_list,
-                    xgb_min_child_weight = xgb_min_child_weight_list))
+    perf_df = pd.DataFrame({
+                    'model_uuid': model_uuid_list,
+                    'model_type': model_type_list,
+                    'dataset_key': dataset_key,
+                    'featurizer': featurizer_list,
+                    'splitter': splitter_list,
+                    'max_epochs': max_epochs_list,
+                    'best_epoch': best_epoch_list,
+                    'learning_rate': learning_rate_list,
+                    'weight_decay_penalty_type': weight_decay_penalty_type_list,
+                    'weight_decay_penalty': weight_decay_penalty_list,
+                    'layer_sizes': layer_sizes_list,
+                    'dropouts': dropouts_list,
+                    'rf_estimators': rf_estimators_list,
+                    'rf_max_features': rf_max_features_list,
+                    'rf_max_depth': rf_max_depth_list,
+                    'xgb_learning_rate': xgb_learning_rate_list,
+                    'xgb_gamma': xgb_gamma_list,
+                    'xgb_alpha': xgb_alpha_list,
+                    'xgb_lambda': xgb_lambda_list,
+                    'xgb_max_depth': xgb_max_depth_list,
+                    'xgb_colsample_bytree': xgb_colsample_bytree_list,
+                    'xgb_subsample': xgb_subsample_list,
+                    'xgb_n_estimators': xgb_n_estimators_list,
+                    'xgb_min_child_weight': xgb_min_child_weight_list})
     for subset in subsets:
-        metric_col = '%s_%s' % (metric_type, subset)
+        metric_col = f'{metric_type}_{subset}'
         perf_df[metric_col] = score_dict[subset]
-    sort_metric = '%s_valid' % metric_type
+    sort_metric = f'{metric_type}_valid'
 
     perf_df = perf_df.sort_values(sort_metric, ascending=False)
     return perf_df
 
 # -----------------------------------------------------------------------------------------------------------------
 def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
-    """Given a config file, extract model and featurizer parameters. Looks for parameter names
+    r"""Given a config file, extract model and featurizer parameters. Looks for parameter names
     that end in \*_specific. e.g. nn_specific, auto_featurizer_specific
 
     Args:
@@ -349,7 +352,7 @@ def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
             model_info['weight_decay_penalty'] = nn_params['weight_decay_penalty']
             model_info['learning_rate'] = nn_params['learning_rate']
             model_info['layer_sizes'] = ','.join(['%d' % s for s in nn_params['layer_sizes']])
-            model_info['dropouts'] = ','.join(['%.2f' % d for d in nn_params['dropouts']])
+            model_info['dropouts'] = ','.join([f'{d:.2f}' for d in nn_params['dropouts']])
         elif model_type == 'RF':
             rf_params = metadata_dict['rf_specific']
             model_info['rf_estimators'] = rf_params['rf_estimators']
@@ -379,7 +382,7 @@ def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
             # include learning rate, max_epochs, and best_epoch for convenience 
             model_info['max_epochs'] = model_metadata.get('max_epochs', np.nan)
             model_info['best_epoch'] = model_metadata.get('best_epoch', np.nan)
-            learning_rate_col = [c for c in model_metadata.keys() if c.endswith('learning_rate')]
+            learning_rate_col = [c for c in model_metadata if c.endswith('learning_rate')]
             if len(learning_rate_col) == 1:
                 model_info['learning_rate'] = model_metadata[learning_rate_col[0]]
         # delete several parameters that aren't normally saved
@@ -485,7 +488,7 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
     # Get model metrics for this model
     metrics_dicts = [d for d in metadata_dict['training_metrics'] if d['label'] == 'best']
     if len(metrics_dicts) != 3:
-        print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
+        print(f"Got no or incomplete metrics for model {model_uuid}, skipping...")
         return None
 
     model_params = metadata_dict['model_parameters']
@@ -521,10 +524,10 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
 
     for metrics_dict in metrics_dicts:
         subset = metrics_dict['subset']
-        metric_col = '%s_%s' % (metric_type, subset)
+        metric_col = f'{metric_type}_{subset}'
         model_info[metric_col] = metrics_dict['prediction_results'][metric_type]
         if (model_params['prediction_type'] == 'regression') and (metric_type != 'rms_score'):
-            metric_col = 'rms_score_%s' % subset
+            metric_col = f'rms_score_{subset}'
             model_info[metric_col] = metrics_dict['prediction_results']['rms_score']
 
     return model_info
@@ -534,7 +537,7 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
 def get_best_models_info(col_names=None, bucket='public', pred_type="regression", result_dir=None, PK_pipeline=False,
                          output_dir='/usr/local/data',
                          shortlist_key=None, input_dset_keys=None, save_results=False, subset='valid',
-                         metric_type=None, selection_type='max', other_filters={}):
+                         metric_type=None, selection_type='max', other_filters=None):
     """Tabulate parameters and performance metrics for the best models, according to a given metric, trained against
     each specified dataset.
 
@@ -570,6 +573,8 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
         top_models_df (DataFrame): Table of parameters and metrics for best models for each dataset.
     """
 
+    if other_filters is None:
+        other_filters = {}
     if not mlmt_supported and not result_dir:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only, 'result_dir' needs to be provided.")
         return None
@@ -633,24 +638,24 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
                                 "metrics_type": "training",  # match only training metrics
                                 "label": "best",
                                 "subset": subset,
-                                "$sort": [{"prediction_results.%s" % metric_type : sort_order[selection_type]}]
+                                "$sort": [{f"prediction_results.{metric_type}" : sort_order[selection_type]}]
                             },
                         }
                         query_params['match_metadata'].update(other_filters)
 
                         try:
-                            print('Querying collection %s for models trained on dataset %s, %s' % (col_name, buck, dset_key))
+                            print(f'Querying collection {col_name} for models trained on dataset {buck}, {dset_key}')
                             metadata_list = list(mlmt_client.model.query_model_metadata(
                                 collection_name=col_name,
                                 query_params=query_params,
                                 limit=1
                             ).result())
                         except Exception as e:
-                            print("Error returned when querying the best model for dataset %s in collection %s" % (dset_key, col_name))
+                            print(f"Error returned when querying the best model for dataset {dset_key} in collection {col_name}")
                             print(e)
                             continue
                         if len(metadata_list) == 0:
-                            print("No models returned for dataset %s in collection %s" % (dset_key, col_name))
+                            print(f"No models returned for dataset {dset_key} in collection {col_name}")
                             continue
                         print('Query returned %d models' % len(metadata_list))
                         model = metadata_list[0]
@@ -661,14 +666,14 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
                     except Exception as e:
                         print(e)
                         continue
-            metric_col = '%s_%s' % (metric_type, subset)
+            metric_col = f'{metric_type}_{subset}'
             if len(dset_model_info) > 0:
                 dset_model_df = pd.concat(dset_model_info, ignore_index=True).sort_values(
                                 by=metric_col, ascending=sort_ascending[selection_type])
                 top_models_info.append(dset_model_df.head(1))
-                print('Adding data for bucket %s, dset_key %s' % (dset_model_df.bucket.values[0], dset_model_df.dataset_key.values[0]))
+                print(f'Adding data for bucket {dset_model_df.bucket.values[0]}, dset_key {dset_model_df.dataset_key.values[0]}')
     elif result_dir:
-        metric_col = '%s_%s' % (subset, metric_type)
+        metric_col = f'{subset}_{metric_type}'
         for rd in result_dir:
             temp_perf_df = get_filesystem_perf_results(result_dir = rd, pred_type = pred_type).sort_values(
                                 by=metric_col, ascending=sort_ascending[selection_type])
@@ -688,7 +693,7 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
             for dset_key in input_dset_keys:
                 # TODO: This doesn't make sense; why output multiple copies of the same table?
                 shortened_key = dset_key.rstrip('.csv')
-                top_models_df.to_csv(os.path.join(output_dir, 'best_models_metadata_%s.csv' % shortened_key), index=False)
+                top_models_df.to_csv(os.path.join(output_dir, f'best_models_metadata_{shortened_key}.csv'), index=False)
     return top_models_df
 
 #------------------------------------------------------------------------------------------------------------------
@@ -734,7 +739,7 @@ def get_tarball_perf_table(model_tarball, pred_type='classification'):
     perf_df = pd.DataFrame()
     for subset in subsets:
         for metric in metrics:
-            metric_col = '%s_%s' % (subset, metric)
+            metric_col = f'{subset}_{metric}'
             perf_df[metric_col] = score_dict[subset][metric]
 
     return perf_df, meta_json
@@ -829,7 +834,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
 
         # Get list of training run metrics for this model
         if len(metrics_dicts) < 3:
-            print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
+            print(f"Got no or incomplete metrics for model {model_uuid}, skipping...")
             continue
         subset_metrics = {}
         for metrics_dict in metrics_dicts:
@@ -873,24 +878,24 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
         score_dict['valid']['model_choice_score'].append(subset_metrics['valid']['model_choice_score'])
 
     param_df = pd.DataFrame(param_list)
-    perf_df = pd.DataFrame(dict(
-                    model_uuid=model_uuid_list,
-                    model_path = path_list,
-                    ampl_version=ampl_version_list,
-                    model_type=model_type_list,
-                    dataset_key=dataset_key_list,
-                    features=featurizer_list,
-                    splitter=splitter_list,
-                    split_strategy=split_strategy_list,
-                    split_uuid=split_uuid_list,
-                    model_score_type=model_score_type_list,
-                    feature_transform_type=feature_transform_type_list,
-                    weight_transform_type=weight_transform_type_list))
+    perf_df = pd.DataFrame({
+                    'model_uuid': model_uuid_list,
+                    'model_path': path_list,
+                    'ampl_version': ampl_version_list,
+                    'model_type': model_type_list,
+                    'dataset_key': dataset_key_list,
+                    'features': featurizer_list,
+                    'splitter': splitter_list,
+                    'split_strategy': split_strategy_list,
+                    'split_uuid': split_uuid_list,
+                    'model_score_type': model_score_type_list,
+                    'feature_transform_type': feature_transform_type_list,
+                    'weight_transform_type': weight_transform_type_list})
 
     perf_df['model_choice_score'] = score_dict['valid']['model_choice_score']
     for subset in subsets:
         for metric in metrics:
-            metric_col = 'best_%s_%s' % (subset, metric)
+            metric_col = f'best_{subset}_{metric}'
             perf_df[metric_col] = score_dict[subset][metric]
     perf_df = perf_df.merge(param_df, on='model_uuid', how='inner')
     sort_by = 'model_choice_score'
@@ -912,7 +917,7 @@ def get_filesystem_models(result_dir, pred_type):
     logging.debug(f"Metric: {metric}")
     #best_df = perf_df.sort_values(by=metric, ascending=False).drop_duplicates(subset='dataset_key').copy()
     perf_df['dataset_names'] = perf_df['dataset_key'].apply(lambda f: os.path.splitext(os.path.basename(f))[0])
-    perf_df['tarball_names'] = perf_df.apply(lambda x: '%s_model_%s.tar.gz' % (x['dataset_names'], x['model_uuid']), axis=1)
+    perf_df['tarball_names'] = perf_df.apply(lambda x: '{}_model_{}.tar.gz'.format(x['dataset_names'], x['model_uuid']), axis=1)
     tarball_names = set(perf_df['tarball_names'].values)
 
     all_filenames = []
@@ -954,16 +959,16 @@ def copy_best_filesystem_models(result_dir, dest_dir, pred_type, force_update=Fa
     best_df = perf_df.sort_values(by=metric, ascending=False).drop_duplicates(subset='dataset_key').copy()
     dataset_names = [os.path.splitext(os.path.basename(f))[0] for f in best_df.dataset_key.values]
     model_uuids = best_df.model_uuid.values
-    tarball_names = ['%s_model_%s.tar.gz' % (dset_name, model_uuid) for dset_name, model_uuid in zip(dataset_names, model_uuids)]
+    tarball_names = [f'{dset_name}_model_{model_uuid}.tar.gz' for dset_name, model_uuid in zip(dataset_names, model_uuids)]
     for dirpath, dirnames, filenames in os.walk(result_dir):
         for fn in filenames:
             if (fn in tarball_names) and (force_update or not os.path.exists(os.path.join(dest_dir, fn))):
                 shutil.copy2(os.path.join(dirpath, fn), dest_dir)
-                print('Copied %s' % fn)
+                print(f'Copied {fn}')
     return best_df
 
 #------------------------------------------------------------------------------------------------------------------
-def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=None, prediction_type='regression', verbose=False):
+def get_summary_perf_tables(collection_names=None, filter_dict=None, result_dir=None, prediction_type='regression', verbose=False):
     """Load model parameters and performance metrics from model tracker for all models saved in the model tracker DB under
     the given collection names (or result directory if Model tracker is not available) with the given prediction type.
     Tabulate the parameters and metrics including:
@@ -992,6 +997,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
 
     """
 
+    if filter_dict is None:
+        filter_dict = {}
     if not mlmt_supported and not result_dir:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only, 'result_dir' is needed.")
         return None
@@ -1040,7 +1047,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
         mlmt_client = dsf.initialize_model_tracker()
         filter_dict['model_parameters.prediction_type'] = prediction_type
         for collection_name in collection_names:
-            print("Finding models in collection %s" % collection_name)
+            print(f"Finding models in collection {collection_name}")
             query_params = {
                 "match_metadata": filter_dict,
 
@@ -1145,27 +1152,27 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
                 ncmpd_dict[subset].append(subset_size)
             dset_size_list.append(dset_size)
 
-    col_dict = dict(
-                    collection=collection_list,
-                    ampl_version=ampl_version_list,
-                    model_uuid=model_uuid_list,
-                    time_built=time_built_list,
-                    model_type=model_type_list,
-                    featurizer=featurizer_list,
-                    features=desc_type_list,
-                    transformer=transform_list,
-                    splitter=splitter_list,
-                    split_strategy=split_strategy_list,
-                    split_uuid=split_uuid_list,
-                    umap_dim=umap_dim_list,
-                    umap_targ_wt=umap_targ_wt_list,
-                    umap_neighbors=umap_neighbors_list,
-                    umap_min_dist=umap_min_dist_list,
-                    dataset_bucket=bucket_list,
-                    dataset_key=dataset_key_list,
-                    dataset_size=dset_size_list,
-                    parameter=param_list
-                    )
+    col_dict = {
+                    'collection': collection_list,
+                    'ampl_version': ampl_version_list,
+                    'model_uuid': model_uuid_list,
+                    'time_built': time_built_list,
+                    'model_type': model_type_list,
+                    'featurizer': featurizer_list,
+                    'features': desc_type_list,
+                    'transformer': transform_list,
+                    'splitter': splitter_list,
+                    'split_strategy': split_strategy_list,
+                    'split_uuid': split_uuid_list,
+                    'umap_dim': umap_dim_list,
+                    'umap_targ_wt': umap_targ_wt_list,
+                    'umap_neighbors': umap_neighbors_list,
+                    'umap_min_dist': umap_min_dist_list,
+                    'dataset_bucket': bucket_list,
+                    'dataset_key': dataset_key_list,
+                    'dataset_size': dset_size_list,
+                    'parameter': param_list
+                    }
 
 
     perf_df = pd.DataFrame(col_dict)
@@ -1174,10 +1181,10 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
     perf_df = perf_df.merge(param_df, on='model_uuid', how='inner')
 
     for subset in subsets:
-        ncmpds_col = '%s_size' % subset
+        ncmpds_col = f'{subset}_size'
         perf_df[ncmpds_col] = ncmpd_dict[subset]
         for score_type in score_types:
-            metric_col = '%s_%s' % (subset, score_type)
+            metric_col = f'{subset}_{score_type}'
             perf_df[metric_col] = score_dict[subset][score_type]
 
     return perf_df
@@ -1238,14 +1245,14 @@ def get_summary_metadata_table(uuids, collections=None):
             name = data_params['dataset_metadata']['response_col']
 
         if name  != 'NA':
-            if 'param' in data_params['dataset_metadata'].keys():
+            if 'param' in data_params['dataset_metadata']:
                 name = name + ' ' + data_params['dataset_metadata']['param']
         else:
             name = 'unknown'
 
 
         transform = 'None'
-        if 'transformation' in data_params['dataset_metadata'].keys():
+        if 'transformation' in data_params['dataset_metadata']:
             transform = data_params['dataset_metadata']['transformation']
 
         if mdl_params['featurizer'] == 'computed_descriptors':
@@ -1264,10 +1271,10 @@ def get_summary_metadata_table(uuids, collections=None):
                 minfo = {'Name': name,
                          'Transformation': transform,
                          'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
-                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
-                         'r^2 (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
-                         'MAE (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
-                         'RMSE(Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
+                         'Model Type (Featurizer)':    '{} ({})'.format(mdl_params['model_type'],featurizer),
+                         'r^2 (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
+                         'MAE (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
+                         'RMSE(Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
                          'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
                          'Layer Sizes':   nn_params['layer_sizes'],
@@ -1284,13 +1291,13 @@ def get_summary_metadata_table(uuids, collections=None):
                 minfo = {'Name': name,
                          'Transformation': transform,
                          'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
-                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Model Type (Featurizer)':    '{} ({})'.format(mdl_params['model_type'],featurizer),
                          'Max Depth':    rf_params['rf_max_depth'],
                          'Max Features': rf_params['rf_max_depth'],
                          'RF Estimators': rf_params['rf_estimators'],
-                         'r^2 (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
-                         'MAE (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
-                         'RMSE(Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
+                         'r^2 (Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
+                         'MAE (Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
+                         'RMSE(Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
                          'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
                          'Collection':    collection_name,
@@ -1302,7 +1309,7 @@ def get_summary_metadata_table(uuids, collections=None):
                 minfo = {'Name': name,
                          'Transformation': transform,
                          'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
-                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Model Type (Featurizer)':    '{} ({})'.format(mdl_params['model_type'],featurizer),
                          'XGB learning rate': xgb_params['xgb_learning_rate'],
                          'Gamma':    xgb_params['xgb_gamma'],
                          'XGB max depth': xgb_params['xgb_max_depth'],
@@ -1310,9 +1317,9 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Row subsample fraction':    xgb_params['xgb_subsample'],
                          'Number of estimators':    xgb_params['xgb_n_estimators'],
                          'Minimum child weight':    xgb_params['xgb_min_child_weight'],
-                         'r^2 (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
-                         'MAE (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
-                         'RMSE(Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
+                         'r^2 (Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
+                         'MAE (Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
+                         'RMSE(Train/Valid/Test)':       '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
                          'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
                          'Collection':    collection_name,
@@ -1327,18 +1334,18 @@ def get_summary_metadata_table(uuids, collections=None):
                 minfo = {'Name': name,
                          'Transformation': transform,
                          'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
-                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
-                         'ROC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
-                         'PRC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
-                         'Balanced accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics.get('bal_accuracy', np.nan), valid_metrics.get('bal_accuracy',np.nan), test_metrics.get('bal_accuracy', np.nan)),
-                         'Accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
-                         'Precision (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
-                         'Recall (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
-                         'NPV (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
-                         'Kappa (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
-                         'Matthews CC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
-                         'Cross entropy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
-                         'Confusion matrices (Train/Valid/Test)':     f"{str(train_metrics['confusion_matrix'])}/{str(valid_metrics['confusion_matrix'])}/{str(test_metrics['confusion_matrix'])}",
+                         'Model Type (Featurizer)':    '{} ({})'.format(mdl_params['model_type'],featurizer),
+                         'ROC AUC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
+                         'PRC AUC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
+                         'Balanced accuracy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics.get('bal_accuracy', np.nan), valid_metrics.get('bal_accuracy',np.nan), test_metrics.get('bal_accuracy', np.nan)),
+                         'Accuracy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
+                         'Precision (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
+                         'Recall (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
+                         'NPV (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
+                         'Kappa (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
+                         'Matthews CC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
+                         'Cross entropy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
+                         'Confusion matrices (Train/Valid/Test)':     f"{train_metrics['confusion_matrix']!s}/{valid_metrics['confusion_matrix']!s}/{test_metrics['confusion_matrix']!s}",
                          'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
                          'Layer Sizes':   nn_params['layer_sizes'],
@@ -1357,20 +1364,20 @@ def get_summary_metadata_table(uuids, collections=None):
                 minfo = {'Name': name,
                          'Transformation': transform,
                          'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
-                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Model Type (Featurizer)':    '{} ({})'.format(mdl_params['model_type'],featurizer),
                          'Max Depth':    rf_params['rf_max_depth'],
                          'Max Features': rf_params['rf_max_depth'],
                          'RF Estimators': rf_params['rf_estimators'],
-                         'ROC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
-                         'PRC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
-                         'Balanced accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics.get('bal_accuracy', np.nan), valid_metrics.get('bal_accuracy',np.nan), test_metrics.get('bal_accuracy', np.nan)),
-                         'Accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
-                         'Precision (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
-                         'Recall (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
-                         'NPV (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
-                         'Kappa (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
-                         'Matthews CC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
-                         'Cross entropy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
+                         'ROC AUC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
+                         'PRC AUC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
+                         'Balanced accuracy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics.get('bal_accuracy', np.nan), valid_metrics.get('bal_accuracy',np.nan), test_metrics.get('bal_accuracy', np.nan)),
+                         'Accuracy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
+                         'Precision (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
+                         'Recall (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
+                         'NPV (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
+                         'Kappa (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
+                         'Matthews CC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
+                         'Cross entropy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
                          'Confusion matrices (Train/Valid/Test)':     f"{train_metrics['confusion_matrix']}/{valid_metrics['confusion_matrix']}/{test_metrics['confusion_matrix']}",
                          'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
@@ -1383,7 +1390,7 @@ def get_summary_metadata_table(uuids, collections=None):
                 minfo = {'Name': name,
                          'Transformation': transform,
                          'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
-                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Model Type (Featurizer)':    '{} ({})'.format(mdl_params['model_type'],featurizer),
                          'XGB learning rate': xgb_params['xgb_learning_rate'],
                          'Gamma':    xgb_params['xgb_gamma'],
                          'Alpha':    xgb_params.get('xgb_alpha', 0.0),
@@ -1393,16 +1400,16 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Row subsample fraction':    xgb_params['xgb_subsample'],
                          'Number of estimators':    xgb_params['xgb_n_estimators'],
                          'Minimum child weight':    xgb_params['xgb_min_child_weight'],
-                         'ROC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
-                         'PRC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
-                         'Balanced accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics.get('bal_accuracy', np.nan), valid_metrics.get('bal_accuracy',np.nan), test_metrics.get('bal_accuracy', np.nan)),
-                         'Accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
-                         'Precision (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
-                         'Recall (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
-                         'NPV (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
-                         'Kappa (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
-                         'Matthews CC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
-                         'Cross entropy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
+                         'ROC AUC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
+                         'PRC AUC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
+                         'Balanced accuracy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics.get('bal_accuracy', np.nan), valid_metrics.get('bal_accuracy',np.nan), test_metrics.get('bal_accuracy', np.nan)),
+                         'Accuracy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
+                         'Precision (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
+                         'Recall (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
+                         'NPV (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
+                         'Kappa (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
+                         'Matthews CC (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
+                         'Cross entropy (Train/Valid/Test)':     '{:0.2f}/{:0.2f}/{:0.2f}'.format(train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
                          'Confusion matrices (Train/Valid/Test)':     f"{train_metrics['confusion_matrix']}/{valid_metrics['confusion_matrix']}/{test_metrics['confusion_matrix']}",
                          'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
                          'Splitter':      model_meta['splitting_parameters']['splitter'],
@@ -1442,7 +1449,7 @@ def get_training_datasets(collection_names):
     return result_dict
 
 #------------------------------------------------------------------------------------------------------------------
-def get_dataset_models(collection_names, filter_dict={}):
+def get_dataset_models(collection_names, filter_dict=None):
     """Query the model tracker for all models saved in the model tracker DB under the given collection names. Returns a dictionary
     mapping (dataset_key,bucket) pairs to the list of (collection,model_uuid) pairs trained on the corresponding datasets.
 
@@ -1455,6 +1462,8 @@ def get_dataset_models(collection_names, filter_dict={}):
         dict: Dictionary mapping training set (dataset_key, bucket) tuples to (collection, model_uuid) pairs.
 
     """
+    if filter_dict is None:
+        filter_dict = {}
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
         return None
@@ -1478,7 +1487,7 @@ def get_dataset_models(collection_names, filter_dict={}):
                 "match_metadata": query_filter
             }
 
-            print('Querying models in collection %s for dataset %s, %s' % (collection_name, dset_dict['bucket'], dset_dict['dataset_key']))
+            print('Querying models in collection {} for dataset {}, {}'.format(collection_name, dset_dict['bucket'], dset_dict['dataset_key']))
             metadata_list = mlmt_client.model.query_model_metadata(
                 collection_name=collection_name,
                 query_params=query_params,
@@ -1551,7 +1560,7 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
         # Get list of training run metrics for this model
         #print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
         if len(metrics_dicts) < 3:
-            raise Exception("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
+            raise Exception(f"Got no or incomplete metrics for model {model_uuid}, skipping...")
             #print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
             #continue
         subset_metrics = {}
@@ -1569,7 +1578,7 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
         best_epoch_list.append(nn_params['best_epoch'])
         learning_rate_list.append(nn_params['learning_rate'])
         layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
-        dropouts_list.append(','.join(['%.2f' % d for d in nn_params['dropouts']]))
+        dropouts_list.append(','.join([f'{d:.2f}' for d in nn_params['dropouts']]))
         for subset in subsets:
             for metric in metrics:
                 score_dict[subset][metric].append(subset_metrics[subset][metric])
@@ -1584,7 +1593,7 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
         model_params = ['model_uuid', 'learning_rate', 'layer_sizes', 'dropouts', 'max_epochs', 'best_epoch',
                         'subset', 'num_compounds', 'mean_roc_auc_score']
     param_list = model_params + response_cols
-    perf_df = pd.DataFrame(dict(col_0=param_list))
+    perf_df = pd.DataFrame({'col_0': param_list})
     colnum = 0
     for i in range(num_models):
         for subset in subsets:
@@ -1601,11 +1610,11 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
             vals.append(subset)
             vals.append('%d' % score_dict[subset]['num_compounds'][i])
             if pred_type == 'regression':
-                vals.append('%.3f' % score_dict[subset]['r2_score'][i])
-                vals = vals + ['%.3f' % v for v in score_dict[subset]['task_r2_scores'][i]]
+                vals.append('{:.3f}'.format(score_dict[subset]['r2_score'][i]))
+                vals = vals + [f'{v:.3f}' for v in score_dict[subset]['task_r2_scores'][i]]
             else:
-                vals.append('%.3f' % score_dict[subset]['roc_auc_score'][i])
-                vals = vals + ['%.3f' % v for v in score_dict[subset]['task_roc_auc_scores'][i]]
+                vals.append('{:.3f}'.format(score_dict[subset]['roc_auc_score'][i]))
+                vals = vals + [f'{v:.3f}' for v in score_dict[subset]['task_roc_auc_scores'][i]]
             colnum += 1
             colname = 'col_%d' % colnum
             perf_df[colname] = vals
@@ -1653,10 +1662,8 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
                 else:
                     continue
             if meta['model_parameters']['prediction_type']==pred_type:
-                if (dataset_key is not None) and (meta['training_dataset']['dataset_key']==dataset_key):
+                if (dataset_key is not None) and (meta['training_dataset']['dataset_key']==dataset_key) or dataset_key is None:
                         model_list.append(meta)
-                elif dataset_key is None:
-                    model_list.append(meta)
     else:
         model_path_list=glob(f'{result_dir}/**/model_metadata.json', recursive=True)
         for model_path in model_path_list:
@@ -1668,10 +1675,8 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
                 except Exception:
                     meta['model_path']=os.path.dirname(model_path)               
             if meta['model_parameters']['prediction_type']==pred_type:
-                if (dataset_key is not None) and (meta['training_dataset']['dataset_key']==dataset_key):
+                if (dataset_key is not None) and (meta['training_dataset']['dataset_key']==dataset_key) or dataset_key is None:
                         model_list.append(meta)
-                elif dataset_key is None:
-                    model_list.append(meta)
 
     print(f'Found data for {len(model_list)} {pred_type} models under {result_dir}')
     if len(model_list) == 0:
@@ -1906,25 +1911,19 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
     # check inputs are correct
     if collection_name.startswith('old_'):
         raise Exception("This function is not implemented for the old format of metadata.")
-    if isinstance(response_cols, list):
-        pass
-    elif response_cols is None:
+    if isinstance(response_cols, list) or response_cols is None:
         pass
     elif isinstance(response_cols, str):
         response_cols=[x.strip() for x in response_cols.split(',')]
     else:
         raise Exception("Please input response cols as None, list or comma separated string.")
-    if isinstance(expand_responses, list):
-        pass
-    elif expand_responses is None:
+    if isinstance(expand_responses, list) or expand_responses is None:
         pass
     elif isinstance(expand_responses, str):
         expand_responses=[x.strip() for x in expand_responses.split(',')]
     else:
         raise Exception("Please input expand response col(s) as list or comma separated string.")
-    if isinstance(expand_subsets, list):
-        pass
-    elif expand_subsets is None:
+    if isinstance(expand_subsets, list) or expand_subsets is None:
         pass
     elif isinstance(expand_subsets, str):
         expand_subsets=[x.strip() for x in expand_subsets.split(',')]
@@ -2078,16 +2077,16 @@ def _aggregate_predictions(datasets, bucket, col_names, result_dir):
                         model = list(trkr.get_full_metadata(model_filter, collection_name=col_name))
                         if model:
                             model = model[0]
-                            result_dir = '/usr/local/data/%s/%s' % (col_name, dset_key.rstrip('.csv'))
+                            result_dir = '/usr/local/data/{}/{}'.format(col_name, dset_key.rstrip('.csv'))
                             result_df = mp.regenerate_results(result_dir, metadata_dict=model)
                             result_df['dset_key'] = dset_key
-                            actual_col = [col for col in result_df.columns if 'actual' in col][0]
-                            pred_col = [col for col in result_df.columns if 'pred' in col][0]
+                            actual_col = next(col for col in result_df.columns if 'actual' in col)
+                            pred_col = next(col for col in result_df.columns if 'pred' in col)
                             result_df['error'] = abs(result_df[actual_col] - result_df[pred_col])
                             result_df['cind'] = pd.Categorical(result_df['dset_key']).labels
                             results.append(result_df)
                     results_df = pd.concat(results).reset_index(drop=True)
-                    results_df.to_csv(os.path.join(result_dir, 'predictions_%s_%s_%s_%s.csv' % (dset_key, model_type, split_type, descriptor_type)), index=False)
+                    results_df.to_csv(os.path.join(result_dir, f'predictions_{dset_key}_{model_type}_{split_type}_{descriptor_type}.csv'), index=False)
                 for featurizer in ['graphconv', 'ecfp']:
                     model_filter = {"training_dataset.dataset_key" : dset_key,
                                     "training_dataset.bucket" : bucket,
@@ -2102,16 +2101,16 @@ def _aggregate_predictions(datasets, bucket, col_names, result_dir):
                         model = list(trkr.get_full_metadata(model_filter, collection_name=col_name))
                         if model:
                             model = model[0]
-                            result_dir = '/usr/local/data/%s/%s' % (col_name, dset_key.rstrip('.csv'))
+                            result_dir = '/usr/local/data/{}/{}'.format(col_name, dset_key.rstrip('.csv'))
                             result_df = mp.regenerate_results(result_dir, metadata_dict=model)
                             result_df['dset_key'] = dset_key
-                            actual_col = [col for col in result_df.columns if 'actual' in col][0]
-                            pred_col = [col for col in result_df.columns if 'pred' in col][0]
+                            actual_col = next(col for col in result_df.columns if 'actual' in col)
+                            pred_col = next(col for col in result_df.columns if 'pred' in col)
                             result_df['error'] = abs(result_df[actual_col] - result_df[pred_col])
                             result_df['cind'] = pd.Categorical(result_df['dset_key']).labels
                             results.append(result_df)
                     results_df = pd.concat(results).reset_index(drop=True)
-                    results_df.to_csv(os.path.join(result_dir, 'predictions_%s_%s_%s_%s.csv' % (dset_key, model_type, split_type, featurizer)), index=False)
+                    results_df.to_csv(os.path.join(result_dir, f'predictions_{dset_key}_{model_type}_{split_type}_{featurizer}.csv'), index=False)
 
 def num_trainable_parameters_from_file(tar_path):
     """Return number of trainable paramters from tarfile
@@ -2140,7 +2139,7 @@ def num_trainable_parameters_from_file(tar_path):
 
     # Is this an NN model
     if not (model_params.model_type == 'NN' or model_params.model_type in parse.model_wl):
-        raise ValueError('Saved model is not a neural network. Recieved %s'%model_params.model_type)
+        raise ValueError(f'Saved model is not a neural network. Recieved {model_params.model_type}')
 
     model_params.save_results = False
     model_params.output_dir = reload_dir

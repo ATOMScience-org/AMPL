@@ -4,28 +4,30 @@
 import logging
 import os
 import shutil
-import joblib
 
 import deepchem as dc
+import joblib
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-if dc.__version__.startswith('2.1'):
-    from deepchem.models.tensorgraph.fcnet import MultitaskRegressor, MultitaskClassifier
-else:
-    from deepchem.models.fcnet import MultitaskRegressor, MultitaskClassifier
-from collections import OrderedDict
-import torch
-from torch.utils.data import TensorDataset
-from torch.utils.data import DataLoader
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import RandomForestRegressor
 
+if dc.__version__.startswith('2.1'):
+    from deepchem.models.tensorgraph.fcnet import (
+        MultitaskClassifier,
+        MultitaskRegressor,
+    )
+else:
+    from deepchem.models.fcnet import MultitaskClassifier, MultitaskRegressor
+from collections import OrderedDict
+
+import torch
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from torch.utils.data import DataLoader, TensorDataset
 
 try:
-    import dgl    # noqa: F401
-    import dgllife   # noqa: F401
     import deepchem.models as dcm  # noqa: F401
+    import dgl  # noqa: F401
+    import dgllife  # noqa: F401
     from deepchem.models import AttentiveFPModel  # noqa: F401
     afp_supported = True
 except (ImportError, OSError):
@@ -37,20 +39,20 @@ try:
 except ImportError:
     xgboost_supported = False
 
-import pickle
-import yaml
 import glob
+import pickle
 import time
-from packaging import version
 
+import yaml
+from packaging import version
+from tensorflow.python.keras.utils.layer_utils import count_params
+
+import atomsci.ddm.pipeline.parameter_parser as pp
+from atomsci.ddm.pipeline import model_datasets as md
+from atomsci.ddm.pipeline import perf_data as perf
+from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import llnl_utils
-from atomsci.ddm.pipeline import model_datasets as md
-from atomsci.ddm.pipeline import transformations as trans
-from atomsci.ddm.pipeline import perf_data as perf
-import atomsci.ddm.pipeline.parameter_parser as pp
-
-from tensorflow.python.keras.utils.layer_utils import count_params
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
@@ -215,18 +217,18 @@ def create_model_wrapper(params, featurizer, ds_client=None, random_state=None, 
         bases = all_bases(requested_model)
         # keras and torch models have slightly different interfaces. They also save their models
         # differently. These two wrappers implement the same interface.
-        if any(['TorchModel' in str(b) for b in bases]):
+        if any('TorchModel' in str(b) for b in bases):
             if not afp_supported:
                 raise Exception("dgl and dgllife packages must be installed to use attentive_fp model.")
             return PytorchDeepChemModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
-        elif any(['KerasModel' in str(b) for b in bases]):
+        elif any('KerasModel' in str(b) for b in bases):
             return KerasDeepChemModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     else:
-        raise ValueError("Unknown model_type %s" % params.model_type)
+        raise ValueError(f"Unknown model_type {params.model_type}")
 
 # ****************************************************************************************
 
-class ModelWrapper(object):
+class ModelWrapper:
     """Root class of AMPL wrappers for DeepChem and sklearn model objects; models developed by the AMPL team
     are implemented as subclasses of this class. Provides generic methods to train and test a model,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
@@ -427,7 +429,7 @@ class ModelWrapper(object):
             self.params.transformer_key = os.path.join(self.output_dir, 'transformers.pkl')
             with open(self.params.transformer_key, 'wb') as txfmrpkl:
                 pickle.dump((self.transformers, self.transformers_x, self.transformers_w), txfmrpkl)
-            self.log.info("Wrote transformers to %s" % self.params.transformer_key)
+            self.log.info(f"Wrote transformers to {self.params.transformer_key}")
             self.params.transformer_oid = ""
             self.params.transformer_bucket = ""
 
@@ -510,11 +512,11 @@ class ModelWrapper(object):
 
         # check that the loaded transformers are for the same features
         if self.params.featurizer != saved_transformers['params']['featurizer']:
-            raise ValueError((f"Loaded transformers do not match featurizer. Expected {self.params.featurizer},"
-                             f" got {saved_transformers['params']['featurizer']}"))
+            raise ValueError(f"Loaded transformers do not match featurizer. Expected {self.params.featurizer},"
+                             f" got {saved_transformers['params']['featurizer']}")
         if self.params.descriptor_type != saved_transformers['params']['descriptor_type']:
-            raise ValueError((f"Loaded transformers do not match descriptor_type. Expected {self.params.descriptor_type},"
-                             f" got {saved_transformers['params']['descriptor_type']}"))
+            raise ValueError(f"Loaded transformers do not match descriptor_type. Expected {self.params.descriptor_type},"
+                             f" got {saved_transformers['params']['descriptor_type']}")
 
         # update self.params with the loaded transformer data
         self.params.__dict__.update(saved_transformers['params'])
@@ -707,7 +709,7 @@ class ModelWrapper(object):
           try:
             self.model.save_checkpoint()
           except Exception as e:
-            self.log.error("Error when saving model:\n%s" % str(e))
+            self.log.error(f"Error when saving model:\n{e!s}")
 
 class LCTimerIterator:
     """This creates an iterator that keeps track of time limits
@@ -757,7 +759,7 @@ class LCTimerIterator:
             time_needed = self._time_needed(training_time)
 
             if time_needed > 0.9 * time_remaining:
-                self.log.warn("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
+                self.log.warning("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
                                 self.ei)
                 self.params.max_epochs = self.ei
                 raise StopIteration
@@ -848,7 +850,7 @@ class NNModelWrapper(ModelWrapper):
             epoch = self.best_epoch
             #model_dir = self.best_model_dir
         else:
-            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
+            raise ValueError(f"Unknown epoch_label '{epoch_label}'")
 
         if subset == 'train':
             return self.train_perf_data[epoch]
@@ -858,7 +860,7 @@ class NNModelWrapper(ModelWrapper):
             #return self.get_test_perf_data(model_dir, self.data)
             return self.test_perf_data[epoch]
         else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
+            raise ValueError(f"Unknown dataset subset '{subset}'")
 
     # ****************************************************************************************
     def get_pred_results(self, subset, epoch_label=None):
@@ -886,7 +888,7 @@ class NNModelWrapper(ModelWrapper):
             epoch = self.best_epoch
             #model_dir = self.best_model_dir
         else:
-            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
+            raise ValueError(f"Unknown epoch_label '{epoch_label}'")
         if subset == 'train':
             return self.get_train_valid_pred_results(self.train_perf_data[epoch])
         elif subset == 'valid':
@@ -894,7 +896,7 @@ class NNModelWrapper(ModelWrapper):
         elif subset == 'test':
             return self.get_train_valid_pred_results(self.test_perf_data[epoch])
         else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
+            raise ValueError(f"Unknown dataset subset '{subset}'")
 
     # ****************************************************************************************
     def _clean_up_excess_files(self, dest_dir):
@@ -1138,7 +1140,7 @@ class NNModelWrapper(ModelWrapper):
         self._clean_up_excess_files(dest_dir)
 
         shutil.copy2(chkpt_file, dest_dir)
-        self.log.info("Saved model files to '%s'" % dest_dir)
+        self.log.info(f"Saved model files to '{dest_dir}'")
 
 
     # ****************************************************************************************
@@ -1312,8 +1314,7 @@ class HybridModelWrapper(NNModelWrapper):
                 self.params.layer_sizes = [200, 100]
             else:
                 # Shouldn't happen
-                self.log.warning("You need to define default layer sizes for featurizer %s" %
-                                    self.params.featurizer)
+                self.log.warning(f"You need to define default layer sizes for featurizer {self.params.featurizer}")
                 self.params.layer_sizes = [1000, 500]
 
         if self.params.dropouts is None:
@@ -1433,7 +1434,7 @@ class HybridModelWrapper(NNModelWrapper):
 
         return loss_ki.item(), loss_bind.item(), len(xb)
 
-    class SubsetData(object):
+    class SubsetData:
         """Container for DataLoader object and attributes of a dataset subset"""
         def __init__(self, ds, dl, n_ki, n_bind):
             self.ds = ds
@@ -1499,12 +1500,12 @@ class HybridModelWrapper(NNModelWrapper):
         """Save a model to a checkpoint file.
         Include epoch, model_dict in checkpoint dict.
         """
-        checkpoint = dict(
-            epoch=epoch,
-            model_state_dict=model.state_dict(),
-            opt_state_dict=opt.state_dict(),
-            model_dict=model_dict
-            )
+        checkpoint = {
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'opt_state_dict': opt.state_dict(),
+            'model_dict': model_dict
+            }
 
         torch.save(checkpoint, checkpoint_file)
 
@@ -1550,7 +1551,7 @@ class HybridModelWrapper(NNModelWrapper):
             for i, (xb, yb) in enumerate(train_data.dl):
                 xb = xb.to(self.dev)
                 yb = yb.to(self.dev)
-                train_loss_ki, train_loss_bind, train_count = self._loss_batch(self.loss_func, xb, yb, opt)
+                train_loss_ki, train_loss_bind, _train_count = self._loss_batch(self.loss_func, xb, yb, opt)
                 train_loss_ep += (train_loss_ki + train_loss_bind)
             train_loss_ep /= (train_data.n_ki + train_data.n_bind)
 
@@ -1560,7 +1561,7 @@ class HybridModelWrapper(NNModelWrapper):
                 for xb, yb in valid_data.dl:
                     xb = xb.to(self.dev)
                     yb = yb.to(self.dev)
-                    valid_loss_ki, valid_loss_bind, valid_count = self._loss_batch(self.loss_func, xb, yb)
+                    valid_loss_ki, valid_loss_bind, _valid_count = self._loss_batch(self.loss_func, xb, yb)
                     valid_loss_ep += (valid_loss_ki + valid_loss_bind)
                 valid_loss_ep /= (valid_data.n_ki + valid_data.n_bind)
 
@@ -1674,15 +1675,15 @@ class HybridModelWrapper(NNModelWrapper):
             model_spec_metdata (dict): A dictionary of the parameter sets for the HybridModelWrapper object.
                 Parameters are saved under the key 'hybrid_specific' as a subdictionary.
         """
-        nn_metadata = dict(
-                    best_epoch = self.best_epoch,
-                    max_epochs = self.params.max_epochs,
-                    batch_size = self.params.batch_size,
-                    layer_sizes = self.params.layer_sizes,
-                    dropouts = self.params.dropouts,
-                    learning_rate = self.params.learning_rate,
-        )
-        model_spec_metadata = dict(hybrid_specific = nn_metadata)
+        nn_metadata = {
+                    'best_epoch': self.best_epoch,
+                    'max_epochs': self.params.max_epochs,
+                    'batch_size': self.params.batch_size,
+                    'layer_sizes': self.params.layer_sizes,
+                    'dropouts': self.params.dropouts,
+                    'learning_rate': self.params.learning_rate,
+        }
+        model_spec_metadata = {'hybrid_specific': nn_metadata}
         return model_spec_metadata
 
     # ****************************************************************************************
@@ -1854,7 +1855,7 @@ class ForestModelWrapper(ModelWrapper):
         elif subset == 'full':
             return self.get_full_dataset_pred_results(self.data)
         else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
+            raise ValueError(f"Unknown dataset subset '{subset}'")
 
     # ****************************************************************************************
     def get_perf_data(self, subset, epoch_label=None):
@@ -1883,7 +1884,7 @@ class ForestModelWrapper(ModelWrapper):
         elif subset == 'full':
             return self.get_full_dataset_perf_data(self.data)
         else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
+            raise ValueError(f"Unknown dataset subset '{subset}'")
 
     # ****************************************************************************************
     def _clean_up_excess_files(self, dest_dir):
@@ -2049,7 +2050,7 @@ class DCRFModelWrapper(ForestModelWrapper):
             'rf_max_features': self.params.rf_max_features,
             'rf_max_depth': self.params.rf_max_depth
         }
-        model_spec_metadata = dict(rf_specific = rf_metadata)
+        model_spec_metadata = {'rf_specific': rf_metadata}
         return model_spec_metadata
 
 # ****************************************************************************************
@@ -2333,7 +2334,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
         elif subset == 'full':
             return self.get_full_dataset_pred_results(self.data)
         else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
+            raise ValueError(f"Unknown dataset subset '{subset}'")
 
     # ****************************************************************************************
     def get_perf_data(self, subset, epoch_label=None):
@@ -2362,7 +2363,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
         elif subset == 'full':
             return self.get_full_dataset_perf_data(self.data)
         else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
+            raise ValueError(f"Unknown dataset subset '{subset}'")
 
     # ****************************************************************************************
     def generate_predictions(self, dataset):
@@ -2405,7 +2406,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                        "xgb_subsample" : self.params.xgb_subsample,
                        "xgb_colsample_bytree"  :self.params.xgb_colsample_bytree
                         }
-        model_spec_metadata = dict(xgb_specific=xgb_metadata)
+        model_spec_metadata = {'xgb_specific': xgb_metadata}
         return model_spec_metadata
 
     # ****************************************************************************************
@@ -2475,7 +2476,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         extracted_features.update(kwargs)
 
         chosen_model = pp.model_wl[self.params.model_type]
-        self.log.info(f'Args passed to {chosen_model}:{str(extracted_features)}')
+        self.log.info(f'Args passed to {chosen_model}:{extracted_features!s}')
 
         # build the model
         model = chosen_model(
@@ -2516,7 +2517,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         nn_metadata = pp.extract_model_params(self.params, strip_prefix=False)
         nn_metadata['max_epochs'] = self.params.max_epochs
         nn_metadata['best_epoch'] = self.best_epoch
-        model_spec_metadata = dict(nn_specific = nn_metadata)
+        model_spec_metadata = {'nn_specific': nn_metadata}
         return model_spec_metadata
 
     def restore(self, checkpoint=None, model_dir=None):
@@ -2688,8 +2689,7 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
                 self.params.layer_sizes = [200, 100]
             else:
                 # Shouldn't happen
-                self.log.warning("You need to define default layer sizes for featurizer %s" %
-                                    self.params.featurizer)
+                self.log.warning(f"You need to define default layer sizes for featurizer {self.params.featurizer}")
                 self.params.layer_sizes = [1000, 500]
 
         if self.params.dropouts is None:
@@ -2769,20 +2769,20 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
                 Parameters are saved under the key 'nn_specific' as a subdictionary.
         """
 
-        nn_metadata = dict(
-                    best_epoch = self.best_epoch,
-                    max_epochs = self.params.max_epochs,
-                    batch_size = self.params.batch_size,
-                    optimizer_type = self.params.optimizer_type,
-                    layer_sizes = self.params.layer_sizes,
-                    dropouts = self.params.dropouts,
-                    weight_init_stddevs = self.params.weight_init_stddevs,
-                    bias_init_consts = self.params.bias_init_consts,
-                    learning_rate = self.params.learning_rate,
-                    weight_decay_penalty=self.params.weight_decay_penalty,
-                    weight_decay_penalty_type=self.params.weight_decay_penalty_type
-        )
-        model_spec_metadata = dict(nn_specific = nn_metadata)
+        nn_metadata = {
+                    'best_epoch': self.best_epoch,
+                    'max_epochs': self.params.max_epochs,
+                    'batch_size': self.params.batch_size,
+                    'optimizer_type': self.params.optimizer_type,
+                    'layer_sizes': self.params.layer_sizes,
+                    'dropouts': self.params.dropouts,
+                    'weight_init_stddevs': self.params.weight_init_stddevs,
+                    'bias_init_consts': self.params.bias_init_consts,
+                    'learning_rate': self.params.learning_rate,
+                    'weight_decay_penalty': self.params.weight_decay_penalty,
+                    'weight_decay_penalty_type': self.params.weight_decay_penalty_type
+        }
+        model_spec_metadata = {'nn_specific': nn_metadata}
         return model_spec_metadata
 
 # ****************************************************************************************
@@ -2805,13 +2805,13 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
         chkpt_prefix = chkpt_dict['model_checkpoint_path']
         files = [chkpt_file]
         # files.append(os.path.join(self.model_dir, 'model.pickle'))
-        files.append(os.path.join(self.model_dir, '%s.index' % chkpt_prefix))
+        files.append(os.path.join(self.model_dir, f'{chkpt_prefix}.index'))
         # files.append(os.path.join(self.model_dir, '%s.meta' % chkpt_prefix))
-        files = files + glob.glob(os.path.join(self.model_dir, '%s.data-*' % chkpt_prefix))
+        files = files + glob.glob(os.path.join(self.model_dir, f'{chkpt_prefix}.data-*'))
         self._clean_up_excess_files(dest_dir)
         for file in files:
             shutil.copy2(file, dest_dir)
-        self.log.info("Saved model files to '%s'" % dest_dir)
+        self.log.info(f"Saved model files to '{dest_dir}'")
 
     def reload_model(self, reload_dir):
         """Loads a saved neural net model from the specified directory.
@@ -3000,18 +3000,18 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
             model_spec_metdata (dict): A dictionary of the parameter sets for the GraphConvDCModelWrapper object.
                 Parameters are saved under the key 'nn_specific' as a subdictionary.
         """
-        nn_metadata = dict(
-                    best_epoch = self.best_epoch,
-                    max_epochs = self.params.max_epochs,
-                    batch_size = self.params.batch_size,
-                    optimizer_type = self.params.optimizer_type,
-                    layer_sizes = self.params.layer_sizes,
-                    dropouts = self.params.dropouts,
-                    weight_init_stddevs = self.params.weight_init_stddevs,
-                    bias_init_consts = self.params.bias_init_consts,
-                    learning_rate = self.params.learning_rate,
-                    weight_decay_penalty=self.params.weight_decay_penalty,
-                    weight_decay_penalty_type=self.params.weight_decay_penalty_type
-        )
-        model_spec_metadata = dict(nn_specific = nn_metadata)
+        nn_metadata = {
+                    'best_epoch': self.best_epoch,
+                    'max_epochs': self.params.max_epochs,
+                    'batch_size': self.params.batch_size,
+                    'optimizer_type': self.params.optimizer_type,
+                    'layer_sizes': self.params.layer_sizes,
+                    'dropouts': self.params.dropouts,
+                    'weight_init_stddevs': self.params.weight_init_stddevs,
+                    'bias_init_consts': self.params.bias_init_consts,
+                    'learning_rate': self.params.learning_rate,
+                    'weight_decay_penalty': self.params.weight_decay_penalty,
+                    'weight_decay_penalty_type': self.params.weight_decay_penalty_type
+        }
+        model_spec_metadata = {'nn_specific': nn_metadata}
         return model_spec_metadata
