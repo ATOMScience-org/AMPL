@@ -402,7 +402,7 @@ class NormalizationTransformerHybrid(NormalizationTransformer):
             # check the single dose data range
             y_mean_bind = dataset.y[bind_pos, 0].mean()
             if y_mean_bind > 2:
-                raise Exception("The single-dose values have a mean value over 2, they are probably NOT in the fraction format, but a percentage format. Make sure the single-dose values are in fraction format.")
+                raise ValueError("The single-dose values have a mean value over 2, they are probably NOT in the fraction format, but a percentage format. Make sure the single-dose values are in fraction format.")
         self.ishybrid = True # used to distinguish this special transformer.
 
        ## skip the NormalizationTransformer initialization and go to base class

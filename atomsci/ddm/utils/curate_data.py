@@ -210,7 +210,7 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
     # Filter out rows where SMILES is missing
     n_missing_smiles = np.array([len(smiles) == 0 for smiles in assay_df[smiles_col].values]).sum()
     if verbose:
-        print("%d entries in input table are missing SMILES strings" % n_missing_smiles)
+        print(f"{n_missing_smiles} entries in input table are missing SMILES strings")
     has_smiles = np.array([len(smiles) > 0 for smiles in assay_df[smiles_col].values])
     assay_df = assay_df[has_smiles].copy()
 
@@ -226,7 +226,7 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
     uniq_smiles_strs = sorted(set(smiles_strs))
     nuniq = len(uniq_smiles_strs)
     if verbose:
-        print("%d unique SMILES strings are reduced to %d unique base SMILES strings" % (norig, nuniq))
+        print(f"{norig} unique SMILES strings are reduced to {nuniq} unique base SMILES strings")
     smiles_map = {smiles: i for i, smiles in enumerate(uniq_smiles_strs)}
     smiles_indices = np.array([smiles_map.get(smiles, nuniq) for smiles in smiles_strs])
 
@@ -344,7 +344,7 @@ def labeled_freq_table(dset_df, columns, min_freq=1):
     for uniq_id in uniq_ids:
         subset_df = uniq_df[uniq_df[id_col] == uniq_id]
         if subset_df.shape[0] > 1:
-            raise Exception(f"Additional columns should be unique for ID {uniq_id}")
+            raise ValueError(f"Additional columns should be unique for ID {uniq_id}")
         for colname in addl_cols:
             addl_vals[colname].append(subset_df[colname].values[0])
     for colname in addl_cols:
@@ -581,7 +581,6 @@ def average_and_remove_duplicates (column, tolerance, list_bad_duplicates,
 
     """
 
-    list_bad_duplicates = list_bad_duplicates
     i = 0
     bad_duplicates = 1
     removed = []
