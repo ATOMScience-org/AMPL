@@ -2121,7 +2121,7 @@ class SimpleHybridPerfData(HybridPerfData):
         
         if self.is_ki:
             if self.ki_convert_ratio is None:
-                raise Exception("Ki converting ratio is missing. Cannot convert Ki into IC50")
+                raise ValueError("Ki converting ratio is missing. Cannot convert Ki into IC50")
             Ki = 10**(9-activity)
             IC50 = Ki * (1 + self.ki_convert_ratio)
         else:

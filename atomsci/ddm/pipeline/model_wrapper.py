@@ -196,18 +196,17 @@ def create_model_wrapper(params, featurizer, ds_client=None, random_state=None, 
         return DCRFModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     elif params.model_type == 'xgboost':
         if not xgboost_supported:
-            raise Exception("Unable to import xgboost. \
-                             xgboost package needs to be installed to use xgboost model. \
-                             Installatin: \
-                             from pip: pip3 install xgboost==0.90.\
-                             livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user \
-                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user "
-                            )
+            raise ImportError("Unable to import xgboost. "
+                              "xgboost package needs to be installed to use xgboost model. "
+                              "Installation: "
+                              "from pip: pip3 install xgboost==0.90. "
+                              "livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user "
+                              "twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user")
         elif version.parse(xgb.__version__) < version.parse('0.9'):
-            raise Exception("xgboost required to be = 0.9 for GPU support. \
-                             current version = xgb.__version__ \
-                             installation: \
-                             from pip: pip install xgboost==0.90")
+            raise ValueError("xgboost required to be >= 0.9 for GPU support. "
+                             f"current version = {xgb.__version__} "
+                             "installation: "
+                             "from pip: pip install xgboost==0.90")
         else:
             return DCxgboostModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     elif params.model_type == 'hybrid':
@@ -219,7 +218,7 @@ def create_model_wrapper(params, featurizer, ds_client=None, random_state=None, 
         # differently. These two wrappers implement the same interface.
         if any('TorchModel' in str(b) for b in bases):
             if not afp_supported:
-                raise Exception("dgl and dgllife packages must be installed to use attentive_fp model.")
+                raise ImportError("dgl and dgllife packages must be installed to use attentive_fp model.")
             return PytorchDeepChemModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
         elif any('KerasModel' in str(b) for b in bases):
             return KerasDeepChemModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
@@ -466,7 +465,7 @@ class ModelWrapper:
                         transformers_tuple = pickle.load(txfmr)
             else:
                 # Shouldn't happen
-                raise Exception("Transformers needed to reload model, but no transformer_key specified.")
+                raise ValueError("Transformers needed to reload model, but no transformer_key specified.")
 
 
         if len(transformers_tuple) == 3:
@@ -705,11 +704,11 @@ class ModelWrapper:
         """
         try:
             self.model.save()
-        except Exception:
-          try:
-            self.model.save_checkpoint()
-          except Exception as e:
-            self.log.error(f"Error when saving model:\n{e!s}")
+        except (AttributeError, OSError):
+            try:
+                self.model.save_checkpoint()
+            except (AttributeError, OSError) as e:
+                self.log.error(f"Error when saving model:\n{e!s}")
 
 class LCTimerIterator:
     """This creates an iterator that keeps track of time limits
@@ -759,8 +758,7 @@ class LCTimerIterator:
             time_needed = self._time_needed(training_time)
 
             if time_needed > 0.9 * time_remaining:
-                self.log.warning("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
-                                self.ei)
+                self.log.warning(f"Projected time to finish one more epoch exceeds time left in job; cutting training to {self.ei} epochs")
                 self.params.max_epochs = self.ei
                 raise StopIteration
             else:
@@ -1005,13 +1003,11 @@ class NNModelWrapper(ModelWrapper):
                 test_perf = test_perf_data.accumulate_preds(test_pred, test_dset.ids)
 
                 # update the make pred function to include latest transformers
-                def make_pred(x):
-                    return self.model.predict(x, self.transformers[k])
+                def make_pred(x, fold=k):
+                    return self.model.predict(x, self.transformers[fold])
                 em.set_make_pred(make_pred)
                 valid_perf = em.accumulate(ei, subset='valid', dset=valid_dset)
-                self.log.info("Fold %d, epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
-                              k, ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
-                              pipeline.metric_type, test_perf))
+                self.log.info(f"Fold {k}, epoch {ei}: training {pipeline.metric_type} = {train_perf:.3f}, validation {pipeline.metric_type} = {valid_perf:.3f}, test {pipeline.metric_type} = {test_perf:.3f}")
 
             # Compute performance metrics for current epoch across validation sets for all folds, and update
             # the best_epoch and best score if the new score exceeds the previous best score by a specified
@@ -1047,8 +1043,7 @@ class NNModelWrapper(ModelWrapper):
         # Only copy the model files we need, not the entire directory
         self._copy_model(self.best_model_dir)
         retrain_time = time.time() - retrain_start
-        self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (self.best_epoch, retrain_time,
-                       retrain_time/max(1, self.best_epoch)))
+        self.log.info(f"Time to retrain model for {self.best_epoch} epochs: {retrain_time:.1f} seconds, {retrain_time/max(1, self.best_epoch):.1f} sec/epoch")
 
     # ****************************************************************************************
     def train_with_early_stopping(self, pipeline):
@@ -1104,9 +1099,7 @@ class NNModelWrapper(ModelWrapper):
             train_perf, valid_perf, test_perf = em.update_epoch(ei,
                                 train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset)
 
-            self.log.info("Epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
-                          ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
-                          pipeline.metric_type, test_perf))
+            self.log.info(f"Epoch {ei}: training {pipeline.metric_type} = {train_perf:.3f}, validation {pipeline.metric_type} = {valid_perf:.3f}, test {pipeline.metric_type} = {test_perf:.3f}")
 
             self.num_epochs_trained = ei + 1
             # Compute performance metrics for each subset, and check if we've reached a new best validation set score
@@ -1211,11 +1204,9 @@ class NNModelWrapper(ModelWrapper):
                 # NormalizationTransformer, since the standard deviations used to scale the data are
                 # stored in the transformer object.
 
-                # =-=ksm: The second 'isinstance' shouldn't be necessary since NormalizationTransformerMissingData
-                # is a subclass of dc.trans.NormalizationTransformer.
-                if len(self.transformers) == 1 and (isinstance(self.transformers['final'][0], dc.trans.NormalizationTransformer)
-                                                 or isinstance(self.transformers['final'][0],trans.NormalizationTransformerMissingData)):
-                    y_stds = self.transformers['final'][0].y_stds.reshape((1,ntasks,1))
+                # NormalizationTransformerMissingData is a subclass of dc.trans.NormalizationTransformer
+                if len(self.transformers) == 1 and isinstance(self.transformers['final'][0], dc.trans.NormalizationTransformer):
+                    y_stds = self.transformers['final'][0].y_stds.reshape((1, ntasks, 1))
                     std = std / y_stds
                 pred = dc.trans.undo_transforms(pred, self.transformers['final'])
         else:
@@ -1341,7 +1332,7 @@ class HybridModelWrapper(NNModelWrapper):
             self.model_dict = model_dict
             self.model = torch.nn.Sequential(model_dict).to(self.dev)
         else:
-            raise Exception("Hybrid model only support regression prediction.")
+            raise ValueError("Hybrid model only support regression prediction.")
 
     def _predict_binding(self, activity, conc):
         """Predict measurements of fractional binding/inhibition of target receptors by a compound with the given activity,
@@ -1352,7 +1343,7 @@ class HybridModelWrapper(NNModelWrapper):
 
         if self.params.is_ki:
             if self.params.ki_convert_ratio is None:
-                raise Exception("Ki converting ratio is missing. Cannot convert Ki into IC50")
+                raise ValueError("Ki converting ratio is missing. Cannot convert Ki into IC50")
             Ki = 10**(9-activity)
             IC50 = Ki * (1 + self.params.ki_convert_ratio)
         else:
@@ -1414,9 +1405,9 @@ class HybridModelWrapper(NNModelWrapper):
         loss_bind = torch.sum(rl_bind_pred - rl_bind_real * torch.log(rl_bind_pred))
 
         if np.isnan(loss_ki.item()):
-            raise Exception("Ki loss is NaN")
+            raise ValueError("Ki loss is NaN")
         if np.isnan(loss_bind.item()):
-            raise Exception("Binding loss is NaN")
+            raise ValueError("Binding loss is NaN")
         return loss_ki, loss_bind
 
     def _loss_batch(self, loss_func, xb, yb, opt=None):
@@ -1541,7 +1532,7 @@ class HybridModelWrapper(NNModelWrapper):
         valid_dset = self.transform_dataset(valid_dset, 'final')
         test_dset = self.transform_dataset(pipeline.data.test_dset, 'final')
         if len(pipeline.data.train_valid_dsets) > 1:
-            raise Exception("Currently the hybrid model  doesn't support K-fold cross validation splitting.")
+            raise ValueError("Currently the hybrid model doesn't support K-fold cross validation splitting.")
         train_data, valid_data = self.train_valid_dsets[0]
         for ei in LCTimerIterator(self.params, pipeline, self.log):
             # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
@@ -1568,9 +1559,7 @@ class HybridModelWrapper(NNModelWrapper):
             train_perf, valid_perf, test_perf = em.update_epoch(ei,
                                 train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset)
 
-            self.log.info("Epoch %d: training %s = %.3f, training loss = %.3f, validation %s = %.3f, validation loss = %.3f, test %s = %.3f" % (
-                          ei, pipeline.metric_type, train_perf, train_loss_ep, pipeline.metric_type, valid_perf, valid_loss_ep,
-                          pipeline.metric_type, test_perf))
+            self.log.info(f"Epoch {ei}: training {pipeline.metric_type} = {train_perf:.3f}, training loss = {train_loss_ep:.3f}, validation {pipeline.metric_type} = {valid_perf:.3f}, validation loss = {valid_loss_ep:.3f}, test {pipeline.metric_type} = {test_perf:.3f}")
 
             # Compute performance metrics for each subset, and check if we've reached a new best validation set score
             self.num_epochs_trained = ei + 1
@@ -1607,7 +1596,7 @@ class HybridModelWrapper(NNModelWrapper):
             self.model.load_state_dict(checkpoint['model_state_dict'])
             self.model.eval()
         else:
-            raise Exception(f"Checkpoint file doesn't exist in the reload_dir {reload_dir}")
+            raise FileNotFoundError(f"Checkpoint file doesn't exist in the reload_dir {reload_dir}")
 
         # Restore the transformers from the datastore or filesystem
         self.reload_transformers()
@@ -1773,9 +1762,7 @@ class ForestModelWrapper(ModelWrapper):
 
             test_pred = self.model.predict(test_dset, self.transformers[k])
             test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids)
-            self.log.info("Fold %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
-                          k, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
-                             pipeline.metric_type, test_perf))
+            self.log.info(f"Fold {k}: training {pipeline.metric_type} = {train_perf:.3f}, validation {pipeline.metric_type} = {valid_perf:.3f}, test {pipeline.metric_type} = {test_perf:.3f}")
 
 
         # Compute mean and SD of performance metrics across validation sets for all folds
@@ -2215,9 +2202,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
 
             test_pred = self.model.predict(test_dset, self.transformers[k])
             test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids)
-            self.log.info("Fold %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
-                          k, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
-                             pipeline.metric_type, test_perf))
+            self.log.info(f"Fold {k}: training {pipeline.metric_type} = {train_perf:.3f}, validation {pipeline.metric_type} = {valid_perf:.3f}, test {pipeline.metric_type} = {test_perf:.3f}")
 
         # Compute mean and SD of performance metrics across validation sets for all folds
         self.train_perf, self.train_perf_std = self.train_perf_data.compute_perf_metrics()
@@ -2645,9 +2630,7 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
             train_perf, valid_perf, test_perf = em.update_epoch(ei,
                                 train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset)
 
-            self.log.info("Epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
-                          ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
-                          pipeline.metric_type, test_perf))
+            self.log.info(f"Epoch {ei}: training {pipeline.metric_type} = {train_perf:.3f}, validation {pipeline.metric_type} = {valid_perf:.3f}, test {pipeline.metric_type} = {test_perf:.3f}")
 
             layer1_weights = self.model.model.layers[0].weight
             feature_weights = layer1_weights.detach().abs().mean(dim=0).cpu().numpy()

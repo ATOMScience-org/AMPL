@@ -171,14 +171,14 @@ def _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, do
     """Prepare input data frame for running predictions"""
     colnames = set(input_df.columns.values)
     if (id_col is None) or (id_col not in colnames):
-        input_df['compound_id'] = ['compound_%.6d' % i for i in range(input_df.shape[0])]
+        input_df['compound_id'] = [f'compound_{i:06d}' for i in range(input_df.shape[0])]
         id_col = 'compound_id'
     if smiles_col not in colnames:
         raise ValueError('smiles_col parameter not specified or column not in input file.')
     if dont_standardize:
         _std_smiles_col = smiles_col
     else:
-        print("Standardizing SMILES strings for %d compounds." % input_df.shape[0])
+        print(f"Standardizing SMILES strings for {input_df.shape[0]} compounds.")
         orig_ncmpds = input_df.shape[0]
         std_smiles = base_smiles_from_smiles(input_df[smiles_col].values.tolist(), workers=16)
         input_df['orig_smiles']=input_df[smiles_col]
@@ -188,7 +188,7 @@ def _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, do
             raise ValueError("No valid SMILES strings to predict on.")
         nlost = orig_ncmpds - input_df.shape[0]
         if nlost > 0:
-            print("Could not parse %d SMILES strings; will predict on the remainder." % nlost)
+            print(f"Could not parse {nlost} SMILES strings; will predict on the remainder.")
 
     pred_params = {
         'featurizer': 'computed_descriptors',
