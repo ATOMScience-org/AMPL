@@ -694,7 +694,51 @@ def retrieve_columns_from_dataset (bucket, dataset_key, client=None, max_rows=0,
     if dataset_result['distribution']['dataType'] == 'bz2':
 
         # bz2.  Read bz2 file in binary mode, then decompress to text.
-        fp = bz2.open(client.open_dataset(dataset_oid, mode='b'), mode='rt')
+        with bz2.open(client.open_dataset(dataset_oid, mode='b'), mode='rt') as fp:
+            dict_reader = csv.DictReader(fp)
+
+            # Set up dict to be returned.
+            selected_columns = {}
+            for column_name in column_names:
+                selected_columns[column_name] = []
+
+            # Check which columns in this file.
+            header_names = dict_reader.fieldnames
+
+            if return_names:
+                return header_names
+
+
+            column_names_valid_b = []
+            for column_name in column_names:
+                column_name_valid_b = column_name in header_names
+                column_names_valid_b.append(column_name_valid_b)
+                if not column_name_valid_b:
+                    print('Note: column', column_name, 'not in', os.path.split(dataset_key)[1], file=sys.stderr)
+
+
+            print('Reading ' + os.path.split(dataset_key)[1] + '... ')
+            i_row = 1
+            for row in dict_reader:
+                for i, column_name in enumerate(column_names):
+                    if column_names_valid_b[i]:
+                        selected_columns[column_name].append(row[column_name])
+                    else:
+                        selected_columns[column_name].append('NA')
+
+                if i_row % 1000 == 0:
+                    print(i_row, 'rows                    ', end='\r', flush=True)
+
+                if max_rows and i_row >= max_rows:
+                    i_row += 1
+                    break
+
+                i_row += 1
+
+
+            print(f'\nDone.  Read {i_row - 1} rows')
+
+            return selected_columns
 
     elif dataset_result['distribution']['dataType'] == 'csv':
 
@@ -1201,29 +1245,38 @@ def upload_file_to_DS(bucket, title, description, tags, key_values, filepath, fi
     #check file type
     split_file_ext = os.path.splitext(filepath)
     extension = split_file_ext[-1]
-    #only open file if not creating a link
-    if not file_ref :
-        if extension == '.pkl':
-            fileObj = open(filepath, 'rb')
-        else:
-            fileObj = io.FileIO(filepath)
 
     if dataset_key is None:
         dataset_key = filepath
 
-    if not file_ref :
-        req = client.ds_datasets.upload_dataset(
-           bucket_name=bucket,
-           title=title,
-           description=description,
-           tags=tags,
-           metadata_obj=key_values,
-           fileObj=fileObj,
-           dataType=data_type,
-           dataset_key=dataset_key,
-           filename=filename,
-        )
-    else :
+    if not file_ref:
+        if extension == '.pkl':
+            with open(filepath, 'rb') as fileObj:
+                req = client.ds_datasets.upload_dataset(
+                    bucket_name=bucket,
+                    title=title,
+                    description=description,
+                    tags=tags,
+                    metadata_obj=key_values,
+                    fileObj=fileObj,
+                    dataType=data_type,
+                    dataset_key=dataset_key,
+                    filename=filename,
+                )
+        else:
+            with io.FileIO(filepath) as fileObj:
+                req = client.ds_datasets.upload_dataset(
+                    bucket_name=bucket,
+                    title=title,
+                    description=description,
+                    tags=tags,
+                    metadata_obj=key_values,
+                    fileObj=fileObj,
+                    dataType=data_type,
+                    dataset_key=dataset_key,
+                    filename=filename,
+                )
+    else:
         req = client.ds_datasets.reference_dataset(
            bucket_name=bucket,
            title=title,

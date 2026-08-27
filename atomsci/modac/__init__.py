@@ -3,7 +3,7 @@ import logging
 import os
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -85,7 +85,7 @@ class MoDaCClient:
             _logger.warning(
                 "Define your MODAC password by setting MODAC_PASS='my-password'\nAlternatively, you can call os.environ['MODAC_PASS'] = 'my-password'"
             )
-            raise Exception("Undefined username and/or password")
+            raise MoDaCClientError("Undefined username and/or password")
         return HTTPBasicAuth(username=username, password=password)
 
     @ensure_authenticated
