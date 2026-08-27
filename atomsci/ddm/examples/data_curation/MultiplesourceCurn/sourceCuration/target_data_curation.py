@@ -33,7 +33,7 @@ class CustomConfigParser(configparser.ConfigParser) :
       except configparser.NoOptionError :
           try :
               rval = super().get(self.def_sec,keyval)
-          except Exception:
+          except (configparser.NoOptionError, configparser.NoSectionError):
               rval = None
       return rval
 
