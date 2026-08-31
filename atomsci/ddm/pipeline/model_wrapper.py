@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Contains class ModelWrapper and its subclasses, which are wrappers for DeepChem and scikit-learn model classes."""
 import logging
 import os

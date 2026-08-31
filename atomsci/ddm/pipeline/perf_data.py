@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Contains class PerfData and its subclasses, which are objects for collecting and computing model performance metrics
 and predictions
 """
