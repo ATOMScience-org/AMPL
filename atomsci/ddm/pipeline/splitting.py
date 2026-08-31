@@ -51,7 +51,7 @@ def create_splitting(params, random_state=None, seed=None):
     elif params.split_strategy == 'k_fold_cv':
         return KFoldSplitting(params, random_state=random_state, seed=seed)
     else:
-        raise Exception(f"Unknown split strategy {params.split_strategy}")
+        raise ValueError(f"Unknown split strategy {params.split_strategy}")
 
 # ****************************************************************************************
 def select_dset_by_attr_ids(dataset, attr_df):
@@ -234,7 +234,7 @@ class Splitting:
                     date_col=params.date_col,
                     base_splitter=params.base_splitter, metric=metric)
         else:
-            raise Exception(f"Unknown splitting method {params.splitter}")
+            raise ValueError(f"Unknown splitting method {params.splitter}")
 
     # ****************************************************************************************
     def get_split_prefix(self, parent=''):
@@ -317,7 +317,7 @@ class KFoldSplitting(Splitting):
         """
         if parent != '':
             parent = f"{parent}/"
-        return "%s%d_fold_cv_%s" % (parent, self.num_folds, self.split)
+        return f"{parent}{self.num_folds}_fold_cv_{self.split}"
 
     # ****************************************************************************************
     def split_dataset(self, dataset, attr_df, smiles_col):
@@ -507,14 +507,13 @@ class TrainValidTestSplitting(Splitting):
             train_frac = train_valid_frac - self.params.split_valid_frac
             log.info("Performing split for test set")
             train_valid, test, _ = self.splitter.train_valid_test_split(dataset, frac_train=train_valid_frac, 
-                                                                        frac_valid=self.params.split_test_frac,
-                                                                        frac_test=0.0, seed=self.seed)
+                                                                         frac_valid=self.params.split_test_frac,
+                                                                         frac_test=0.0, seed=self.seed)
             log.info("Performing split of training and validation sets")
             train, valid, _ = self.splitter.train_valid_test_split(train_valid, frac_train=train_frac/train_valid_frac, 
-                                                                   frac_valid=self.params.split_valid_frac/train_valid_frac,
-                                                                   frac_test=0.0, seed=self.seed)
-            log.info("Results of 3-way split: %d training, %d validation, %d test compounds" % (
-                     train.X.shape[0], valid.X.shape[0], test.X.shape[0]))
+                                                                     frac_valid=self.params.split_valid_frac/train_valid_frac,
+                                                                     frac_test=0.0, seed=self.seed)
+            log.info(f"Results of 3-way split: {train.X.shape[0]} training, {valid.X.shape[0]} validation, {test.X.shape[0]} test compounds")
         elif self.split == 'temporal':
             # TemporalSplitter requires that we pass attr_df so it can get the dates for each compound
             train_frac = 1.0 - self.params.split_valid_frac

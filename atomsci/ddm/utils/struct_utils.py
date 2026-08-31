@@ -228,7 +228,7 @@ def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=Fals
             skipStandardize=True)
         if removeCharges:
             std_mol = uncharger.uncharge(std_mol)
-    except Exception:
+    except (ValueError, RuntimeError):
         std_mol = None
     return std_mol
 
@@ -302,7 +302,7 @@ def base_mol_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False):
             skipStandardize=True)
         if removeCharges:
             std_mol = uncharger.uncharge(std_mol)
-    except Exception as e:
+    except (ValueError, RuntimeError) as e:
         print(f"Error standardizing InChI {inchi_str}: {e}")
         std_mol = None
     return std_mol
@@ -349,12 +349,12 @@ def _standardize_chemistry(df, standard='rdkit', smiles_col='rdkit_smiles', work
             try:
                 mol = Chem.MolFromSmiles(smi)
                 out.append(Chem.inchi.MolToInchi(mol))
-            except Exception:
+            except (ValueError, RuntimeError):
                 out.append(f'Invalid SMILES: {smi}')
     elif standard.lower() == 'name':
         print('Name technique currently not implemented')
     else:
-        raise Exception(f'Unrecognized standardization type: {standard}')
+        raise ValueError(f'Unrecognized standardization type: {standard}')
     df[col] = out
 
     return df, col
@@ -367,7 +367,7 @@ def _merge_values(values, strategy='list'):
     try:
         values.remove('')
     except ValueError:
-        values = values
+        pass
 
     if values is None:
         val = float('NaN')
@@ -388,7 +388,7 @@ def _merge_values(values, strategy='list'):
     elif strategy == 'min':
         val = min(values)
     else:
-        raise Exception(f'Unknown column merge strategy: {strategy}' )
+        raise ValueError(f'Unknown column merge strategy: {strategy}')
 
     if type(val) is list and len(val) == 1:
         val = val[0]

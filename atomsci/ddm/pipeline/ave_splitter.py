@@ -143,8 +143,8 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
     active_col = kv_dict.get('response_col', active_col)
 
     try:
-        print('Dataset has %d unique compound IDs' % len(set(dataset_df[id_col].values)))
-        print('Split table has %d unique compound IDs' % len(set(split_df.cmpd_id.values)))
+        print(f'Dataset has {len(set(dataset_df[id_col].values))} unique compound IDs')
+        print(f'Split table has {len(set(split_df.cmpd_id.values))} unique compound IDs')
 
         dset_df = dataset_df.merge(split_df, how='inner', left_on=id_col, right_on='cmpd_id').drop('cmpd_id', axis=1)
     except Exception as e:
@@ -184,7 +184,7 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
         nan_mat = np.isnan(feat_arr)
         nnan = np.sum(nan_mat)
         if nnan > 0:
-            log.info('Input feature matrix has %d NaN elements' % nnan)
+            log.info(f'Input feature matrix has {nnan} NaN elements')
             not_nan = ~nan_mat
             for i in range(feat_arr.shape[1]):
                 feat_arr[nan_mat[:,i],i] = np.mean(feat_arr[not_nan[:,i],i])
@@ -415,7 +415,7 @@ def _plot_bias(params, niter):
     ax.set_xlabel('Distance')
     ax.set_ylabel('NN Function')
     _legend = ax.legend()
-    title = "AA - AI = %.3f\nIteration: %d" % (aBias, niter)
+    title = f"AA - AI = {aBias:.3f}\nIteration: {niter}"
     ax.set_title(title)
 
     ax = axes[1]
@@ -512,7 +512,7 @@ class AVEMinSplitter(Splitter):
             nan_mat = np.isnan(feat)
             nnan = np.sum(nan_mat)
             if nnan > 0:
-                log.info('Input feature matrix has %d NaN elements' % nnan)
+                log.info(f'Input feature matrix has {nnan} NaN elements')
                 not_nan = ~nan_mat
                 for i in range(feat.shape[1]):
                     feat[nan_mat[:,i],i] = np.mean(feat[not_nan[:,i],i])
@@ -611,7 +611,7 @@ class AVEMinSplitter(Splitter):
                 if num_splits - num_skipped < NEXT_GEN_FACTOR:
                     break
             # remove the top overlapping splits
-            log.debug("Found %d splits with > 0.8 overlap with better scoring sets" % num_skipped)
+            log.debug(f"Found {num_skipped} splits with > 0.8 overlap with better scoring sets")
             num_remove = min(num_skipped, num_splits - NEXT_GEN_FACTOR)
             # code added in case 0 removed
             remove_indices = sorted(skip_indices, reverse=True)[:num_remove]
@@ -619,13 +619,13 @@ class AVEMinSplitter(Splitter):
                 del bias_splits[i] 
     
             # select the top NEXT_GEN_FACTOR sets
-            log.debug("population size after similarity filter: %d" % len(bias_splits))
+            log.debug(f"population size after similarity filter: {len(bias_splits)}")
             log.debug("select the next generation")
             new_splits = bias_splits[ :NEXT_GEN_FACTOR ]
             best_split = bias_splits[ 0 ]
             best_bias = best_split[ 0 ]
    
-            log.debug("iter = %d  best_bias = %.3f" % (iter_count, best_bias))
+            log.debug(f"iter = {iter_count}  best_bias = {best_bias:.3f}")
      
             # If bias for best split is less than our target, exit the genetic optimization loop
             if best_bias < TARGET_BIAS:
@@ -714,7 +714,7 @@ class AVEMinSplitter(Splitter):
         # Map indices within active/inactive sets back to indices in original dataset
         train_inds = permutation(np.concatenate((active_ind[active_train], inactive_ind[inactive_train])))
         valid_inds = permutation(np.concatenate((active_ind[active_valid], inactive_ind[inactive_valid])))
-        log.debug("Final split has %d training, %d validation cmpds" % (len(train_inds), len(valid_inds)))
+        log.debug(f"Final split has {len(train_inds)} training, {len(valid_inds)} validation cmpds")
         return train_inds, valid_inds, []
 
 

@@ -78,7 +78,7 @@ def config_client(
     """
 
     if not clients_supported:
-        raise Exception("Datastore client not supported in current environment.")
+        raise ValueError("Datastore client not supported in current environment.")
         
     if token is None:
         # Default token path depends on whether you're on LC or another LLNL system
@@ -121,7 +121,7 @@ def initialize_model_tracker(new_instance=False):
         mlmt_client (MLMTClientSingleton): The client object for the model tracker service.
     """
     if not clients_supported:
-        raise Exception("Model tracker client not supported in current environment.")
+        raise ValueError("Model tracker client not supported in current environment.")
 
     if 'MLMT_REST_API_URL' not in os.environ:
         os.environ['MLMT_REST_API_URL'] = 'https://twintron-blue.llnl.gov/atom/mlmt/api/v1.0/swagger.json'
@@ -397,19 +397,18 @@ def retrieve_dataset_by_datasetkey(dataset_key, bucket, client=None, return_meta
 
     if file_type == 'bz2':
         # bz2.  Read bz2 file in binary mode, then decompress to text. Return as dataframe.
-        fp = client.open_bucket_dataset (bucket, dataset_key, mode='b')
-        fp = bz2.open (fp, mode='rt')
-        dict_reader = csv.DictReader (fp)
-        table = []
-        i_row = 1
-        for row in dict_reader:
-            table.append(row)
-            if nrows is not None and i_row >= nrows:
-                #i_row += 1
-                break
-            i_row += 1
+        with bz2.open(client.open_bucket_dataset(bucket, dataset_key, mode='b'), mode='rt') as fp:
+            dict_reader = csv.DictReader(fp)
+            table = []
+            i_row = 1
+            for row in dict_reader:
+                table.append(row)
+                if nrows is not None and i_row >= nrows:
+                    #i_row += 1
+                    break
+                i_row += 1
 
-        dataset = pd.DataFrame(table)
+            dataset = pd.DataFrame(table)
 
     elif file_type == 'pkl':
         # pickle file. Open in binary.
@@ -439,7 +438,7 @@ def retrieve_dataset_by_datasetkey(dataset_key, bucket, client=None, return_meta
             data = fp.read()
             if len(data) == 0:
                 break
-            logger.debug("Read %d bytes of data from datastore" % len(data))
+            logger.debug(f"Read {len(data)} bytes of data from datastore")
             tmp_fp.write(data)
         logger.debug(f"Wrote data to {tmp_path}")
         tmp_fp.close()
@@ -529,19 +528,18 @@ def retrieve_dataset_by_dataset_oid(dataset_oid, client=None, return_metadata=Fa
 
     if file_type == 'bz2':
         # bz2.  Read bz2 file in binary mode, then decompress to text.
-        fp = client.open_dataset (dataset_oid, mode='b')
-        fp = bz2.open (fp, mode='rt')
-        dict_reader = csv.DictReader (fp)
-        table = []
-        i_row = 1
-        for row in dict_reader:
-            table.append(row)
-            if nrows is not None and i_row >= nrows:
-                #i_row += 1
-                break
-            i_row += 1
+        with bz2.open(client.open_dataset(dataset_oid, mode='b'), mode='rt') as fp:
+            dict_reader = csv.DictReader(fp)
+            table = []
+            i_row = 1
+            for row in dict_reader:
+                table.append(row)
+                if nrows is not None and i_row >= nrows:
+                    #i_row += 1
+                    break
+                i_row += 1
 
-        dataset = pd.DataFrame(table)
+            dataset = pd.DataFrame(table)
 
     elif file_type == 'pkl':
         # pickle file. Open in binary
@@ -696,8 +694,51 @@ def retrieve_columns_from_dataset (bucket, dataset_key, client=None, max_rows=0,
     if dataset_result['distribution']['dataType'] == 'bz2':
 
         # bz2.  Read bz2 file in binary mode, then decompress to text.
-        fp = client.open_dataset (dataset_oid, mode='b')
-        fp = bz2.open (fp, mode='rt')
+        with bz2.open(client.open_dataset(dataset_oid, mode='b'), mode='rt') as fp:
+            dict_reader = csv.DictReader(fp)
+
+            # Set up dict to be returned.
+            selected_columns = {}
+            for column_name in column_names:
+                selected_columns[column_name] = []
+
+            # Check which columns in this file.
+            header_names = dict_reader.fieldnames
+
+            if return_names:
+                return header_names
+
+
+            column_names_valid_b = []
+            for column_name in column_names:
+                column_name_valid_b = column_name in header_names
+                column_names_valid_b.append(column_name_valid_b)
+                if not column_name_valid_b:
+                    print('Note: column', column_name, 'not in', os.path.split(dataset_key)[1], file=sys.stderr)
+
+
+            print('Reading ' + os.path.split(dataset_key)[1] + '... ')
+            i_row = 1
+            for row in dict_reader:
+                for i, column_name in enumerate(column_names):
+                    if column_names_valid_b[i]:
+                        selected_columns[column_name].append(row[column_name])
+                    else:
+                        selected_columns[column_name].append('NA')
+
+                if i_row % 1000 == 0:
+                    print(i_row, 'rows                    ', end='\r', flush=True)
+
+                if max_rows and i_row >= max_rows:
+                    i_row += 1
+                    break
+
+                i_row += 1
+
+
+            print(f'\nDone.  Read {i_row - 1} rows')
+
+            return selected_columns
 
     elif dataset_result['distribution']['dataType'] == 'csv':
 
@@ -748,7 +789,7 @@ def retrieve_columns_from_dataset (bucket, dataset_key, client=None, max_rows=0,
         i_row += 1
 
 
-    print ('\nDone.  Read %d rows' % (i_row - 1))
+    print(f'\nDone.  Read {i_row - 1} rows')
 
     return selected_columns
 
@@ -788,7 +829,7 @@ def filter_datasets_interactive (bucket='all', client=None, save_search=False, r
     if restrict_key or restrict_value:
         try:
             kv_lookup = retrieve_dataset_by_datasetkey(bucket=bucket, dataset_key='accepted_key_values')
-        except Exception:
+        except (KeyError, ValueError, RuntimeError):
             print('Accepted_keys_values not defined for bucket(s) chosen. restrict_key and restrict_value will be set to False.')
             restrict_key = False
             restrict_value = False
@@ -1001,7 +1042,7 @@ def summarize_datasets(dataset_keys, bucket, client=None, column=None, save_as=N
             if column is not None:
                 try:
                     d = dataset[column]
-                except Exception:
+                except KeyError:
                     print(dataset.columns)
 
                     column = input("Pick a column from list to analyze: ")
@@ -1031,7 +1072,6 @@ def summarize_datasets(dataset_keys, bucket, client=None, column=None, save_as=N
         else:
             summary_table[i+1] = summary_temp[column]
             data_to_plot.append(d)
-        i += 1
 
     display(summary_table)
 
@@ -1138,12 +1178,11 @@ def check_key_val(key_values, client=None, df=None, enforced=True):
         while i < num_enforced_key:
             enforced_key = kv_lookup['enforced_on_key'][i]
             enforced_value = kv_lookup['enforced_on_value'][i]
-            if enforced_key in key_values:
-                if enforced_value in key_values[enforced_key]:
-                    required = (kv_lookup['required_keys'][i]).split(', ')
-                    for key in required:
-                        if key not in key_values:
-                            raise ValueError(f'Required key missing: {key}')
+            if enforced_key in key_values and enforced_value in key_values[enforced_key]:
+                required = (kv_lookup['required_keys'][i]).split(', ')
+                for key in required:
+                    if key not in key_values:
+                        raise ValueError(f'Required key missing: {key}')
 
             i += 1
 
@@ -1196,7 +1235,7 @@ def upload_file_to_DS(bucket, title, description, tags, key_values, filepath, fi
 
     try:
         user = getpass.getuser()
-    except Exception:
+    except OSError:
         user = 'unknown'
     key_values.update({'user': user})
 
@@ -1206,29 +1245,38 @@ def upload_file_to_DS(bucket, title, description, tags, key_values, filepath, fi
     #check file type
     split_file_ext = os.path.splitext(filepath)
     extension = split_file_ext[-1]
-    #only open file if not creating a link
-    if not file_ref :
-        if extension == '.pkl':
-            fileObj = open(filepath, 'rb')
-        else:
-            fileObj = io.FileIO(filepath)
 
     if dataset_key is None:
         dataset_key = filepath
 
-    if not file_ref :
-        req = client.ds_datasets.upload_dataset(
-           bucket_name=bucket,
-           title=title,
-           description=description,
-           tags=tags,
-           metadata_obj=key_values,
-           fileObj=fileObj,
-           dataType=data_type,
-           dataset_key=dataset_key,
-           filename=filename,
-        )
-    else :
+    if not file_ref:
+        if extension == '.pkl':
+            with open(filepath, 'rb') as fileObj:
+                req = client.ds_datasets.upload_dataset(
+                    bucket_name=bucket,
+                    title=title,
+                    description=description,
+                    tags=tags,
+                    metadata_obj=key_values,
+                    fileObj=fileObj,
+                    dataType=data_type,
+                    dataset_key=dataset_key,
+                    filename=filename,
+                )
+        else:
+            with io.FileIO(filepath) as fileObj:
+                req = client.ds_datasets.upload_dataset(
+                    bucket_name=bucket,
+                    title=title,
+                    description=description,
+                    tags=tags,
+                    metadata_obj=key_values,
+                    fileObj=fileObj,
+                    dataType=data_type,
+                    dataset_key=dataset_key,
+                    filename=filename,
+                )
+    else:
         req = client.ds_datasets.reference_dataset(
            bucket_name=bucket,
            title=title,
@@ -1290,7 +1338,7 @@ def upload_df_to_DS(df, bucket, filename, title, description, tags, key_values, 
     num_col = df_shape[1]
     try:
         user = getpass.getuser()
-    except Exception:
+    except OSError:
         user = 'unknown'
     key_values.update({'num_row':num_row, 'num_col':num_col, 'user': user})
 
@@ -1298,7 +1346,7 @@ def upload_df_to_DS(df, bucket, filename, title, description, tags, key_values, 
     key_values = json.dumps([key_values])
 
     if '.csv' in filename:
-        filename=filename
+        pass
     elif '.' in filename:
         raise ValueError('filename extension must be .csv')
     else:
@@ -1587,7 +1635,7 @@ def upload_pickle_to_DS(data, bucket, filename, title, description, tags, key_va
 
     try:
         user = getpass.getuser()
-    except Exception:
+    except OSError:
         user = 'unknown'
     key_values.update({'user': user})
 
@@ -1757,10 +1805,10 @@ def search_files_interactive(bucket='all', client=None, to_return='df', display_
                 value = values_for_key[np.where(values_for_key < int(value))]
             else:
                 value = [int(i) for i in value]
-        for value in value:
-            if value not in values_for_key:
+        for val in value:
+            if val not in values_for_key:
                 invalid_value = True
-                print(f'value {value} is not valid ')
+                print(f'value {val} is not valid ')
         if not invalid_value:
             values_valid = True
 
@@ -2008,7 +2056,7 @@ def bulk_update_kv(file, client=None, i=0):
 
      #loop through files and update metadata for each
 
-    i = i
+    i = 0
     while i < len(edit_files):
         row = list(edit_files.iloc[i])
         bucket = row[0]
@@ -2091,7 +2139,7 @@ def copy_datasets_to_bucket(dataset_keys, from_bucket, to_bucket, ds_client=None
     for dataset_key in dataset_keys:
         try:
             ds_client.ds_datasets.copy_dataset(bucket_name=from_bucket, dataset_key=dataset_key, to_bucket_name=to_bucket).result()
-        except Exception as e:
+        except (RuntimeError, ValueError, KeyError) as e:
             print(f'Error copying dataset {dataset_key}\nfrom bucket {from_bucket} to {to_bucket}')
             print(e)
             continue

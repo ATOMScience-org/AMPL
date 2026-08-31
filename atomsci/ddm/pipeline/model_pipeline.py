@@ -452,15 +452,9 @@ class ModelPipeline:
                 if i < retries:
                     # TODO: Try to distinguish unrecoverable exceptions (e.g., model tracker is down) from ones for
                     # which retrying is worthwhile.
-                    try:
-                        trkr.save_model(self, collection_name=self.params.collection_name)
-                        # Best model needs to be reloaded for predictions, so does not work to remove best_model_dir
-                        retry = False
-                    except:
-                        raise
-                        #self.log.warning("Need to sleep and retry saving model")
-                        #time.sleep(sleep_sec)
-                        #i += 1
+                    trkr.save_model(self, collection_name=self.params.collection_name)
+                    # Best model needs to be reloaded for predictions, so does not work to remove best_model_dir
+                    retry = False
                 else:
                     retry = False
         else:
@@ -573,22 +567,14 @@ class ModelPipeline:
             for metrics in model_metrics:
                 retry = True
                 i = 0
+                # TODO: This needs to be able to distinguish unrecoverable exceptions (e.g., model tracker is down) from ones for
+                # which retrying is worthwhile. Right now there are no retries.
                 while retry:
                     if i < retries:
-                        try:
-                            self.mlmt_client.save_metrics(collection_name=self.params.collection_name,
-                                                        model_uuid=metrics['model_uuid'],
-                                                        model_metrics=metrics)
-                            retry = False
-                        except:
-                            raise
-                            # TODO: uncomment when debugged
-                            # TODO: Need to distinguish between "temporary" exceptions that justify
-                            # retries and longer-term exceptions indicating that the model tracker server
-                            # is down.
-                            #self.log.warning("Need to sleep and retry saving metrics")
-                            #time.sleep(sleep_sec)
-                            #i += 1
+                        self.mlmt_client.save_metrics(collection_name=self.params.collection_name,
+                                                    model_uuid=metrics['model_uuid'],
+                                                    model_metrics=metrics)
+                        retry = False
                     else:
                         retry = False
 
@@ -643,9 +629,9 @@ class ModelPipeline:
         self.run_mode = 'training'
         if self.params.model_type == "hybrid":
             if self.params.featurizer in ["graphconv"]:
-                raise Exception("Hybrid model doesn't support GraphConv featurizer now.")
+                raise ValueError("Hybrid model doesn't support GraphConv featurizer now.")
             if len(self.params.response_cols) < 2:
-                raise Exception("The dataset of a hybrid model should have two response columns, one for activities, one for concentrations.")
+                raise ValueError("The dataset of a hybrid model should have two response columns, one for activities, one for concentrations.")
         if featurization is None:
             featurization = feat.create_featurization(self.params)
         self.featurization = featurization
@@ -817,7 +803,7 @@ class ModelPipeline:
             warnings.simplefilter("ignore")
 
         if len(self.params.response_cols) > 1:
-            raise Exception('Currently only single task models supported')
+            raise ValueError('Currently only single task models supported')
         else:
             task = self.params.response_cols[0]
 
@@ -913,7 +899,7 @@ class ModelPipeline:
 
         if not self.data.get_dataset_tasks(dset_df):
             # Shouldn't happen
-            raise Exception("response_cols missing from model params")
+            raise ValueError("response_cols missing from model params")
         # Get features for each compound and construct a DeepChem Dataset from them
         self.data.get_featurized_data(dset_df, is_featurized)
 
@@ -940,8 +926,8 @@ class ModelPipeline:
                     if nclass == 2:
                         result_df[f"{colname}_prob"] = class_probs[:,1]
                     else:
-                        for k in range(nclass):
-                            result_df["%s_prob_%d" % (colname, k)] = class_probs[:,k]
+                        for cls_idx in range(nclass):
+                            result_df[f"{colname}_prob_{cls_idx}"] = class_probs[:, cls_idx]
                     result_df[f"{colname}_pred"] = np.argmax(class_probs, axis=1)
             if self.params.uncertainty and self.params.prediction_type == 'regression':
                 for i, colname in enumerate(self.params.response_cols):
@@ -1300,7 +1286,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
 
     metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
     if not metadata_dict:
-        raise Exception(f"No model found with UUID {model_uuid} in collection {collection_name}")
+        raise ValueError(f"No model found with UUID {model_uuid} in collection {collection_name}")
 
     print(f"Got metadata for model UUID {model_uuid}")
 
@@ -1533,7 +1519,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
 
     metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
     if not metadata_dict:
-        raise Exception(f"No model found with UUID {model_uuid} in collection {collection_name}")
+        raise ValueError(f"No model found with UUID {model_uuid} in collection {collection_name}")
 
     logger.info(f"Got metadata for model UUID {model_uuid}")
 
@@ -1601,7 +1587,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
         log.info(f"Loading model {model_uuid} from collection {collection_name}")
         metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
         if not metadata_dict:
-            raise Exception(f"No model found with UUID {model_uuid} in collection {collection_name}")
+            raise ValueError(f"No model found with UUID {model_uuid} in collection {collection_name}")
 
         log.info(f"Got metadata for model UUID {model_uuid}")
 
@@ -1611,10 +1597,9 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
         # Override selected parameters
         model_pparams.result_dir = tempfile.mkdtemp()
 
-        if splitters is not None:
-            if model_pparams.splitter != splitters[i]:
-                log.info(f"Replacing {model_pparams.splitter} splitter in stored model with {splitters[i]}")
-                model_pparams.splitter = splitters[i]
+        if splitters is not None and model_pparams.splitter != splitters[i]:
+            log.info(f"Replacing {model_pparams.splitter} splitter in stored model with {splitters[i]}")
+            model_pparams.splitter = splitters[i]
 
         if dset_params is not None:
             model_pparams.id_col = dset_params.id_col
@@ -1638,7 +1623,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
 
         if not pipe.data.get_dataset_tasks(dset_df):
             # Shouldn't happen - response_cols should already be set in saved model parameters
-            raise Exception("response_cols missing from model params")
+            raise ValueError("response_cols missing from model params")
         is_featurized = (len(set(pipe.featurization.get_feature_columns()) - set(dset_df.columns.values)) == 0)
         pipe.data.get_featurized_data(dset_df, is_featurized)
         pipe.data.dataset = pipe.model_wrapper.transform_dataset(pipe.data.dataset, fold='final')
@@ -1681,9 +1666,9 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
         std_cols = [f"std_{label}" for label in ok_labels]
         std_vals = pred_df[std_cols].values
         if len(set(std_cols) - set(pred_df.columns.values)) > 0:
-            raise Exception("Weighted ensemble needs uncertainties for all component models.")
+            raise ValueError("Weighted ensemble needs uncertainties for all component models.")
         if np.any(std_vals == 0.0):
-            raise Exception("Can't compute weighted ensemble because some standard deviations are zero")
+            raise ValueError("Can't compute weighted ensemble because some standard deviations are zero")
         agg_pred = np.nansum(pred_vals / std_vals, axis=1) / np.nansum(1.0 / std_vals, axis=1)
     else:
         raise ValueError(f"Unknown aggregate value {aggregate}")
@@ -1728,7 +1713,7 @@ def retrain_model(model_uuid, collection_name=None, result_dir=None, mt_client=N
         log.info(f"Loading model {model_uuid} from collection {collection_name}")
         metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
         if not metadata_dict:
-            raise Exception(f"No model found with UUID {model_uuid} in collection {collection_name}")
+            raise ValueError(f"No model found with UUID {model_uuid} in collection {collection_name}")
     else:
         for dirpath, dirnames, filenames in os.walk(result_dir):
             if model_uuid in dirnames:

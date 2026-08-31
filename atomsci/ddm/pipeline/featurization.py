@@ -5,6 +5,7 @@ import logging
 import os
 import tempfile
 import time
+from typing import ClassVar
 
 import deepchem as dc
 import numpy as np
@@ -237,16 +238,16 @@ def featurize_smiles(df, featurizer, smiles_col, log_every_N=1000):
             new_order = rdmolfiles.CanonicalRankAtoms(mol)
             mol = rdmolops.RenumberAtoms(mol, new_order)
         if ind % log_every_N == 0:
-            log.info("Featurizing sample %d" % ind)
+            log.info(f"Featurizing sample {ind}")
         features.append(featurizer.featurize([mol]))
     is_valid = np.array([1 if elt.size > 0 else 0 for elt in features], dtype=bool)
     feat_array = np.array([elt for (is_valid, elt) in zip(is_valid, features) if is_valid])
     if len(feat_array.shape) > 1:
         feat_array = np.squeeze(feat_array, axis=1)
     else:
-        log.debug("featurize_smiles() produced 1-D array of size %d" % feat_array.shape[0])
-        log.debug("Input SMILES had length %d" % len(smiles_strs))
-        log.debug("Number of valid SMILES is %d" % sum(is_valid))
+        log.debug(f"featurize_smiles() produced 1-D array of size {feat_array.shape[0]}")
+        log.debug(f"Input SMILES had length {len(smiles_strs)}")
+        log.debug(f"Number of valid SMILES is {sum(is_valid)}")
     return feat_array, is_valid
 
 
@@ -493,7 +494,7 @@ def compute_all_moe_descriptors(smiles_df, params):
 
     moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2022_site/bin')
     if not os.path.exists(moe_path):
-        raise Exception("MOE is not available, or MOE_PATH environment variable needs to be set.")
+        raise FileNotFoundError("MOE is not available, or MOE_PATH environment variable needs to be set.")
     
     # Set MOE_SVL_ROOT
     moe_svl_root = os.path.join(os.path.dirname(os.path.dirname(__file__)),
@@ -507,7 +508,7 @@ def compute_all_moe_descriptors(smiles_df, params):
         moe_threads = 2 * len(os.sched_getaffinity(0)) - 2
     else:
         moe_threads = params.moe_threads
-    moe_args.append('%d' % moe_threads)
+    moe_args.append(f'{moe_threads}')
 
     moe_args.append("-exec")
     # TODO: Directory with svl scripts should be part of AMPL installation. The code below is specific to the LC environment.
@@ -537,8 +538,9 @@ def compute_all_moe_descriptors(smiles_df, params):
             shellcmd = f'{command} >& {tmpdir}/moe_err.txt'
             retcode = os.system(shellcmd)
             log.debug('MOE descriptor calculation done')
-            log.debug("Return status: %d" % retcode)
-            errbuf = open(f'{tmpdir}/moe_err.txt', 'r').read()
+            log.debug(f"Return status: {retcode}")
+            with open(f'{tmpdir}/moe_err.txt', 'r') as f:
+                errbuf = f.read()
             log.debug(f"\nStderr:\n{errbuf}")
             output_file = f'{tmpdir}/smiles4moe.txt'
             if not os.path.exists(output_file):
@@ -805,7 +807,7 @@ class DynamicFeaturization(Featurization):
                             "Increasing ecfp_radius can reduce collisons.")
 
         if features is None:
-            raise Exception("Featurization failed for dataset")
+            raise ValueError("Featurization failed for dataset")
         # Some SMILES strings may not be featurizable. This filters for only valid IDs.
 
         nrows = sum(is_valid)
@@ -872,9 +874,9 @@ class DynamicFeaturization(Featurization):
         featurized data, if it goes to the filesystem.
 
         Raises:
-            Exception: This method is not supported by the DynamicFeaturization subclass
+            NotImplementedError: This method is not supported by the DynamicFeaturization subclass
         """
-        raise Exception("DynamicFeaturization doesn't support get_featurized_data_subdir()")
+        raise NotImplementedError("DynamicFeaturization doesn't support get_featurized_data_subdir()")
 
 
     # ****************************************************************************************
@@ -889,7 +891,7 @@ class DynamicFeaturization(Featurization):
         Returns:
             (list): List of column names in the format ['c0','c1', ...] of the length of the features
         """
-        return ['c%d' % i for i in range(self.get_feature_count())]
+        return [f'c{i}' for i in range(self.get_feature_count())]
 
     # ****************************************************************************************
     def get_feature_count(self):
@@ -1222,10 +1224,10 @@ class DescriptorFeaturization(PersistentFeaturization):
         all_desc_col
     """
 
-    supported_descriptor_types = []
-    desc_type_cols = {}
-    desc_type_scaled = {}
-    desc_type_source = {}
+    supported_descriptor_types: ClassVar[list] = []
+    desc_type_cols: ClassVar[dict] = {}
+    desc_type_scaled: ClassVar[dict] = {}
+    desc_type_source: ClassVar[dict] = {}
 
     # ****************************************************************************************
     # (ksm): Made this a class method. A DescriptorFeaturization instance only supports
@@ -1273,7 +1275,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         else:
             try:
                 ds_client = dsf.config_client()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 ds_client = None
         cls.desc_type_cols = {}
         cls.desc_type_scaled = {}
@@ -1296,7 +1298,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             # Try the descriptor_spec_key parameter first, then fall back to package file
             try:
                 desc_spec_df = dsf.retrieve_dataset_by_datasetkey(desc_spec_key, desc_spec_bucket, ds_client)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
 
         for desc_type, source, scaled, descriptors in zip(desc_spec_df.descr_type.values,
@@ -1426,7 +1428,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         if params.datastore:
             try:
                 ds_client = dsf.config_client()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 log.warning('Exception when trying to connect to the datastore:')
                 log.warning(e)
                 ds_client = None
@@ -1463,10 +1465,11 @@ class DescriptorFeaturization(PersistentFeaturization):
                 ## DeepChem's transformer complained that the elements were not float, if I don't cast them as such here
                 ## not sure why this is happening (JEA)
                 dtype_map={el: np.float64 for el in self.get_feature_columns()}
-                self.precomp_descr_table = pd.read_csv( open(local_path, mode='rt'),dtype=dtype_map)
+                with open(local_path, mode='rt') as f:
+                    self.precomp_descr_table = pd.read_csv(f, dtype=dtype_map)
             elif local_path.endswith('.feather') or (file_type != '' and file_type == 'feather'):
                 if not feather_supported:
-                    raise Exception("feather package not installed in current environment")
+                    raise ImportError("feather package not installed in current environment")
                 self.precomp_descr_table = feather.read_dataframe(local_path)
             else:
                 raise ValueError(f"Unknown descriptor table file format: {local_path}")
@@ -1490,7 +1493,7 @@ class DescriptorFeaturization(PersistentFeaturization):
                     self.desc_smiles_col = smiles_col
                     break
         if self.desc_smiles_col is None:
-            raise Exception(f"No SMILES column found for descriptor table {self.descriptor_key}")
+            raise ValueError(f"No SMILES column found for descriptor table {self.descriptor_key}")
 
 
     # ****************************************************************************************
@@ -1531,7 +1534,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         # properties of the precomputed descriptor table
         self.load_descriptor_table(params)
         if self.desc_id_col is None:
-            raise Exception(f'Unable to find compound ID column in descriptor table {params.descriptor_key}')
+            raise ValueError(f'Unable to find compound ID column in descriptor table {params.descriptor_key}')
 
         attr = get_dataset_attributes(dset_df, params)
         dset_cols = [params.id_col]
@@ -1550,9 +1553,9 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         featurizer_obj = dc.feat.UserDefinedFeaturizer(user_specified_features)
         features = get_user_specified_features(featurized_dset_df, featurizer=featurizer_obj,
-                                                                   verbose=False)
+                                                                    verbose=False)
         if features is None:
-            raise Exception("Featurization failed for dataset")
+            raise ValueError("Featurization failed for dataset")
 
         ids = featurized_dset_df[params.id_col]
 
@@ -1892,9 +1895,9 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         # Use the DeepChem featurizer to construct the feature array
         featurizer_obj = dc.feat.UserDefinedFeaturizer(descr_cols)
         features = get_user_specified_features(featurized_dset_df, featurizer=featurizer_obj,
-                                                                   verbose=False)
+                                                                    verbose=False)
         if features is None:
-            raise Exception("UserDefinedFeaturizer failed for dataset")
+            raise ValueError("UserDefinedFeaturizer failed for dataset")
 
         # Construct the other components of a DeepChem Dataset object
         ids = featurized_dset_df[params.id_col]
@@ -1949,7 +1952,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
 
         if descr_source == 'mordred':
             if not mordred_supported:
-                raise Exception("mordred package needs to be installed to use Mordred descriptors")
+                raise ImportError("mordred package needs to be installed to use Mordred descriptors")
             desc_df, is_valid = self.compute_mordred_descriptors(smiles_df[params.smiles_col].values, params)
             if descr_scaled:
                 desc_df = self.scale_by_heavyatomcount_and_log_scale(desc_df, params.descriptor_type)
@@ -2057,7 +2060,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         is_valid = np.array([id in desc_ids for id in smiles_df[params.id_col].values])
         num_invalid = len(is_valid) - sum(is_valid)
         if num_invalid > 0:
-            log.warning("MOE did not compute descriptors for %d/%d SMILES strings" % (num_invalid, nsmiles))
+            log.warning(f"MOE did not compute descriptors for {num_invalid}/{nsmiles} SMILES strings")
         return desc_df, is_valid
 
     # ****************************************************************************************
@@ -2192,7 +2195,7 @@ if mordred_supported:
     class ATOMAtomTypeEState(AtomTypeEState):
         """EState descriptors restricted to those that can be computed for most compounds"""
 
-        my_es_types = ['sCH3','dCH2','ssCH2','dsCH','aaCH','sssCH','tsC','dssC','aasC','aaaC','ssssC','sNH2','ssNH',
+        my_es_types: ClassVar[list] = ['sCH3','dCH2','ssCH2','dsCH','aaCH','sssCH','tsC','dssC','aasC','aaaC','ssssC','sNH2','ssNH',
                        'aaNH','tN','dsN','aaN','sssN','ddsN','aasN','sOH','dO','ssO','aaO','sF','dS','ssS','aaS',
                        'ddssS','sCl','sBr']
 

@@ -216,7 +216,7 @@ def aggregate_basesmiles(assay_df, value_col='pIC50', output_value_col=None,
     assay_df = assay_df.fillna({relation_col: '', smiles_col: ''})
     # Filter out rows where SMILES is missing
     n_missing_smiles = np.array([len(smiles) == 0 for smiles in assay_df[smiles_col].values]).sum()
-    print("%d entries in input table are missing SMILES strings" % n_missing_smiles)
+    print(f"{n_missing_smiles} entries in input table are missing SMILES strings")
     has_smiles = np.array([len(smiles) > 0 for smiles in assay_df[smiles_col].values])
     assay_df = assay_df[has_smiles].copy()
 
@@ -235,7 +235,7 @@ def aggregate_basesmiles(assay_df, value_col='pIC50', output_value_col=None,
     assay_df['base_rdkit_smiles'] = smiles_strs
     uniq_smiles_strs = list(set(smiles_strs))
     nuniq = len(uniq_smiles_strs)
-    print("%d unique SMILES strings are reduced to %d unique base SMILES strings" % (norig, nuniq))
+    print(f"{norig} unique SMILES strings are reduced to {nuniq} unique base SMILES strings")
     smiles_map = {smiles: i for i, smiles in enumerate(uniq_smiles_strs)}
     smiles_indices = np.array([smiles_map.get(smiles, nuniq) for smiles in smiles_strs])
 

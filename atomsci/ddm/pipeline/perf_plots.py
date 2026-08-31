@@ -90,7 +90,7 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
         plot_pred_vs_actual_from_file(model, plot_size=plot_size, external_training_data=external_training_data, error_bars=error_bars)
         return
     elif not isinstance(model, mp.ModelPipeline):
-        raise ValueError('model must be either a ModelPipeline or a path to a saved model')
+        raise TypeError('model must be either a ModelPipeline or a path to a saved model')
     params = model.params
     # For now restrict this to regression models. 
     if params.prediction_type != 'regression':
@@ -748,7 +748,7 @@ def plot_confusion_matrices(model, epoch_label='best', plot_size=7):
     elif isinstance(model, str):
         metrics_dict = get_metrics_from_model_file(model, epoch_label)
     else:
-        raise ValueError('model must be either a ModelPipeline or a path to a saved model')
+        raise TypeError('model must be either a ModelPipeline or a path to a saved model')
     tasks = list(metrics_dict.keys())
     subsets = list(metrics_dict[tasks[0]].keys())
     with sns.plotting_context('poster'):
@@ -791,7 +791,7 @@ def plot_model_metrics(model, epoch_label='best', plot_size=7):
     elif isinstance(model, str):
         metrics_dict = get_metrics_from_model_file(model, epoch_label)
     else:
-        raise ValueError('model must be either a ModelPipeline or a path to a saved model')
+        raise TypeError('model must be either a ModelPipeline or a path to a saved model')
     tasks = list(metrics_dict.keys())
     subsets = list(metrics_dict[tasks[0]].keys())
     metric_vars = [key for key in metrics_dict[tasks[0]][subsets[0]] if key != 'confusion_matrix']
@@ -1013,8 +1013,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
         return
     split_strategy = params.split_strategy
     if pdf_dir is not None:
-        pdf_path = os.path.join(pdf_dir, '%s_%s_model_%s_split_umap_%s_%dd_projection.pdf' % (
-                                params.dataset_name, params.model_type, params.splitter, params.featurizer, ndim))
+        pdf_path = os.path.join(pdf_dir, f'{params.dataset_name}_{params.model_type}_model_{params.splitter}_split_umap_{params.featurizer}_{ndim}d_projection.pdf')
         pdf = PdfPages(pdf_path)
 
     dataset = MP.data.dataset
@@ -1061,7 +1060,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
         perf_data = MP.model_wrapper.get_perf_data(subset, epoch_label)
         y_actual = perf_data.get_real_values()
         if MP.params.prediction_type == 'classification':
-            ids, y_pred, _class_probs, y_std = perf_data.get_pred_values()
+            ids, y_pred, _class_probs, _y_std = perf_data.get_pred_values()
         else:
             ids, y_pred, _y_std = perf_data.get_pred_values()
         # Have to get predictions and real values in same order as in dataset subset
@@ -1107,8 +1106,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
           metric_name = dist_metric
 
         fig = plt.figure(figsize=(15,15))
-        title = '%s dataset\n%s features projected to %dD with %s metric\n%d neighbors, min_dist = %.3f' % (
-                      params.dataset_name, params.featurizer, ndim, metric_name, num_neighbors, min_dist)
+        title = f'{params.dataset_name} dataset\n{params.featurizer} features projected to {ndim}D with {metric_name} metric\n{num_neighbors} neighbors, min_dist = {min_dist:.3f}'
     
         if MP.params.prediction_type == 'classification':
             is_correct = (all_actual[:,i] == preds[:,i]).astype(np.int32)
@@ -1207,8 +1205,7 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
         return
     split_strategy = params.split_strategy
     if pdf_dir is not None:
-        pdf_path = os.path.join(pdf_dir, '%s_%s_model_%s_split_umap_%s_%dd_projection.pdf' % (
-                                params.dataset_name, params.model_type, params.splitter, params.featurizer, ndim))
+        pdf_path = os.path.join(pdf_dir, f'{params.dataset_name}_{params.model_type}_model_{params.splitter}_split_umap_{params.featurizer}_{ndim}d_projection.pdf')
         pdf = PdfPages(pdf_path)
 
     dataset = MP.data.dataset

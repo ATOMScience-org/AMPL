@@ -299,7 +299,7 @@ def plot_feature_importances(imp_df, importance_col='valid_perm_importance_mean'
     Returns:
         None
     """
-    _fig, ax = plt.subplots(figsize=(20,15))
+    _fig, _ax = plt.subplots(figsize=(20,15))
     fi_df = imp_df.sort_values(by=importance_col,  ascending=ascending)
     if 'cluster_id' in fi_df.columns.values.tolist():
         feat_col = 'features'

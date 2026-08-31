@@ -65,7 +65,7 @@ def plot_split_diagnostics(params_or_pl, axes=None, num_rows=None, num_cols=1, m
         params.split_uuid = params_or_pl.data.split_uuid
         
     else:
-        raise ValueError("params_or_pl must be dict, Namespace or ModelPipeline")
+        raise TypeError("params_or_pl must be dict, Namespace or ModelPipeline")
     
     # Figure out how many plots we're going to generate and how to lay them out
     nresp = len(params.response_cols)

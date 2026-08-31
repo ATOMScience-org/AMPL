@@ -243,42 +243,44 @@ class ChEMBLActivityDump(AMPLDataset):
 
         """
         if dataset is not None and df is not None :
-           self.set_columns(dataset.data_source_name)
-           self.df = df
+            self.set_columns(dataset.data_source_name)
+            self.df = df
         else :
-           self.set_columns(sec)
-           mapgn=parser.check_get(sec,'target_mapping')
-           self.target_dict = json.load(open(mapgn))
-           end_point_lst=parser.check_get(sec,"end_points").split(',')
-           end_point_lst =  [ x.lower() for x in end_point_lst ]
+            self.set_columns(sec)
+            mapgn = parser.check_get(sec, 'target_mapping')
+            with open(mapgn) as f:
+                self.target_dict = json.load(f)
+            end_point_lst = parser.check_get(sec, "end_points").split(',')
+            end_point_lst = [x.lower() for x in end_point_lst]
 
-           filename=parser.check_get(sec,'activity_csv')
-           dc=json.load(open(filename))
-           target_lst=[]
+            filename = parser.check_get(sec, 'activity_csv')
+            with open(filename) as f:
+                dc = json.load(f)
+            target_lst = []
 
-           for val in raw_target_lst :
-              target_lst.append( self.target_dict[val] )
+            for val in raw_target_lst :
+                target_lst.append( self.target_dict[val] )
 
-           df_lst=[]
-           for kv in raw_target_lst :
-              tmp_df_lst=[]
-              for cid in dc[kv] :
-                 lst=dc[kv][cid]['pAct']
-                 for it in range(len(lst)) :
-                     row={ self.id_col : cid, self.value_col : dc[kv][cid]['pAct'][it], self.relation_col : dc[kv][cid]['relation'][it],
-                           self.smiles_col : dc[kv][cid]['smiles'], self.standard_col : dc[kv][cid]['type'][it], self.units : dc[kv][cid]['units'][it], self.assay_id : dc[kv][cid]['assay_id'][it]   }
-                     tmp_df_lst.append(row)
-              df=pd.DataFrame(tmp_df_lst)
-              df[self.target_id_col] = self.target_dict[kv]
-              df = df.dropna(subset=[self.value_col,self.standard_col,self.id_col])
-              df_lst.append(df)
+            df_lst=[]
+            for kv in raw_target_lst :
+                tmp_df_lst=[]
+                for cid in dc[kv] :
+                    lst=dc[kv][cid]['pAct']
+                    for it in range(len(lst)) :
+                        row={ self.id_col : cid, self.value_col : dc[kv][cid]['pAct'][it], self.relation_col : dc[kv][cid]['relation'][it],
+                            self.smiles_col : dc[kv][cid]['smiles'], self.standard_col : dc[kv][cid]['type'][it], self.units : dc[kv][cid]['units'][it], self.assay_id : dc[kv][cid]['assay_id'][it]   }
+                        tmp_df_lst.append(row)
+                df=pd.DataFrame(tmp_df_lst)
+                df[self.target_id_col] = self.target_dict[kv]
+                df = df.dropna(subset=[self.value_col,self.standard_col,self.id_col])
+                df_lst.append(df)
 
-           self.df = pd.concat(df_lst)
+            self.df = pd.concat(df_lst)
 
-           ## do we need to do any other filter/checks here, like units?
-           self.df=self.df[(self.df.units.str.lower() == 'nm')]
-           self.df.standard_type = self.df.standard_type.str.lower()
-           self.df=self.df[self.df.standard_type.isin( end_point_lst ) ]
+            ## do we need to do any other filter/checks here, like units?
+            self.df=self.df[(self.df.units.str.lower() == 'nm')]
+            self.df.standard_type = self.df.standard_type.str.lower()
+            self.df=self.df[self.df.standard_type.isin( end_point_lst ) ]
 
     def filter_task(self, target_id):
         """when the gene target label isn't standardized, need to return the gene target mapping"""
@@ -289,7 +291,7 @@ def convert_dtype(x):
         return 0.0
     try:
         return float(x)   
-    except Exception:        
+    except (ValueError, TypeError):        
         return 0.0
 
 class GPCRChEMBLActivityDump(AMPLDataset):
