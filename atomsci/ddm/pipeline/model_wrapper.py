@@ -702,7 +702,7 @@ class ModelWrapper:
         """
         try:
             self.model.save()
-        except (AttributeError, OSError):
+        except (NotImplementedError, AttributeError, OSError):
             try:
                 self.model.save_checkpoint()
             except (AttributeError, OSError) as e:
