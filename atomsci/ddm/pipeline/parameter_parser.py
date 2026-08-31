@@ -1803,7 +1803,7 @@ def postprocess_args(parsed_args):
         if os.path.exists(parsed_args.dataset_key):
             parsed_args.dataset_hash = cu.create_checksum(parsed_args.dataset_key)
             log.debug("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
-    except (TypeError, OSError) as e:
+    except (TypeError, OSError):
         # continue if 'dataset_key' is None or file access fails
         pass
 
