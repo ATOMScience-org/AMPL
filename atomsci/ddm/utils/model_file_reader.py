@@ -1,24 +1,18 @@
-import tarfile
-import io
-import uuid
-import os
-import json
 import argparse
+import io
 import json
 import os
 import sys
 import tarfile
+import uuid
 
 import numpy as np
 from bravado.exception import HTTPNotFound
 
 from atomsci.ddm.pipeline import parameter_parser as parse
-from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import checksum_utils as cu
-<<<<<<< HEAD
+from atomsci.ddm.utils import datastore_functions as dsf
 
-=======
->>>>>>> 7e5a9737e7e7d474321e4bc6308a4647b6d2832f
 
 def get_multiple_models_metadata(*args):
     r"""A function that takes model tar.gz file(s) and extract the metadata (and if applicable, model metrics)
@@ -393,8 +387,7 @@ class ModelFileReader:
         # get a new model_uuid since this one has changed
         self.set_model_uuid()
 
-        with tarfile.open(self.model_path, "r:gz") as source:
-            with tarfile.open(new_path, "w:gz") as destination:
+        with tarfile.open(self.model_path, "r:gz") as source, tarfile.open(new_path, "w:gz") as destination:
                 for member in source.getmembers():
                     if os.path.basename(member.name) == "model_metadata.json":
                         data = json.dumps(self.metadata_dict).encode('utf-8')

@@ -1,5 +1,5 @@
-from atomsci.ddm.utils import model_file_reader as mfr
 from atomsci.ddm.utils import checksum_utils as cu
+from atomsci.ddm.utils import model_file_reader as mfr
 
 
 def set_dataset_key(tar_path, new_dataset_key, result_tar_path,
