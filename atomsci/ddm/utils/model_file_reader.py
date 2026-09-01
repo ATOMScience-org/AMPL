@@ -15,7 +15,10 @@ from bravado.exception import HTTPNotFound
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import checksum_utils as cu
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7e5a9737e7e7d474321e4bc6308a4647b6d2832f
 
 def get_multiple_models_metadata(*args):
     r"""A function that takes model tar.gz file(s) and extract the metadata (and if applicable, model metrics)
