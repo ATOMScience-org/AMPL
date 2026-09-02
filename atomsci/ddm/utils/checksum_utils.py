@@ -4,9 +4,9 @@ Utilities for checksum related functions
 """
 
 import hashlib
-import tarfile
 import json
 import logging
+import tarfile
 
 log = logging.getLogger(__name__)
 
@@ -77,11 +77,10 @@ def uses_same_training_data_by_tarballs(tar1, tar2):
 
 def get_dataset_hash_from_tar(tar):
     # extract the model_metadata.json from tar
-    model_fp = tarfile.open(tar, mode='r:gz')
-    metadata_file = model_fp.getmember("./model_metadata.json")
-    ext_metadata = model_fp.extractfile(metadata_file)
-      
-    meta_json = json.load(ext_metadata)
-    model_fp.close()
+    with tarfile.open(tar, mode='r:gz') as model_fp:
+        metadata_file = model_fp.getmember("./model_metadata.json")
+        ext_metadata = model_fp.extractfile(metadata_file)
+       
+        meta_json = json.load(ext_metadata)
 
     return meta_json.get('training_dataset').get('dataset_hash')

@@ -1,10 +1,10 @@
 import json
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import requests
 
-from atomsci.modac import MoDaCClient, ensure_authenticated, MoDaCClientError
+from atomsci.modac import MoDaCClient, MoDaCClientError, ensure_authenticated
 
 
 class TestMoDaCClient(unittest.TestCase):

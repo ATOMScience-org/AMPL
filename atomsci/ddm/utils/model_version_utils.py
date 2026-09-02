@@ -15,13 +15,13 @@ To check the model version
 """
 
 import argparse
-import tarfile
 import json
-import os
-from pathlib import Path
-import sys
 import logging
+import os
 import re
+import sys
+import tarfile
+from pathlib import Path
 
 logging.basicConfig()
 
@@ -31,7 +31,7 @@ logger.setLevel(logging.INFO)
 try:
     from importlib import metadata
 except ImportError:
-    import importlib_metadata as metadata # python<=3.7
+    import importlib_metadata as metadata  # python<=3.7
 
 
 # ampl versions compatible groups
@@ -61,10 +61,9 @@ def get_ampl_version_from_dir(dirname):
     for path in Path(dirname).rglob('*.tar.gz'):
         try:
             version = get_ampl_version_from_model(path.absolute())
-            versions.append('{}, {}'.format(path.absolute(), version))
-        except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
-            logger.exception("Exception message: {}".format(e))
-            pass
+            versions.append(f'{path.absolute()}, {version}')
+        except (json.decoder.JSONDecodeError, FileNotFoundError):
+            logger.exception("Failed to get AMPL version from model")
             
     return '\n'.join(versions)
 
@@ -86,7 +85,7 @@ def get_ampl_version_from_model(filename):
         with tar.extractfile(meta_info) as meta_fd:
             metadata_dict = json.loads(meta_fd.read())
             version = metadata_dict.get("model_parameters").get("ampl_version", 'probably 1.0.0')
-    logger.info('{}, {}'.format(filename, version))
+    logger.info(f'{filename}, {version}')
     return version
 
 def get_major_version(full_version):
@@ -110,7 +109,7 @@ def get_ampl_version_from_json(metadata_path):
 def validate_version(input):
     valid = re.fullmatch(version_pattern, input)
     if valid is None:
-        raise ValueError("Input {} is not valid version format.".format(input))
+        raise ValueError(f"Input {input} is not valid version format.")
     return True
 
 def check_version_compatible(input, ignore_check=False):
@@ -135,14 +134,12 @@ def check_version_compatible(input, ignore_check=False):
         model_ampl_version = get_major_version(input)
 
     ampl_version = get_major_version(get_ampl_version())
-    logger.info('Version compatible check: {} version = "{}", AMPL version = "{}"'.format(input, model_ampl_version, ampl_version))
+    logger.info(f'Version compatible check: {input} version = "{model_ampl_version}", AMPL version = "{ampl_version}"')
     match = (comp_dict.get(ampl_version, ampl_version)==comp_dict.get(model_ampl_version, model_ampl_version))
     
     # raise an exception if not match and we don't want to ignore
-    if not match:
-        if not ignore_check:
-            my_error = ValueError('Version compatible check: {} version: "{}" not matching AMPL compatible version group: "{}"'.format(input, model_ampl_version, ampl_version))
-            raise my_error
+    if not match and not ignore_check:
+        raise ValueError(f'Version compatible check: {input} version: "{model_ampl_version}" not matching AMPL compatible version group: "{ampl_version}"')
     return match
 
 #----------------

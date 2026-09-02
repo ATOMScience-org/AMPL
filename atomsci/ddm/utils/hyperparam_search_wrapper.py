@@ -8,33 +8,31 @@ Author: Amanda Minnich
 # from __future__ import unicode_literals
 
 import argparse
+import copy
+import itertools
+import logging
+import math
 import os
 import os.path
-import sys
-import numpy as np
-import logging
-import itertools
-from collections.abc import Iterable
-import pandas as pd
-import uuid
-
-import subprocess
-import shutil
-import time
-
-import traceback
-import copy
 import pickle
-import math
+import shutil
+import subprocess
+import sys
+import time
+import traceback
+import uuid
+from collections.abc import Iterable
 
+import numpy as np
 import optuna
+import pandas as pd
 
 from atomsci.ddm.pipeline import featurization as feat
+from atomsci.ddm.pipeline import model_datasets
 from atomsci.ddm.pipeline import model_pipeline as mp
-from atomsci.ddm.pipeline import parameter_parser as parse
-from atomsci.ddm.pipeline import model_datasets as model_datasets
-from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import model_tracker as trkr
+from atomsci.ddm.pipeline import parameter_parser as parse
+from atomsci.ddm.utils import datastore_functions as dsf
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -63,7 +61,7 @@ def run_command(shell_script, python_path, script_dir, params):
     # wherever maestro will eventually run the model_pipeline script
     parse.make_dataset_key_absolute(new_params)
     params_str = parse.to_str(new_params)
-    slurm_command = 'sbatch {0} {1} {2} "{3}"'.format(shell_script, python_path, script_dir, params_str)
+    slurm_command = f'sbatch {shell_script} {python_path} {script_dir} "{params_str}"'
     print(slurm_command)
     os.system(slurm_command)
 
@@ -95,7 +93,7 @@ def gen_maestro_command(python_path, script_dir, params):
     # wherever maestro will eventually run the model_pipeline script
     parse.make_dataset_key_absolute(new_params)
     params_str = parse.to_str(new_params)
-    slurm_command = '{0} {1}/pipeline/model_pipeline.py {2}'.format(python_path, script_dir, params_str)
+    slurm_command = f'{python_path} {script_dir}/pipeline/model_pipeline.py {params_str}'
 
     return slurm_command
 
@@ -110,7 +108,7 @@ def run_cmd(cmd):
 
     """
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-    (output, err) = p.communicate()
+    (output, _err) = p.communicate()
     p.wait()
     return output
 
@@ -168,7 +166,7 @@ def reformat_filter_dict(filter_dict):
                             filter_dict[value][i] = int(item)
                         elif isinstance(filter_val, np.float64):
                             filter_dict[value][i] = float(item)
-                new_filter_dict['%s.%s' % (key, value)] = filter_dict[value]
+                new_filter_dict[f'{key}.{value}'] = filter_dict[value]
     return new_filter_dict
 
 
@@ -201,14 +199,14 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
 
     """
     import itertools
+
     import numpy as np
     layer_sizes = []
     dropouts = []
     node_nums = np.sort(np.array(node_nums))[::-1]
     max_final_layer_size = int(max_final_layer_size)
     # set to the smallest node_num in the provided list, if necessary.
-    if node_nums[-1] > max_final_layer_size:
-        max_final_layer_size = node_nums[-1]
+    max_final_layer_size = max(max_final_layer_size, node_nums[-1])
 
     for dropout in dropout_list:
         _repeated_layers =[]
@@ -255,7 +253,7 @@ excluded_keys = {'shortlist_key', 'use_shortlist', 'dataset_key', 'object_oid', 
                   'rerun', 'max_jobs'}
 
 
-class HyperparameterSearch(object):
+class HyperparameterSearch:
     """The class for generating and running all hyperparameter combinations based on the input params given
     """
     def __init__(self, params):
@@ -302,8 +300,8 @@ class HyperparameterSearch(object):
         log_path = os.path.join(self.params.result_dir, 'logs')
         if not os.path.exists(log_path):
             os.makedirs(log_path)
-        f_handler = logging.FileHandler(os.path.join(log_path, '{0}.log'.format(self.hyperparam_uuid)))
-        self.out_file = open(os.path.join(log_path, '{0}.json'.format(self.hyperparam_uuid)), 'a')
+        f_handler = logging.FileHandler(os.path.join(log_path, f'{self.hyperparam_uuid}.log'))
+        self.out_file = open(os.path.join(log_path, f'{self.hyperparam_uuid}.json'), 'a')  # noqa: SIM115
         c_handler.setLevel(logging.WARNING)
         f_handler.setLevel(logging.INFO)
         # Create formatters and add it to handlers
@@ -323,28 +321,28 @@ class HyperparameterSearch(object):
         with open(self.shell_script, 'w') as f:
             f.write("#!/bin/bash\n")
 
-            f.write("#SBATCH -D {0}\n".format(slurm_path))
+            f.write(f"#SBATCH -D {slurm_path}\n")
 
             # If any of these properties == None, that property is not set
             if self.params.slurm_account:
-                f.write("#SBATCH -A {0}\n".format(self.params.slurm_account))
+                f.write(f"#SBATCH -A {self.params.slurm_account}\n")
             elif self.params.lc_account:
-                f.write("#SBATCH -A {0}\n".format(self.params.lc_account))
+                f.write(f"#SBATCH -A {self.params.lc_account}\n")
 
             if self.params.slurm_export:
-                f.write("#SBATCH --export={0}\n".format(self.params.slurm_export))
+                f.write(f"#SBATCH --export={self.params.slurm_export}\n")
 
             if self.params.slurm_nodes:
-                f.write("#SBATCH -N {0}\n".format(self.params.slurm_nodes))
+                f.write(f"#SBATCH -N {self.params.slurm_nodes}\n")
 
             if self.params.slurm_partition:
-                f.write("#SBATCH -p {0}\n".format(self.params.slurm_partition))
+                f.write(f"#SBATCH -p {self.params.slurm_partition}\n")
 
             if self.params.slurm_time_limit:
-                f.write("#SBATCH -t {0}\n".format(self.params.slurm_time_limit))
+                f.write(f"#SBATCH -t {self.params.slurm_time_limit}\n")
 
             if self.params.slurm_options:
-                f.write('{0}\n'.format(self.params.slurm_options))
+                f.write(f'{self.params.slurm_options}\n')
 
             f.write('start=`date +%s`\necho $3\n$1 $2/pipeline/model_pipeline.py $3\nend=`date +%s`\n'
                     'runtime=$((end-start))\necho "runtime: " $runtime')
@@ -491,7 +489,7 @@ class HyperparameterSearch(object):
             x = [len(y) for y in tmp_dict.values()]
             try:
                 assert x.count(x[0]) == len(x)
-            except Exception:
+            except AssertionError:
                 continue
             tmp_list.append(tmp_dict)
         self.hyperparams['layers'] = tmp_list
@@ -512,14 +510,14 @@ class HyperparameterSearch(object):
                 splitters = self.params.splitter
             self.assays = []
             for splitter in splitters:
-                if 'previously_split' in self.params.__dict__.keys() and 'split_uuid' in self.params.__dict__.keys() \
+                if 'previously_split' in self.params.__dict__ and 'split_uuid' in self.params.__dict__ \
                     and self.params.previously_split and self.params.split_uuid is not None:
                     self.assays.append((self.params.dataset_key, self.params.bucket, self.params.response_cols, self.params.collection_name, self.params.splitter, self.params.split_uuid))
                 else:
                     try:
                         split_uuid = self.return_split_uuid(self.params.dataset_key, splitter=splitter)
                         self.assays.append((self.params.dataset_key, self.params.bucket, self.params.response_cols, self.params.collection_name, splitter, split_uuid))
-                    except Exception as e:
+                    except (ValueError, RuntimeError, KeyError) as e:
                         print(e)
                         print(traceback.print_exc())
                         sys.exit(1)
@@ -547,32 +545,30 @@ class HyperparameterSearch(object):
             try:
                 metadata = dsf.get_keyval(dataset_key=assay_params['dataset_key'], bucket=assay_params['bucket'])
                 retry = False
-            except Exception as e:
+            except (ValueError, RuntimeError, KeyError) as e:
                 if i < 5:
-                    print("Could not get metadata from datastore for dataset %s because of exception %s, sleeping..."
-                            % (assay_params['dataset_key'], e))
+                    print(f"Could not get metadata from datastore for dataset {assay_params['dataset_key']} because of exception {e}, sleeping...")
                     time.sleep(retry_time)
                     i += 1
                 else:
-                    print("Could not get metadata from datastore for dataset %s because of exception %s, exiting"
-                            % (assay_params['dataset_key'], e))
-                    return None
-        if 'id_col' in metadata.keys():
+                    print(f"Could not get metadata from datastore for dataset {assay_params['dataset_key']} because of exception {e}, exiting")
+                    return
+        if 'id_col' in metadata:
             assay_params['id_col'] = metadata['id_col']
         if 'response_cols' not in assay_params or assay_params['response_cols'] is None:
-            if 'param' in metadata.keys():
+            if 'param' in metadata:
                 assay_params['response_cols'] = [metadata['param']]
-            if 'response_col' in metadata.keys():
+            if 'response_col' in metadata:
                 assay_params['response_cols'] = [metadata['response_col']]
-            if 'response_cols' in metadata.keys():
+            if 'response_cols' in metadata:
                 assay_params['response_cols'] = metadata['response_cols']
-        if 'smiles_col' in metadata.keys():
+        if 'smiles_col' in metadata:
             assay_params['smiles_col'] = metadata['smiles_col']
-        if 'class_name' in metadata.keys():
+        if 'class_name' in metadata:
             assay_params['class_name'] = metadata['class_name']
-        if 'class_number' in metadata.keys():
+        if 'class_number' in metadata:
             assay_params['class_number'] = metadata['class_number']
-        if 'num_row' in metadata.keys():
+        if 'num_row' in metadata:
             self.num_rows[assay_params['dataset_key']] = metadata['num_row']
         assay_params['dataset_name'] = assay_params['dataset_key'].split('/')[-1].rstrip('.csv')
         assay_params['hyperparam_uuid'] = self.hyperparam_uuid
@@ -632,13 +628,13 @@ class HyperparameterSearch(object):
             try:
                 metadata = dsf.get_keyval(dataset_key=dataset_key, bucket=bucket)
                 retry = False
-            except Exception as e:
+            except (ValueError, RuntimeError, KeyError) as e:
                 if i < 5:
-                    print("Could not get metadata from datastore for dataset %s because of exception %s, sleeping..." % (dataset_key, e))
+                    print(f"Could not get metadata from datastore for dataset {dataset_key} because of exception {e}, sleeping...")
                     time.sleep(retry_time)
                     i += 1
                 else:
-                    print("Could not get metadata from datastore for dataset %s because of exception %s, exiting" % (dataset_key, e))
+                    print(f"Could not get metadata from datastore for dataset {dataset_key} because of exception {e}, exiting")
                     return None
         assay_params = {'dataset_key': dataset_key, 'bucket': bucket, 'splitter': splitter,
                         'split_valid_frac': split_valid_frac, 'split_test_frac': split_test_frac}
@@ -647,20 +643,20 @@ class HyperparameterSearch(object):
             assay_params['featurizer'] = self.params.featurizer[0]
         else:
             assay_params['featurizer'] = self.params.featurizer
-        if 'id_col' in metadata.keys():
+        if 'id_col' in metadata:
             assay_params['id_col'] = metadata['id_col']
         if 'response_cols' not in assay_params or assay_params['response_cols'] is None:
-            if 'param' in metadata.keys():
+            if 'param' in metadata:
                 assay_params['response_cols'] = [metadata['param']]
-            if 'response_col' in metadata.keys():
+            if 'response_col' in metadata:
                 assay_params['response_cols'] = [metadata['response_col']]
-            if 'response_cols' in metadata.keys():
+            if 'response_cols' in metadata:
                 assay_params['response_cols'] = metadata['response_cols']
-        if 'smiles_col' in metadata.keys():
+        if 'smiles_col' in metadata:
             assay_params['smiles_col'] = metadata['smiles_col']
-        if 'class_name' in metadata.keys():
+        if 'class_name' in metadata:
             assay_params['class_name'] = metadata['class_name']
-        if 'class_number' in metadata.keys():
+        if 'class_number' in metadata:
             assay_params['class_number'] = metadata['class_number']
         assay_params['dataset_name'] = assay_params['dataset_key'].split('/')[-1].rstrip('.csv')
         assay_params['datastore'] = True
@@ -668,8 +664,8 @@ class HyperparameterSearch(object):
         try:
             assay_params['descriptor_key'] = self.params.descriptor_key
             assay_params['descriptor_bucket'] = self.params.descriptor_bucket
-        except Exception:
-            print("")
+        except AttributeError:
+            print()
         #TODO: check usage with defaults
         namespace_params = parse.wrapper(assay_params)
         # TODO: Don't want to recreate each time
@@ -683,13 +679,13 @@ class HyperparameterSearch(object):
                 data.split_dataset()
                 data.save_split_dataset()
                 return data.split_uuid
-            except Exception as e:
+            except (ValueError, RuntimeError, KeyError) as e:
                 if i < 5:
-                    print("Could not get metadata from datastore for dataset %s because of exception %s, sleeping" % (dataset_key, e))
+                    print(f"Could not get metadata from datastore for dataset {dataset_key} because of exception {e}, sleeping")
                     time.sleep(retry_time)
                     i += 1
                 else:
-                    print("Could not save split dataset for dataset %s because of exception %s" % (dataset_key, e))
+                    print(f"Could not save split dataset for dataset {dataset_key} because of exception {e}")
                     return None
 
     def return_split_uuid_file(self, dataset_key, response_cols, bucket=None, splitter=None, split_combo=None, retry_time=60):
@@ -722,9 +718,9 @@ class HyperparameterSearch(object):
         
         assay_params = {'dataset_key': dataset_key, 'bucket': bucket, 'splitter': splitter,
                         'split_valid_frac': split_valid_frac, 'split_test_frac': split_test_frac}
-        if 'id_col' in self.params.__dict__.keys():
+        if 'id_col' in self.params.__dict__:
             assay_params['id_col']=self.params.id_col
-        if 'smiles_col' in self.params.__dict__.keys():
+        if 'smiles_col' in self.params.__dict__:
             assay_params['smiles_col']=self.params.smiles_col
         if isinstance(response_cols, list):
             assay_params['response_cols']=",".join(response_cols)
@@ -764,16 +760,14 @@ class HyperparameterSearch(object):
                 shortlist_metadata = dsf.retrieve_dataset_by_datasetkey(
                     bucket=self.params.bucket, dataset_key=self.params.shortlist_key, return_metadata=True)
                 retry = False
-            except Exception as e:
+            except (ValueError, RuntimeError, KeyError) as e:
                 if i < 5:
-                    print("Could not retrieve shortlist %s from datastore because of exception %s, sleeping..." %
-                          (self.params.shortlist_key, e))
+                    print(f"Could not retrieve shortlist {self.params.shortlist_key} from datastore because of exception {e}, sleeping...")
                     time.sleep(retry_time)
                     i += 1
                 else:
-                    print("Could not retrieve shortlist %s from datastore because of exception %s, exiting" %
-                          (self.params.shortlist_key, e))
-                    return None
+                    print(f"Could not retrieve shortlist {self.params.shortlist_key} from datastore because of exception {e}, exiting")
+                    return
 
         datasets = self.get_shortlist_df()
         rows = []
@@ -781,12 +775,12 @@ class HyperparameterSearch(object):
             split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols, 'collection':collection}
             for splitter in ['random', 'scaffold', 'fingerprint']:
                 for split_combo in [[0.1,0.1], [0.15,0.15],[0.1,0.2],[0.2,0.2]]:
-                    split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
+                    split_name = f"{splitter}_{split_combo[0]*100:.0f}_{split_combo[1]*100:.0f}"
                     try:
                         split_uuids[split_name] = self.return_split_uuid(assay, bucket, splitter, split_combo)
-                    except Exception as e:
+                    except (ValueError, RuntimeError, KeyError) as e:
                         print(e)
-                        print("Splitting failed for dataset %s" % assay)
+                        print(f"Splitting failed for dataset {assay}")
                         split_uuids[split_name] = None
                         continue
             rows.append(split_uuids)
@@ -794,7 +788,7 @@ class HyperparameterSearch(object):
         new_metadata = {}
         new_metadata['dataset_key'] = shortlist_metadata['dataset_key'].strip('.csv') + '_with_uuids.csv'
         new_metadata['has_uuids'] = True
-        new_metadata['description'] = '%s, with UUIDs' % shortlist_metadata['description']
+        new_metadata['description'] = '{}, with UUIDs'.format(shortlist_metadata['description'])
         retry = True
         i = 0
         while retry:
@@ -808,14 +802,14 @@ class HyperparameterSearch(object):
                                     key_values={},
                                     dataset_key=new_metadata['dataset_key'])
                 retry=False
-            except Exception as e:
+            except (ValueError, RuntimeError, KeyError) as e:
                 if i < 5:
-                    print("Could not save new shortlist because of exception %s, sleeping..." % e)
+                    print(f"Could not save new shortlist because of exception {e}, sleeping...")
                     time.sleep(retry_time)
                     i += 1
                 else:
                     #TODO: Add save to disk.
-                    print("Could not save new shortlist because of exception %s, exiting" % e)
+                    print(f"Could not save new shortlist because of exception {e}, exiting")
                     retry = False
     
     def generate_split_shortlist_file(self):
@@ -833,12 +827,12 @@ class HyperparameterSearch(object):
             split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols, 'collection':collection}
             for splitter in ['random', 'scaffold','fingerprint']:
                 for split_combo in [[0.1,0.1], [0.15,0.15],[0.1,0.2],[0.2,0.2]]:
-                    split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
+                    split_name = f"{splitter}_{split_combo[0]*100:.0f}_{split_combo[1]*100:.0f}"
                     try:
                         split_uuids[split_name] = self.return_split_uuid_file(assay, response_cols, bucket, splitter, split_combo)
-                    except Exception as e:
+                    except (ValueError, RuntimeError, KeyError) as e:
                         print(e)
-                        print("Splitting failed for dataset %s" % assay)
+                        print(f"Splitting failed for dataset {assay}")
                         split_uuids[split_name] = None
                         continue
             rows.append(split_uuids)
@@ -862,13 +856,13 @@ class HyperparameterSearch(object):
                 try:
                     df = dsf.retrieve_dataset_by_datasetkey(self.params.shortlist_key, self.params.bucket)
                     retry=False
-                except Exception as e:
+                except (ValueError, RuntimeError, KeyError) as e:
                     if i < 5:
-                        print("Could not retrieve shortlist %s because of exception %s, sleeping..." % (self.params.shortlist_key, e))
+                        print(f"Could not retrieve shortlist {self.params.shortlist_key} because of exception {e}, sleeping...")
                         time.sleep(retry_time)
                         i += 1
                     else:
-                        print("Could not retrieve shortlist %s because of exception %s, exiting" % (self.params.shortlist_key, e))
+                        print(f"Could not retrieve shortlist {self.params.shortlist_key} because of exception {e}, exiting")
                         sys.exit(1)
         else:
             if not os.path.exists(self.params.shortlist_key):
@@ -909,12 +903,12 @@ class HyperparameterSearch(object):
             splitters = self.params.splitter
         assays = []
         for splitter in splitters:
-            split_name = '%s_%d_%d' % (splitter, self.params.split_valid_frac*100, self.params.split_test_frac*100)
+            split_name = f"{splitter}_{self.params.split_valid_frac*100:.0f}_{self.params.split_test_frac*100:.0f}"
             if split_name in df.columns:
                 for i, row in df.iterrows():
                     try:
                         assays.append((datasets[i][0], datasets[i][1], datasets[i][2], datasets[i][3], splitter, row[split_name]))
-                    except Exception:
+                    except (ValueError, RuntimeError, KeyError):
                         print("dataset_key, bucket, response_cols, & collecion_name must be specified in shortlist or config file, not neither.")
             else:
                 print(f"Warning: {split_name} not found in shortlist. Creating default split scaffold_10_10 now.")
@@ -926,8 +920,8 @@ class HyperparameterSearch(object):
                         else:
                             split_uuid = self.return_split_uuid_file(assay, response_cols, bucket)
                         assays.append((assay, bucket, response_cols, collection, splitter, split_uuid))
-                    except Exception as e:
-                        print("Splitting failed for dataset %s, skipping..." % assay)
+                    except (ValueError, RuntimeError, KeyError) as e:
+                        print(f"Splitting failed for dataset {assay}, skipping...")
                         print(e)
                         print(traceback.print_exc())
                         continue
@@ -956,7 +950,7 @@ class HyperparameterSearch(object):
             print(f"prediction_type: {assay_params['prediction_type']}")
             try:
                 self.get_dataset_metadata(assay_params)
-            except Exception as e:
+            except (ValueError, RuntimeError, KeyError) as e:
                 print(e)
                 print(traceback.print_exc())
                 continue
@@ -990,11 +984,10 @@ class HyperparameterSearch(object):
         """
         result_list = []
         for assay_params in job_list:
-            if assay_params['model_type'] == 'NN' and assay_params['featurizer'] != 'graphconv':
-                if assay_params['dataset_key'] in self.num_rows:
-                    num_params = get_num_params(assay_params)
-                    if num_params*self.params.nn_size_scale_factor >= self.num_rows[assay_params['dataset_key']]:
-                        continue
+            if assay_params['model_type'] == 'NN' and assay_params['featurizer'] != 'graphconv' and assay_params['dataset_key'] in self.num_rows:
+                num_params = get_num_params(assay_params)
+                if num_params*self.params.nn_size_scale_factor >= self.num_rows[assay_params['dataset_key']]:
+                    continue
             if not self.params.rerun and self.already_run(assay_params):
                 continue
 
@@ -1012,7 +1005,7 @@ class HyperparameterSearch(object):
             if len(self.filter_jobs([assay_params]))==1:
                 i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
                 while i >= self.params.max_jobs:
-                    print("%d jobs in queue, sleeping" % i)
+                    print(f"{i} jobs in queue, sleeping")
                     time.sleep(retry_time)
                     i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
                 self.log.info(assay_params)
@@ -1043,12 +1036,12 @@ class HyperparameterSearch(object):
                 print(f"Checking model tracker DB for existing model with parameter combo in {assay_params['collection_name']} collection.")
                 models = list(trkr.get_full_metadata(filter_dict, collection_name=assay_params['collection_name']))
                 retry = False
-            except Exception as e:
+            except (ValueError, RuntimeError, KeyError) as e:
                 if i < 5:
                     time.sleep(retry_time)
                     i += 1
                 else:
-                    print("Could not check Model Tracker for existing model at this time because of exception %s" % e)
+                    print(f"Could not check Model Tracker for existing model at this time because of exception {e}")
                     return False
         if models:
             print("Already created model for this param combo")
@@ -1329,7 +1322,7 @@ def build_optuna_suggest(trial, label, method, param_list):
     else:
         raise ValueError(f"Method {method} is not supported, choose from 'choice, uniform, loguniform, uniformint'.")
 
-class OptunaSearch():
+class OptunaSearch:
     """Perform hyperparameter search with Bayesian Optimization (Tree Parzen Estimator) using Optuna.
 
     To use OptunaSearch, modify the config json file as follows:
@@ -1692,7 +1685,7 @@ class OptunaSearch():
                                                    f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{fd}_{bmodel_uuid}.tar.gz"))
 
 def parse_params(param_list):
-    """Parse paramters
+    r"""Parse paramters
 
     Parses parameters using parameter_parser.wrapper and
     filters out unnecessary parameters. Returns what an
@@ -1714,7 +1707,6 @@ def parse_params(param_list):
                    'save_results',
                    'previously_featurized',
                    'previously_split',
-                   'prediction_type',
                    'descriptor_key',
                    'descriptor_type',
                    'split_valid_frac',

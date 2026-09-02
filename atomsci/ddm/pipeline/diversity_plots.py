@@ -1,23 +1,24 @@
 """Plotting routines for visualizing chemical diversity of datasets"""
 
+import logging
 import os
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import umap
-from scipy.stats.kde import gaussian_kde
-from scipy.cluster.hierarchy import linkage
+
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import umap
 from matplotlib.backends.backend_pdf import PdfPages
-import logging
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw
+from scipy.cluster.hierarchy import linkage
+from scipy.stats.kde import gaussian_kde
 
-from atomsci.ddm.utils import struct_utils
+from atomsci.ddm.pipeline import chem_diversity as cd
 from atomsci.ddm.pipeline import dist_metrics as dm
-from atomsci.ddm.pipeline import  chem_diversity as cd
 from atomsci.ddm.utils import datastore_functions as dsf
+from atomsci.ddm.utils import struct_utils
 
 #matplotlib.style.use('ggplot')
 matplotlib.rc('xtick', labelsize=12)
@@ -52,11 +53,11 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     log = logging.getLogger('ATOM')
     num_cmpds = dataset.X.shape[0]
     if num_cmpds > 50000:
-        log.warning("Dataset has %d compounds, too big to calculate distance matrix" % num_cmpds)
+        log.warning(f"Dataset has {num_cmpds} compounds, too big to calculate distance matrix")
         return
-    log.warning("Starting distance matrix calculation for %d compounds" % num_cmpds)
+    log.warning(f"Starting distance matrix calculation for {num_cmpds} compounds")
     dists = cd.calc_dist_diskdataset(feat_type, dist_metric, dataset, calc_type='all', **metric_kwargs)
-    log.warning("Finished calculation of %d distances" % len(dists))
+    log.warning(f"Finished calculation of {len(dists)} distances")
     if len(dists) > ndist_max:
         # Sample a subset of the distances so KDE doesn't take so long
         dist_sample = np.random.choice(dists, size=ndist_max)
@@ -66,12 +67,11 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     dist_pdf = gaussian_kde(dist_sample)
     x_plt = np.linspace(min(dist_sample), max(dist_sample), 500)
     y_plt = dist_pdf(x_plt)
-    fig, ax = plt.subplots(figsize=(8.0,8.0))
+    _fig, ax = plt.subplots(figsize=(8.0,8.0))
     ax.plot(x_plt, y_plt, color='forestgreen')
-    ax.set_xlabel('%s distance' % dist_metric)
+    ax.set_xlabel(f'{dist_metric} distance')
     ax.set_ylabel('Density')
-    ax.set_title("%s dataset\nDistribution of %s distances between %s feature vectors" % (
-                  task_name, dist_metric, feat_type))
+    ax.set_title(f"{task_name} dataset\nDistribution of {dist_metric} distances between {feat_type} feature vectors")
     return dists
 
 #------------------------------------------------------------------------------------------------------------------
@@ -113,7 +113,7 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset',
     # TODO: Make max compounds a parameter, rather than hardcoding to 50000. Better yet, calculate a sample
     # of distances of size ndist_max for each non-reference subset, and plot KDEs based on the samples.
     if num_cmpds > 50000:
-        log.warning("Dataset has %d compounds, too big to calculate distance matrix" % num_cmpds)
+        log.warning(f"Dataset has {num_cmpds} compounds, too big to calculate distance matrix")
         return
 
     if subsets and subset_col not in df.columns:
@@ -146,13 +146,12 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset',
             diststmp = pd.DataFrame(zip(diststmp,substmp), columns=['dist','subset'])
             dists=pd.concat([dists,diststmp])
     dists=dists.reset_index(drop=True)
-    fig, ax = plt.subplots(1, figsize=(plot_width, plot_width), dpi=300)
+    _fig, ax = plt.subplots(1, figsize=(plot_width, plot_width), dpi=300)
     sns.kdeplot(data=dists[dists.subset!=ref_subset], x='dist', hue='subset', legend=True, common_norm=False, common_grid=True, fill=False, ax=ax)
-    ax.set_xlabel('%s distance' % dist_metric)
+    ax.set_xlabel(f'{dist_metric} distance')
     ax.set_ylabel('Density')
     if not subsets:
-        ax.set_title("%s dataset\nDistribution of %s nearest neighbor distances between %s feature vectors" % (
-                      df_name, dist_metric, feat_type))
+        ax.set_title(f"{df_name} dataset\nDistribution of {dist_metric} nearest neighbor distances between {feat_type} feature vectors")
     else: 
         ax.set_title(f"{df_name} dataset: Distribution of {dist_metric} distances\nbetween {feat_type} feature vectors from non-{ref_subset} subsets\nto their nearest neighbors in the {ref_subset} subset")
 
@@ -211,11 +210,11 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
     if is_base_smiles:
         base_mols = np.array([Chem.MolFromSmiles(s) for s in smiles_strs])
     else:
-        print("Canonicalizing %d molecules..." % ncmpds)
+        print(f"Canonicalizing {ncmpds} molecules...")
         base_mols = np.array([struct_utils.base_mol_from_smiles(smiles) for smiles in smiles_strs])
         for i, mol in enumerate(base_mols):
             if mol is None:
-                print('Unable to get base molecule for compound %d = %s' % (i, compound_ids[i]))
+                print(f'Unable to get base molecule for compound {i} = {compound_ids[i]}')
         print("Done")
 
     has_good_smiles = np.array([mol is not None for mol in base_mols])
@@ -229,7 +228,7 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
         responses = cmpd_df[response_col].values
         uniq_responses = set(responses)
         if colorpal is None:
-            if uniq_responses == set([0,1]):
+            if uniq_responses == {0,1}:
                 _response_type = 'binary'
                 colorpal =  {0 : 'forestgreen', 1 : 'red'}
             elif len(uniq_responses) <= 10:
@@ -268,32 +267,32 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
         dist_df = dist_df.sort_values(by='dist')
         print(dist_df.head(10))
         if out_dir is not None:
-            dist_df.to_csv('%s/%s_mcs_dist_table.csv' % (out_dir, file_prefix), index=False)
+            dist_df.to_csv(f'{out_dir}/{file_prefix}_mcs_dist_table.csv', index=False)
             for k in range(10):
                 mol_i = base_mols[dist_df.i.values[k]]
                 mol_j = base_mols[dist_df.j.values[k]]
-                img_file_i = '%s/%d_%s.png' % (out_dir, k, compound_ids[dist_df.i.values[k]])
-                img_file_j = '%s/%d_%s.png' % (out_dir, k, compound_ids[dist_df.j.values[k]])
+                img_file_i = f'{out_dir}/{k}_{compound_ids[dist_df.i.values[k]]}.png'
+                img_file_j = f'{out_dir}/{k}_{compound_ids[dist_df.j.values[k]]}.png'
                 Draw.MolToFile(mol_i, img_file_i, size=(500,500), fitImage=False)
                 Draw.MolToFile(mol_j, img_file_j, size=(500,500), fitImage=False)
-    
+
         mcs_linkage = linkage(mcs_dist, method='complete')
         mcs_df = pd.DataFrame(mcs_dist, columns=compound_ids, index=compound_ids)
         if out_dir is not None:
-            pdf_path = '%s/%s_mcs_clustermap.pdf' % (out_dir, file_prefix)
+            pdf_path = f'{out_dir}/{file_prefix}_mcs_clustermap.pdf'
             pdf = PdfPages(pdf_path)
         g = sns.clustermap(mcs_df, row_linkage=mcs_linkage, col_linkage=mcs_linkage, figsize=(12,12), cmap='plasma')
         if out_dir is not None:
             pdf.savefig(g.fig)
             pdf.close()
-    
+
         # Draw a UMAP projection based on MCS distance
         mapper = umap.UMAP(n_neighbors=20, min_dist=0.1, n_components=2, metric='precomputed', random_state=17)
         reps = mapper.fit_transform(mcs_dist)
         rep_df = pd.DataFrame.from_records(reps, columns=['x', 'y'])
         rep_df['compound_id'] = compound_ids
         if out_dir is not None:
-            pdf_path = '%s/%s_mcs_umap_proj.pdf' % (out_dir, file_prefix)
+            pdf_path = f'{out_dir}/{file_prefix}_mcs_umap_proj.pdf'
             pdf = PdfPages(pdf_path)
         fig, ax = plt.subplots(figsize=(12,12))
         if responses is None:
@@ -302,11 +301,11 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
             rep_df['response'] = responses
             sns.scatterplot(x='x', y='y', hue='response', palette=colorpal,
                             data=rep_df, ax=ax)
-        ax.set_title("%s, 2D projection based on MCS distance" % title_prefix)
+        ax.set_title(f"{title_prefix}, 2D projection based on MCS distance")
         if out_dir is not None:
             pdf.savefig(fig)
             pdf.close()
-            rep_df.to_csv('%s/%s_mcs_umap_proj.csv' % (out_dir, file_prefix), index=False)
+            rep_df.to_csv(f'{out_dir}/{file_prefix}_mcs_umap_proj.csv', index=False)
 
     # Get Tanimoto distance matrix
     print("Computing Tanimoto distance matrix...")
@@ -321,9 +320,9 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
         rep_df['response'] = responses
     if umap_file is not None:
         rep_df.to_csv(umap_file, index=False)
-        print("Wrote UMAP mapping to %s" % umap_file)
+        print(f"Wrote UMAP mapping to {umap_file}")
     if out_dir is not None:
-        pdf_path = '%s/%s_tani_umap_proj.pdf' % (out_dir, file_prefix)
+        pdf_path = f'{out_dir}/{file_prefix}_tani_umap_proj.pdf'
         pdf = PdfPages(pdf_path)
     fig, ax = plt.subplots(figsize=(12,12))
     if responses is None:
@@ -331,7 +330,7 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
     else:
         sns.scatterplot(x='x', y='y', hue='response', palette=colorpal,
                         data=rep_df, ax=ax)
-    ax.set_title("%s, 2D projection based on Tanimoto distance" % title_prefix)
+    ax.set_title(f"{title_prefix}, 2D projection based on Tanimoto distance")
     if out_dir is not None:
         pdf.savefig(fig)
         pdf.close()
@@ -340,7 +339,7 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
     tani_linkage = linkage(tani_dist, method='complete')
     tani_df = pd.DataFrame(tani_dist, columns=compound_ids, index=compound_ids)
     if out_dir is not None:
-        pdf_path = '%s/%s_tanimoto_clustermap.pdf' % (out_dir, file_prefix)
+        pdf_path = f'{out_dir}/{file_prefix}_tanimoto_clustermap.pdf'
         pdf = PdfPages(pdf_path)
     g = sns.clustermap(tani_df, row_linkage=tani_linkage, col_linkage=tani_linkage, figsize=(12,12), cmap='plasma')
     if out_dir is not None:

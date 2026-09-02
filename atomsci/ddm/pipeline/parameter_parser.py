@@ -1,20 +1,19 @@
 import argparse
+import inspect
 import json
-import sys
-import os
-import re
 import logging
+import os
+import os.path
+import re
+import sys
 
+import deepchem.feat as dcf
 import deepchem.models as dcm
 import deepchem.models.torch_models as dcmt
 from deepchem.models import GraphConvModel
-import deepchem.feat as dcf
-import inspect
 
-import os.path
 import atomsci.ddm.utils.checksum_utils as cu
 import atomsci.ddm.utils.many_to_one as mto
-
 
 log = logging.getLogger('ATOM')
 # TODO: mjt, do we need to deal with parameters with options?
@@ -311,7 +310,7 @@ def strip_optional(type_annotation):
     ta = str(type_annotation)
     # could not find a better way to do this check:
     # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
-    if ta.startswith('typing.Union') or ta.startswith('typing.Optional'):
+    if ta.startswith(('typing.Union', 'typing.Optional')):
         return type_annotation.__args__
     else:
         return [type_annotation]
@@ -378,8 +377,7 @@ class AutoArgumentAdder:
             if args is None:
                 continue
             # Remove all self arguments
-            if 'self' in args:
-                args.remove('self')
+            args.discard('self')
             # add set of args
             self.args = self.args.union(args)
 
@@ -398,7 +396,7 @@ class AutoArgumentAdder:
                     t = spec.annotations[a]
                 else:
                     # guess if there is no annotation e.g. MPNN has no annotations
-                    if a.startswith('n_') or 'num_' in a or a.startswith('number_'):
+                    if a.startswith(('n_', 'number_')) or 'num_' in a:
                         t = int
                     else:
                         t = str
@@ -689,7 +687,7 @@ def parse_config_file(config_file_path):
     return dict_to_list(newdict)
 
 #***********************************************************************************************************
-def flatten_dict(inp_dict,newdict = {}):
+def flatten_dict(inp_dict,newdict = None):
 
     """Method to flatten a hierarchical dictionary. Used in parse_config_file(). Throws error if there are duplicated
     keys in the dictionary. WARNING: immediately throws error upon first detection of duplications.
@@ -704,6 +702,8 @@ def flatten_dict(inp_dict,newdict = {}):
 
     """
 
+    if newdict is None:
+        newdict = {}
     for key, val in inp_dict.items():
         if isinstance(val,dict) and key not in ['DatasetMetadata', 'dataset_metadata']:
             flatten_dict(val,newdict)
@@ -770,8 +770,8 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     """
     #if replace_spaces is true, replaces spaces with replace_spaces_str for os command line calls
     replace_spaces_str = "@"
-    if not isinstance(inp_dictionary,dict):
-        raise ValueError("input to dict_to_list should be a dictionary!")
+    if not isinstance(inp_dictionary, dict):
+        raise TypeError("input to dict_to_list should be a dictionary!")
 
     # Handles optional names for the dictionary.
     optional_names_dict = \
@@ -863,7 +863,7 @@ def parse_command_line(args=None):
         else:
             newlist = args
         just_args = [x for x in newlist if "--" in x]
-        duplicates = set([x for x in just_args if just_args.count(x) > 1])
+        duplicates = {x for x in just_args if just_args.count(x) > 1}
         if len(duplicates) > 0:
             raise ValueError(str(duplicates) + " appears several times. ")
 
@@ -1717,12 +1717,10 @@ def postprocess_args(parsed_args):
 
 
     # Check that split_valid_frac+split_test_frac leaves room for a training set
-    if parsed_args.split_strategy == 'train_valid_test':
-        if parsed_args.split_valid_frac + parsed_args.split_test_frac >= 1.0:
-            raise Exception("Split fractions for validation and test sets leave no room for training set.")
-    elif parsed_args.split_strategy == 'k_fold_cv':
-        if parsed_args.split_test_frac >= 1.0:
-            raise Exception("Split fraction for test set leaves no room for training and validation data.")
+    if parsed_args.split_strategy == 'train_valid_test' and parsed_args.split_valid_frac + parsed_args.split_test_frac >= 1.0:
+        raise ValueError("Split fractions for validation and test sets leave no room for training set.")
+    if parsed_args.split_strategy == 'k_fold_cv' and parsed_args.split_test_frac >= 1.0:
+        raise ValueError("Split fraction for test set leaves no room for training and validation data.")
 
     # Set conditional defaults for model_choice_score_type based on prediction_type
     if parsed_args.model_choice_score_type is None:
@@ -1734,7 +1732,7 @@ def postprocess_args(parsed_args):
     if parsed_args.max_invalid_pred_frac is None:
         parsed_args.max_invalid_pred_frac = 0.01
     if parsed_args.max_invalid_pred_frac < 0.0 or parsed_args.max_invalid_pred_frac > 1.0:
-        raise Exception("max_invalid_pred_frac must be between 0.0 and 1.0.")
+        raise ValueError("max_invalid_pred_frac must be between 0.0 and 1.0.")
 
     # Convert arguments passed as comma-separated values into lists
     if parsed_args.hyperparam:
@@ -1779,12 +1777,11 @@ def postprocess_args(parsed_args):
                 else:
                     parsed_args.__dict__[item] = newlist
                 if item in not_a_list_outside_of_hyperparams and isinstance(parsed_args.__dict__[item], list):
-                    raise Exception("%s is not accepted as a list if hyperparams is False" %item)
+                    raise ValueError(f"{item} is not accepted as a list if hyperparams is False")
 
         for item in not_a_str_list_outside_of_hyperparams:
-            if parsed_args.__dict__[item] is not None:
-                if ',' in parsed_args.__dict__[item] or ' ' in parsed_args.__dict__[item]:
-                    raise Exception("%s cannot contain a comma or whitespace when hyperparams is False" %item)
+            if parsed_args.__dict__[item] is not None and (',' in parsed_args.__dict__[item] or ' ' in parsed_args.__dict__[item]):
+                raise ValueError(f"{item} cannot contain a comma or whitespace when hyperparams is False")
         if parsed_args.__dict__['response_cols'] is not None:
             current_value = parsed_args.__dict__['response_cols'].split(',')
             parsed_args.__dict__['response_cols'] = current_value
@@ -1795,7 +1792,7 @@ def postprocess_args(parsed_args):
             if ((parsed_args.dropouts is not None and len(parsed_args.dropouts) != nlayers) or
                 (parsed_args.weight_init_stddevs is not None and len(parsed_args.weight_init_stddevs) != nlayers) or
                 (parsed_args.bias_init_consts is not None and len(parsed_args.bias_init_consts) != nlayers)):
-                raise Exception("layer_sizes, dropouts, weight_init_stddevs and bias_init_consts arguments must be the "
+                raise ValueError("layer_sizes, dropouts, weight_init_stddevs and bias_init_consts arguments must be the "
                                 "same length")
 
     # Converts dataset_key to an aboslute path
@@ -1806,8 +1803,9 @@ def postprocess_args(parsed_args):
         if os.path.exists(parsed_args.dataset_key):
             parsed_args.dataset_hash = cu.create_checksum(parsed_args.dataset_key)
             log.debug("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
-    except Exception:
-        pass # continue if it doesn't have a 'dataset_key'
+    except (TypeError, OSError):
+        # continue if 'dataset_key' is None or file access fails
+        pass
 
     # Turn off uncertainty of XGBoost is the model type
     if parsed_args.model_type == 'xgboost':
@@ -1822,7 +1820,7 @@ def postprocess_args(parsed_args):
     elif type(parsed_args.response_cols) is list:
         parsed_args.num_model_tasks = len(parsed_args.response_cols)
     else:
-        raise Exception(f'Unexpected type for response_cols {type(parsed_args.response_cols)}')
+        raise TypeError(f'Unexpected type for response_cols {type(parsed_args.response_cols)}')
 
     # Make sure that there is a many to one mapping between SMILES and compound ids
     # this can raise 3 exceptions. OneToOneException, NANCompoundID, or NANSMILES
@@ -1872,14 +1870,13 @@ def make_dataset_key_absolute(parsed_args):
     # check to see if dataset_key is a relative path
     # if so, make it relative to current working directory
     # update to allow for datastore
-    if not parsed_args.datastore:
-        if (parsed_args.dataset_key is not None) and (not os.path.isabs(parsed_args.dataset_key)):
-            parsed_args.dataset_key = os.path.abspath(parsed_args.dataset_key)
+    if not parsed_args.datastore and parsed_args.dataset_key is not None and not os.path.isabs(parsed_args.dataset_key):
+        parsed_args.dataset_key = os.path.abspath(parsed_args.dataset_key)
 
     return parsed_args
 
 #***********************************************************************************************************
-def prune_defaults(params, keep_params={}):
+def prune_defaults(params, keep_params=None):
     """Removes parameters that are not in keep_params or in get_defaults
 
     Args:
@@ -1890,8 +1887,10 @@ def prune_defaults(params, keep_params={}):
     Returns:
         new_dict (dict): Pruned argument dictionary
     """
+    if keep_params is None:
+        keep_params = {}
     parser = get_parser()
-    new_dict = dict()
+    new_dict = {}
     if isinstance(params, argparse.Namespace):
         inner_dict = params.__dict__
     else:
@@ -1920,13 +1919,13 @@ def remove_unrecognized_arguments(params, hyperparam=False):
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters
     default = list_defaults(hyperparam)
     # add all auto arguments because they sometimes use dest and are ommitted from the vars call
-    keep = set(list(vars(default).keys())).union(all_auto_arguments())
+    keep = set(vars(default).keys()).union(all_auto_arguments())
     newdict = {k: params[k] for k in keep if k in params}
 
     # Writes a warning for any arguments that are not in the default list of parameters. This commonly happens
     # when the parser is applied to the metadata from a saved model, because the metadata stores many values
     # that are not parameters. For this reason, only complain if logLevel is set to 'debug'.
-    extra_keys = [x for x in list(params.keys()) if x not in newdict.keys()]
+    extra_keys = [x for x in list(params.keys()) if x not in newdict]
     if len(extra_keys)>0:
         log.debug(str(extra_keys) + " are not part of the accepted list of parameters and will be ignored")
 
@@ -1946,7 +1945,7 @@ def main(argument):
 if __name__ == '__main__' and len(sys.argv) > 1:
     """Entry point when script is run from a shell. Raises an error if there are duplicate arguments"""
     just_args = [x for x in sys.argv if "--" in x]
-    duplicates = set([x for x in just_args if just_args.count(x) > 1])
+    duplicates = {x for x in just_args if just_args.count(x) > 1}
     if len(duplicates) > 0:
         raise ValueError(str(duplicates) + " appears several times. ")
     main(sys.argv[1:])

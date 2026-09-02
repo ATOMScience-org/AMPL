@@ -5,14 +5,15 @@ Modify them to match Jonathan's curation methods in notebook
 01/30/2020
 """
 
+import importlib
+
 import numpy as np
 import pandas as pd
 
-
-from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles, mols_from_smiles
 import atomsci.ddm.utils.datastore_functions as dsf
-import atomsci.ddm.utils.curate_data as curate_data
-import importlib
+from atomsci.ddm.utils import curate_data
+from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles, mols_from_smiles
+
 
 def set_data_root(dir):
     """Set global variables for data directories
@@ -32,8 +33,8 @@ def set_data_root(dir):
     data_root = dir
     #data_dirs = dict(ChEMBL = '%s/ChEMBL' % data_root, DTC = '%s/DTC' % data_root, 
     #                 Excape = '%s/Excape' % data_root)
-    data_dirs = dict(DTC = '%s/dtc' % data_root, 
-                     Excape = '%s/excape' % data_root)
+    data_dirs = {'DTC': f'{data_root}/dtc', 
+                     'Excape': f'{data_root}/excape'}
 
 
 log_var_map = {
@@ -43,13 +44,13 @@ log_var_map = {
     'CL': 'logCL'
 }
 
-pub_dsets = dict(
-    CYP2D6 = dict(IC50='cyp2d6'),
-    CYP3A4 = dict(IC50='cyp3a4'),
-    JAK1 = dict(IC50="jak1"),
-    JAK2 = dict(IC50="jak2"),
-    JAK3 = dict(IC50="jak3"),
-)
+pub_dsets = {
+    'CYP2D6': {'IC50': 'cyp2d6'},
+    'CYP3A4': {'IC50': 'cyp3a4'},
+    'JAK1': {'IC50': "jak1"},
+    'JAK2': {'IC50': "jak2"},
+    'JAK3': {'IC50': "jak3"},
+}
 
 # The following list includes the nonmetals commonly found in organic molecules, along with alkali and alkaline earth
 # metals commonly found in salts (Na, Mg, K, Ca).
@@ -112,7 +113,7 @@ def standardize_relations(dset_df, db=None, rel_col=None, output_rel_col=None, i
 
     """
     if rel_col is None:
-        relation_cols = dict(ChEMBL='standard_relation', DTC='standard_relation', GoStar='activity_prefix')
+        relation_cols = {'ChEMBL': 'standard_relation', 'DTC': 'standard_relation', 'GoStar': 'activity_prefix'}
         try:
             rel_col = relation_cols[db]
         except KeyError:
@@ -196,7 +197,7 @@ def upload_file_dtc_raw_data(dset_name, title, description, tags,
     """
 
     bucket = 'public'
-    filename = '%s.csv' % dset_name
+    filename = f'{dset_name}.csv'
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -227,10 +228,10 @@ def upload_file_dtc_raw_data(dset_name, title, description, tags,
             title = title, description=description, tags=tags, key_values=kv, client=None,
             dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        print("Uploaded raw dataset with key %s" % dataset_key)
+        print(f"Uploaded raw dataset with key {dataset_key}")
     else:
         uploaded_file = dsf.retrieve_dataset_by_datasetkey(dataset_key, bucket, ds_client, return_metadata=True)
-        print("Raw dataset %s is already in datastore, skipping upload." % dataset_key)
+        print(f"Raw dataset {dataset_key} is already in datastore, skipping upload.")
 
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
@@ -283,11 +284,11 @@ def ic50topic50(x) :
         float: The pIC50.
     """
     print(x)
-    return -np.log10((x/1000000000.0))
+    return -np.log10(x/1000000000.0)
 
 def compute_negative_log_responses(df, unit_col='unit', value_col='value', 
         new_value_col='average_col', relation_col=None, new_relation_col=None,
-        unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9}, inplace=False):
+        unit_conv=None, inplace=False):
     """Given the response values in `value_col` (IC50, Ki, Kd, etc.), compute their negative base 10 logarithms
     (pIC50, pKi, pKd, etc.) after converting them to molar units and store them in `new_value_col`.
     If `relation_col` is provided, replace any '<' or '>' relations with their opposites and store the result
@@ -317,6 +318,8 @@ def compute_negative_log_responses(df, unit_col='unit', value_col='value',
         DataFrame: A table containing the transformed values and relations.
     """
 
+    if unit_conv is None:
+        unit_conv = {'uM': lambda x: x * 1e-06, 'nM': lambda x: x * 1e-09}
     missing_units = list(set(df[unit_col]) - set(unit_conv.keys()))
     assert len(missing_units) == 0, f"unit_conv lacks converter(s) for units {', '.join(missing_units)}"
     # Drop rows for which log can't be computed
@@ -348,8 +351,10 @@ def compute_negative_log_responses(df, unit_col='unit', value_col='value',
 
 def convert_IC50_to_pIC50(df, unit_col='unit', value_col='value', 
         new_value_col='average_col', relation_col=None, new_relation_col=None,
-        unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9}, inplace=False):
+        unit_conv=None, inplace=False):
     """For backward compatibiltiy only: equivalent to calling `compute_negative_log_responses` with the same arguments."""
+    if unit_conv is None:
+        unit_conv = {'uM': lambda x: x * 1e-06, 'nM': lambda x: x * 1e-09}
     return compute_negative_log_responses(df, unit_col=unit_col, value_col=value_col, new_value_col=new_value_col,
                                           relation_col=relation_col, new_relation_col=new_relation_col,
                                           unit_conv=unit_conv, inplace=inplace)
@@ -569,7 +574,7 @@ def upload_df_dtc_smiles(dset_name, title, description, tags,
         str: datastore OID of the uploaded dataset.
     """
     bucket = 'public'
-    filename = '%s_dtc_smiles.csv' % dset_name
+    filename = f'{dset_name}_dtc_smiles.csv'
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -597,10 +602,10 @@ def upload_df_dtc_smiles(dset_name, title, description, tags,
         uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=smiles_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)
         #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        print("Uploaded raw dataset with key %s" % dataset_key)
+        print(f"Uploaded raw dataset with key {dataset_key}")
     else:
         uploaded_file = dsf.retrieve_dataset_by_datasetkey(dataset_key, bucket, ds_client, return_metadata=True)
-        print("Raw dataset %s is already in datastore, skipping upload." % dataset_key)
+        print(f"Raw dataset {dataset_key} is already in datastore, skipping upload.")
 
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
@@ -704,7 +709,7 @@ def upload_df_dtc_mleqonly(dset_name, title, description, tags,
     """
 
     bucket = 'public'
-    filename = '%s_dtc_mleqonly.csv' % dset_name
+    filename = f'{dset_name}_dtc_mleqonly.csv'
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -736,10 +741,10 @@ def upload_df_dtc_mleqonly(dset_name, title, description, tags,
 
         #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        print("Uploaded raw dataset with key %s" % dataset_key)
+        print(f"Uploaded raw dataset with key {dataset_key}")
     else:
         uploaded_file = dsf.retrieve_dataset_by_datasetkey(dataset_key, bucket, ds_client, return_metadata=True)
-        print("Raw dataset %s is already in datastore, skipping upload." % dataset_key)
+        print(f"Raw dataset {dataset_key} is already in datastore, skipping upload.")
 
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
@@ -793,7 +798,7 @@ def upload_df_dtc_mleqonly_class(dset_name, title, description, tags,
         str: datastore OID of the uploaded dataset.
     """
     bucket = 'public'
-    filename = '%s_dtc_mleqonly_class.csv' % dset_name
+    filename = f'{dset_name}_dtc_mleqonly_class.csv'
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -822,10 +827,10 @@ def upload_df_dtc_mleqonly_class(dset_name, title, description, tags,
     if force_update or not dsf.dataset_key_exists(dataset_key, bucket, ds_client):
         uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=data_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        print("Uploaded raw dataset with key %s" % dataset_key)
+        print(f"Uploaded raw dataset with key {dataset_key}")
     else:
         uploaded_file = dsf.retrieve_dataset_by_datasetkey(dataset_key, bucket, ds_client, return_metadata=True)
-        print("Raw dataset %s is already in datastore, skipping upload." % dataset_key)
+        print(f"Raw dataset {dataset_key} is already in datastore, skipping upload.")
 
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
@@ -877,7 +882,7 @@ def upload_df_dtc_base_smiles_all(dset_name, title, description, tags,
         str: datastore OID of the uploaded dataset.
     """
     bucket = 'public'
-    filename = '%s_dtc_base_smiles_all.csv' % dset_name
+    filename = f'{dset_name}_dtc_base_smiles_all.csv'
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -904,10 +909,10 @@ def upload_df_dtc_base_smiles_all(dset_name, title, description, tags,
     if force_update or not dsf.dataset_key_exists(dataset_key, bucket, ds_client):
         uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=data_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        print("Uploaded raw dataset with key %s" % dataset_key)
+        print(f"Uploaded raw dataset with key {dataset_key}")
     else:
         uploaded_file = dsf.retrieve_dataset_by_datasetkey(dataset_key, bucket, ds_client, return_metadata=True)
-        print("Raw dataset %s is already in datastore, skipping upload." % dataset_key)
+        print(f"Raw dataset {dataset_key} is already in datastore, skipping upload.")
 
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
@@ -961,7 +966,7 @@ def upload_file_dtc_smiles_regr_all(dset_name, title, description, tags,
     """
 
     bucket = 'public'
-    filename = '%s_dtc_smiles_regr_all.csv' % dset_name
+    filename = f'{dset_name}_dtc_smiles_regr_all.csv'
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -993,10 +998,10 @@ def upload_file_dtc_smiles_regr_all(dset_name, title, description, tags,
 
         uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        print("Uploaded raw dataset with key %s" % dataset_key)
+        print(f"Uploaded raw dataset with key {dataset_key}")
     else:
         uploaded_file = dsf.retrieve_dataset_by_datasetkey(dataset_key, bucket, ds_client, return_metadata=True)
-        print("Raw dataset %s is already in datastore, skipping upload." % dataset_key)
+        print(f"Raw dataset {dataset_key} is already in datastore, skipping upload.")
 
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
@@ -1050,7 +1055,7 @@ def upload_df_dtc_smiles_regr_all_class(dset_name, title, description, tags,
         str: datastore OID of the uploaded dataset.
     """
     bucket = 'public'
-    filename = '%s_dtc_smiles_regr_all_class.csv' % dset_name
+    filename = f'{dset_name}_dtc_smiles_regr_all_class.csv'
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -1084,10 +1089,10 @@ def upload_df_dtc_smiles_regr_all_class(dset_name, title, description, tags,
 
         #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        print("Uploaded raw dataset with key %s" % dataset_key)
+        print(f"Uploaded raw dataset with key {dataset_key}")
     else:
         uploaded_file = dsf.retrieve_dataset_by_datasetkey(dataset_key, bucket, ds_client, return_metadata=True)
-        print("Raw dataset %s is already in datastore, skipping upload." % dataset_key)
+        print(f"Raw dataset {dataset_key} is already in datastore, skipping upload.")
 
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
@@ -1139,7 +1144,7 @@ def upload_file_excape_raw_data(dset_name, title, description, tags,
         str: datastore OID of the uploaded dataset.
     """
     bucket = 'public'
-    filename = '%s_excape.csv' % dset_name
+    filename = f'{dset_name}_excape.csv'
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -1168,10 +1173,10 @@ def upload_file_excape_raw_data(dset_name, title, description, tags,
         #                               override_check=True, return_metadata=True)
         uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        print("Uploaded raw dataset with key %s" % dataset_key)
+        print(f"Uploaded raw dataset with key {dataset_key}")
     else:
         uploaded_file = dsf.retrieve_dataset_by_datasetkey(dataset_key, bucket, ds_client, return_metadata=True)
-        print("Raw dataset %s is already in datastore, skipping upload." % dataset_key)
+        print(f"Raw dataset {dataset_key} is already in datastore, skipping upload.")
 
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
@@ -1276,7 +1281,7 @@ def upload_df_excape_smiles(dset_name, title, description, tags,
     """
     bucket = 'public'
     #he6: this used to say _dtc_smiles.csv
-    filename = '%s_excape_smiles.csv' % dset_name
+    filename = f'{dset_name}_excape_smiles.csv'
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -1304,10 +1309,10 @@ def upload_df_excape_smiles(dset_name, title, description, tags,
         uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=smiles_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)
         #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        print("Uploaded raw dataset with key %s" % dataset_key)
+        print(f"Uploaded raw dataset with key {dataset_key}")
     else:
         uploaded_file = dsf.retrieve_dataset_by_datasetkey(dataset_key, bucket, ds_client, return_metadata=True)
-        print("Raw dataset %s is already in datastore, skipping upload." % dataset_key)
+        print(f"Raw dataset {dataset_key} is already in datastore, skipping upload.")
 
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
@@ -1416,7 +1421,7 @@ def upload_df_excape_mleqonly(dset_name, title, description, tags,
 
     bucket = 'public'
     #he6: this used to say _dtc_mleqonly.csv
-    filename = '%s_excape_mleqonly.csv' % dset_name
+    filename = f'{dset_name}_excape_mleqonly.csv'
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -1448,10 +1453,10 @@ def upload_df_excape_mleqonly(dset_name, title, description, tags,
 
         #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        print("Uploaded raw dataset with key %s" % dataset_key)
+        print(f"Uploaded raw dataset with key {dataset_key}")
     else:
         uploaded_file = dsf.retrieve_dataset_by_datasetkey(dataset_key, bucket, ds_client, return_metadata=True)
-        print("Raw dataset %s is already in datastore, skipping upload." % dataset_key)
+        print(f"Raw dataset {dataset_key} is already in datastore, skipping upload.")
 
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
@@ -1505,7 +1510,7 @@ def upload_df_excape_mleqonly_class(dset_name, title, description, tags,
     """
     bucket = 'public'
     #he6: this used to say _dtc_mleqonly.csv
-    filename = '%s_excape_mleqonly_class.csv' % dset_name
+    filename = f'{dset_name}_excape_mleqonly_class.csv'
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -1539,10 +1544,10 @@ def upload_df_excape_mleqonly_class(dset_name, title, description, tags,
 
         #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        print("Uploaded raw dataset with key %s" % dataset_key)
+        print(f"Uploaded raw dataset with key {dataset_key}")
     else:
         uploaded_file = dsf.retrieve_dataset_by_datasetkey(dataset_key, bucket, ds_client, return_metadata=True)
-        print("Raw dataset %s is already in datastore, skipping upload." % dataset_key)
+        print(f"Raw dataset {dataset_key} is already in datastore, skipping upload.")
 
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid

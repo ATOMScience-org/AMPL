@@ -1,22 +1,24 @@
 import matplotlib
-matplotlib.use('Agg')
-import pandas as pd
 
+matplotlib.use('Agg')
+import argparse
+import configparser
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from matplotlib.backends.backend_pdf import PdfPages
+from rdkit import Chem
+from rdkit.Chem import Descriptors
+
+import atomsci.ddm.pipeline.chem_diversity as cd
+import atomsci.ddm.pipeline.diversity_plots as dp
+from atomsci.ddm.utils import curate_data
 
 #import custom_config
 from atomsci.ddm.utils import struct_utils as su
-from atomsci.ddm.utils import curate_data
-import atomsci.ddm.pipeline.diversity_plots as dp
-import atomsci.ddm.pipeline.chem_diversity as cd
-from rdkit.Chem import Descriptors
-from rdkit import Chem
-import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
-import numpy as np
-import argparse
 
-import configparser
 
 class CustomConfigParser(configparser.ConfigParser) :
    def __init__(self):
@@ -31,7 +33,7 @@ class CustomConfigParser(configparser.ConfigParser) :
       except configparser.NoOptionError :
           try :
               rval = super().get(self.def_sec,keyval)
-          except Exception:
+          except (configparser.NoOptionError, configparser.NoSectionError):
               rval = None
       return rval
 
@@ -109,7 +111,7 @@ class ActivitySummary:
         """
         r = self.df.iloc[index]
 
-        return '%s_%s.csv'%(r[self.target_name_col], r[self.standard_col])
+        return f'{r[self.target_name_col]}_{r[self.standard_col]}.csv'
 
     def iterrows(self):
         """Accessor function for self.sum_df.iterrows()

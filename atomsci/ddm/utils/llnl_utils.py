@@ -31,7 +31,7 @@ def get_command_output(cmd):
         output: Output of command
     """
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-    (output, err) = p.communicate()
+    (output, _err) = p.communicate()
     p.wait()
     return output.decode('utf-8').rstrip('\n')
 
@@ -69,10 +69,10 @@ def throttle_jobs(max_jobs, retry_time=10, my_username=None, verbose=True):
     if my_username is None:
         my_username = get_my_username()
 
-    command = 'squeue -u %s | wc -l' % my_username
+    command = f'squeue -u {my_username} | wc -l'
     njobs = int(get_command_output(command)) - 1
     while njobs >= max_jobs:
         if verbose:
-            print("%d jobs in queue, sleeping" % njobs)
+            print(f"{njobs} jobs in queue, sleeping")
         time.sleep(retry_time)
         njobs = int(get_command_output(command)) - 1

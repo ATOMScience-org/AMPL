@@ -1,10 +1,12 @@
-import numpy as np
-import uuid
-import scipy.spatial.distance as scipy_distance
 import multiprocessing
-from tqdm import tqdm
 import timeit
-from typing import Any, Callable, List, Tuple, Optional
+import uuid
+from collections.abc import Callable
+from typing import Any
+
+import numpy as np
+import scipy.spatial.distance as scipy_distance
+from tqdm import tqdm
 
 N_PROCS = multiprocessing.cpu_count()
 
@@ -19,11 +21,11 @@ class GeneticAlgorithm:
     """
 
     def __init__(self,
-                init_pop: List[List[Any]],
+                init_pop: list[list[Any]],
                 fitness_func: Callable,
                 crossover_func: Callable,
                 mutate_func: Callable,
-                seed: Optional[int]):
+                seed: int | None):
         """
         Creates a GeneticAlgorithm object
 
@@ -102,7 +104,7 @@ class GeneticAlgorithm:
             self.best_fitness = self.pop_scores[0]
             self.best_solution = self.pop[0]
 
-    def get_best(self) -> Tuple[float,List[Any]]:
+    def get_best(self) -> tuple[float,list[Any]]:
         """ Grade the population and save the scores
 
         Saves the best solution from self.pop and self.pop_scores
@@ -146,7 +148,7 @@ class GeneticAlgorithm:
         self.pop = [chrome for fitness, chrome in pairs]
         self.pop_scores = [fitness for fitness, chrome in pairs]
 
-    def select_parents(self) -> List[List[Any]]:
+    def select_parents(self) -> list[list[Any]]:
         """ Looks at self.pop and chooses parents for the next generation
 
         The method used here uses the top scoring self.num_parents chromosomes
@@ -247,7 +249,7 @@ if __name__ == '__main__':
             new_chromosome = list(chromosome)
             for i, g in enumerate(new_chromosome):
                 if random_state.random() < mutate_chance:
-                    if new_chromosome[i] == 0:
+                    if g == 0:
                         new_chromosome[i] = 1
                     else:
                         new_chromosome[i] = 0
@@ -260,10 +262,10 @@ if __name__ == '__main__':
     for i in range(50):
         ga.step()
         if i % 10 == 0:
-            print('%0.2f'% ga.pop_scores[0])
+            print(f'{ga.pop_scores[0]:0.2f}')
 
     print('target:  ',target_chromosome)
     best_fit = ga.pop_scores[0]
     best = np.array(ga.pop[0])
     print('closets: ', best.astype(int))
-    print('best fitness %0.2f'%best_fit)
+    print(f'best fitness {best_fit:0.2f}')

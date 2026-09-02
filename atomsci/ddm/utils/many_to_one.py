@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def has_nans(df, col):
     total = len(df)
     after = len(df[col].dropna())

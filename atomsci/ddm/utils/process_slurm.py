@@ -1,28 +1,31 @@
 import os
+import shutil
+import socket
+import subprocess
+import sys
+import time
+from datetime import datetime, timezone
 from os import listdir
 from os.path import isfile, join
+
 import pandas as pd
-import sys
-from datetime import datetime
+
 import atomsci.ddm.pipeline.parameter_parser as parse
-import socket
-import shutil
-import subprocess
-import time
+
 
 def run_cmd(cmd):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-    (output, err) = p.communicate()
+    (output, _err) = p.communicate()
     p.wait()
     return output
 
 def run_command(shell_script, python_path, script_dir, params_str):
     params_str = params_str.replace('--descriptor_type mordred ', '--descriptor_type moe ')
-    slurm_command = 'sbatch {0} {1} {2} "{3}"'.format(shell_script, python_path, script_dir, params_str)
+    slurm_command = f'sbatch {shell_script} {python_path} {script_dir} "{params_str}"'
     i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
     print(i)
     while i >= 85:
-        print("%d jobs in queue, sleeping" % i)
+        print(f"{i} jobs in queue, sleeping")
         time.sleep(60)
         i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
     print(slurm_command)
@@ -39,7 +42,7 @@ def move_failed_slurm(output_dirs):
             os.mkdir(canceled_output_dir)
         for filename in files:
             with open(os.path.join(output_dir, filename), 'r') as f:
-                lines = [line.strip() for line in f.readlines()]
+                lines = [line.strip() for line in f]
                 try:
                     if 'Successfully inserted into the database' not in lines[-2]:
                         print(filename)
@@ -47,7 +50,7 @@ def move_failed_slurm(output_dirs):
                             shutil.move(os.path.join(output_dir, filename), os.path.join(failed_output_dir, filename))
                         else:
                             shutil.move(os.path.join(output_dir, filename), os.path.join(canceled_output_dir, filename))
-                except Exception as e:
+                except (OSError, ValueError, IndexError) as e:
                     print(e)
                     print(filename)
 
@@ -57,18 +60,18 @@ def rerun_failed(script_dir, python_path, output_dirs, result_dir):
     hostname = ''.join(list(filter(lambda x: x.isalpha(), socket.gethostname())))
     for output_dir in output_dirs:
         with open(shell_script, 'w') as f:
-            f.write("#!/bin/bash\n#SBATCH -A baasic\n#SBATCH -N 1\n#SBATCH -p partition={0}\n#SBATCH -t 24:00:00"
-                    "\n#SBATCH -p pbatch\n#SBATCH --export=ALL\n#SBATCH -D {1}\n".format(hostname, output_dir))
+            f.write(f"#!/bin/bash\n#SBATCH -A baasic\n#SBATCH -N 1\n#SBATCH -p partition={hostname}\n#SBATCH -t 24:00:00"
+                    f"\n#SBATCH -p pbatch\n#SBATCH --export=ALL\n#SBATCH -D {output_dir}\n")
             f.write('start=`date +%s`\necho $3\n$1 $2/pipeline/model_pipeline.py $3\nend=`date +%s`\n'
                   'runtime=$((end-start))\necho "runtime: " $runtime')
         files = [f for f in listdir(output_dir) if isfile(join(output_dir, f)) and 'slurm' in f]
         for filename in files:
             with open(os.path.join(output_dir, filename), 'r') as f:
-                lines = [line.strip() for line in f.readlines()]
+                lines = [line.strip() for line in f]
                 try:
                     if 'Successfully inserted into the database' not in lines[-2]:
                         run_command(shell_script, python_path, script_dir, lines[0])
-                except Exception as e:
+                except (OSError, ValueError, IndexError) as e:
                     print(e)
                     print(filename)
 
@@ -79,7 +82,7 @@ def get_timings(output_dirs):
         files = [f for f in listdir(output_dir) if isfile(join(output_dir, f)) and 'slurm' in f]
         for filename in files:
             with open(os.path.join(output_dir, filename), 'r') as f:
-                lines = [line.strip() for line in f.readlines()]
+                lines = [line.strip() for line in f]
                 if lines[-2] == 'Successfully inserted into the database.':
                     run_time = lines[-1].split(' ')[-1]
                     num_samples = ''
@@ -90,16 +93,16 @@ def get_timings(output_dirs):
                     try:
                         tmp_dict = parse.wrapper(lines[0].split(' ')).__dict__
                         tmp_dict.update({'run_time': int(run_time), 'num_samples': int(num_samples), 'slurm_file': os.path.join(output_dir, filename)})
-                    except Exception as e:
+                    except (OSError, ValueError, IndexError) as e:
                         print(lines[0])
                         print(e)
                         continue
                     output_stats.append(tmp_dict)
                 else:
-                    print('{} did not work'.format(filename))
+                    print(f'{filename} did not work')
                     print(lines[-2])
     df = pd.DataFrame(output_stats)
-    df.to_csv(os.path.join('/p/lustre1/minnich2/', 'timing_results_{}.csv'.format(datetime.now().strftime("%Y%m%d-%H%M%S"))), index=False)
+    df.to_csv(f'timing_results_{datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")}.csv', index=False)
 
 def main():
     if sys.argv[1] == 'get_timings':

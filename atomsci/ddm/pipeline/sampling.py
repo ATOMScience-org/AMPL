@@ -1,10 +1,13 @@
 """Module used to perform sampling on classification datasets."""
+# deepchem for dataset
+import deepchem as dc
 import numpy as np
+
 # sampling specific libraries 
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
-# deepchem for dataset
-import deepchem as dc
+
+
 # =====================================================================================================
 def apply_sampling_method(train, params, random_state=None, seed=None):
     """

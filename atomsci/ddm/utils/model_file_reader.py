@@ -1,16 +1,18 @@
-import tarfile
-import os
-import json
 import argparse
+import json
+import os
 import sys
+import tarfile
+
 import numpy as np
 from bravado.exception import HTTPNotFound
 
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.utils import datastore_functions as dsf
 
+
 def get_multiple_models_metadata(*args):
-    """A function that takes model tar.gz file(s) and extract the metadata (and if applicable, model metrics)
+    r"""A function that takes model tar.gz file(s) and extract the metadata (and if applicable, model metrics)
 
     Args:
         \*args: Variable length argument list of model tar.gz file(s)
@@ -27,8 +29,8 @@ def get_multiple_models_metadata(*args):
         try:
             metadata = ModelFileReader(arg).get_model_info()
             metadata_list.append(metadata)
-        except (IOError, KeyError):
-            raise IOError("Problem access the file(s) or not AMPL model tarball(s).")
+        except (OSError, KeyError):
+            raise OSError("Problem access the file(s) or not AMPL model tarball(s).")
             
     return metadata_list
     
@@ -58,7 +60,7 @@ class ModelFileReader:
         if os.path.isdir(data_file_path):
             self.metadata_path = os.path.join(self.model_path, 'model_metadata.json')
             if not os.path.exists(self.metadata_path):
-                raise IOError(f"Could not find 'model_metadata.json' from {self.metadata_path}")
+                raise OSError(f"Could not find 'model_metadata.json' from {self.metadata_path}")
             
             with open(self.metadata_path, 'r') as data_file:
                 self.metadata_dict = json.load(data_file)
@@ -288,16 +290,16 @@ class ModelFileReader:
         Returns:
             a dictionary of the most important model parameters and metrics.
         """
-        model_dict = dict(
-            model_path = self.model_path,
-            model_uuid = self.pparams.model_uuid,
-            model_type = self.pparams.model_type,
-            pred_type = self.pparams.prediction_type,
-            response_cols ='; '.join(self.pparams.response_cols),
-            dataset_key = self. pparams.dataset_key,
-            splitter = self.pparams.splitter,
-            featurizer = self.pparams.featurizer,
-            )
+        model_dict = {
+            "model_path": self.model_path,
+            "model_uuid": self.pparams.model_uuid,
+            "model_type": self.pparams.model_type,
+            "pred_type": self.pparams.prediction_type,
+            "response_cols": '; '.join(self.pparams.response_cols),
+            "dataset_key": self. pparams.dataset_key,
+            "splitter": self.pparams.splitter,
+            "featurizer": self.pparams.featurizer,
+            }
         
         if self.pparams.featurizer in ['computed_descriptors', 'descriptors']:
             model_dict['features'] = self.pparams.descriptor_type

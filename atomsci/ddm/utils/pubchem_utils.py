@@ -1,8 +1,9 @@
-import urllib.request as urlreq
 import io
 import json
-import pandas as pd
+import urllib.request as urlreq
+from urllib.error import HTTPError, URLError
 
+import pandas as pd
 
 
 # ******************************************************************************************************************************************
@@ -38,7 +39,7 @@ def download_smiles(myList,intv=1) :
         try :
             response = urlreq.urlopen(url)
             html = response.read()
-        except Exception :
+        except (URLError, HTTPError, ValueError, OSError) :
             fail_lst.append(inchikey)
             continue
         f=io.BytesIO(html)
@@ -94,7 +95,7 @@ def download_bioactivity_assay(myList,intv=1) :
         try :
             response = urlreq.urlopen(url)
             html = response.read()
-        except Exception :
+        except (URLError, HTTPError, ValueError, OSError) :
             fail_lst.append(inchikey)
             continue
         f=io.BytesIO(html)
@@ -137,7 +138,7 @@ def download_SID_from_bioactivity_assay(bioassayid) :
         try :
             response = urlreq.urlopen(url)
             html = response.read()
-        except Exception:
+        except (URLError, HTTPError, ValueError, OSError):
             fail_lst.append(inchikey)
             continue
         f=io.BytesIO(html)
@@ -184,7 +185,7 @@ def download_dose_response_from_bioactivity(aid,sidlst) :
         try :
             response = urlreq.urlopen(url)
             html = response.read()
-        except Exception:
+        except (URLError, HTTPError, ValueError, OSError):
             fail_lst.append(inchikey)
             continue
         f=io.BytesIO(html)
@@ -228,7 +229,7 @@ def download_activitytype(aid,sid) :
         try :
             response = urlreq.urlopen(url)
             html = response.read()
-        except Exception :
+        except (URLError, HTTPError, ValueError, OSError) :
             fail_lst.append(inchikey)
             continue
         f=io.BytesIO(html)

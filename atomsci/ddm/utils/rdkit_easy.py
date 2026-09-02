@@ -1,21 +1,15 @@
 """Utilities for clustering and visualizing compound structures using RDKit."""
 # Mostly written by Logan Van Ravenswaay, with additions and edits by Ben Madej and Kevin McLoughlin.
 
-import os
-
-from IPython.display import HTML, display
-from base64 import b64encode
 import io
-
 import logging
+import os
+from base64 import b64encode
 
 import pandas as pd
-from rdkit import DataStructs
-from rdkit import Chem
-from rdkit.Chem import AllChem
-from rdkit.Chem import QED
-from rdkit.Chem import Descriptors
-from rdkit.Chem import PandasTools
+from IPython.display import HTML, display
+from rdkit import Chem, DataStructs
+from rdkit.Chem import QED, AllChem, Descriptors, PandasTools
 from rdkit.Chem.Draw import MolToImage, rdMolDraw2D
 from rdkit.ML.Cluster import Butina
 from rdkit.ML.Descriptors import MoleculeDescriptors
@@ -295,7 +289,7 @@ def mol_to_html(mol, highlight=None, name='', type='svg', directory='rdkit_svg',
         return f"<img src='{data_url}' style='width:{width}px;'>" 
     
     else:
-        img_file = '%s/%s' % (directory, name)
+        img_file = f'{directory}/{name}'
         os.makedirs(directory, exist_ok=True)
         if type.lower() == 'png':
             save_png(mol, img_file, size=(width,height), highlight=highlight)
