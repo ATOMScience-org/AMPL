@@ -201,7 +201,6 @@ class SplitStats:
         Args:
             n_bins (int): Number of bins spanning [0, 1]. Defaults to 10.
             ax (matploblib Axes): Axes object to draw plot in. If None, one will be created.
-            palette (str): Color palette for the histogram.
 
         Returns:
             ax (matploblib Axes): Axes object for plot
@@ -211,9 +210,9 @@ class SplitStats:
             raise ValueError(f"n_bins must be 10 or 20.")
         bin_edges = np.linspace(0, 1, n_bins + 1)
 
-        ax = sns.histplot(data = self.fold_dists, x = 'distance', hue = 'fold',
+        ax = sns.histplot(data = self.fold_dists, x = 'distance', hue = 'fold', palette='colorblind',
                           bins = bin_edges, stat='probability', common_norm = False,
-                          multiple = 'layer', fill = True, alpha = 0.6,
+                          multiple = 'layer', fill = True, alpha = 0.3,
                           edgecolor = 'black', ax = ax)
         ax.set_xlabel('Tanimoto distance',fontsize=13)
         ax.set_ylabel('Proportion of compounds',fontsize=13)
