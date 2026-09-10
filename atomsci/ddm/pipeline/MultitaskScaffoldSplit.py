@@ -2,6 +2,7 @@ import argparse
 import logging
 import tempfile
 from functools import partial
+from typing import List, Optional, Set, Tuple
 
 import deepchem as dc
 import numpy as np
