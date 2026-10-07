@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 
-import json
-import numpy as np
 import pandas as pd
 import os
 import sys
 import shutil
-import glob
 
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
-import atomsci.ddm.utils.curate_data as curate_data
-import atomsci.ddm.utils.struct_utils as struct_utils
-import atomsci.ddm.pipeline.predict_from_model as pfm
-from atomsci.ddm.utils.query_by_committee import query_by_committee_regression
+import atomsci.ddm.pipeline.compare_models as cm
+from atomsci.ddm.utils.query_by_committee import (
+    query_by_committee_regression,
+    plot_qbc_overview,
+    select_high_pred_high_certainty,
+    select_high_pred_medium_certainty,
+    select_diverse_subset,
+    QBCColumns,
+)
 from atomsci.ddm.utils.query_by_committee_utils import (
     add_murcko_scaffolds,
     cluster_by_scaffold,
@@ -22,11 +24,6 @@ from atomsci.ddm.utils.query_by_committee_utils import (
     scorer_most_active,
     scorer_pred_minus_k_std,
     plot_scaffold_prediction_uncertainty,
-    plot_qbc_overview,
-    select_high_pred_high_certainty,
-    select_high_pred_medium_certainty,
-    select_diverse_subset,
-    QBCColumns,
 )
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -44,78 +41,59 @@ def clean():
         shutil.rmtree('predict')
 
 
-def curate_mrp3():
-    """Curate MRP3 dataset for model fitting"""
-    if not os.path.isfile('MRP3_curated.csv'):
-        raw_df = pd.read_csv('MRP3_dataset.csv')
-
-        raw_df['base_rdkit_smiles'] = raw_df['rdkit_smiles'].apply(curate_data.base_smiles_from_smiles)
-
-        curated_df = curate_data.remove_outlier_replicates(raw_df, id_col='compound_id',
-                                        response_col='pIC50',
-                                        max_diff_from_median=1.0)
-
-        curated_df = curate_data.aggregate_assay_data(curated_df, 
-                                    value_col='pIC50',
-                                    output_value_col='avg_pIC50',
-                                    id_col='compound_id',
-                                    smiles_col='base_rdkit_smiles',
-                                    relation_col='fixed_relation',
-                                    label_actives=False,
-                                    verbose=True
-                                )
-
-        curated_df.to_csv('MRP3_curated.csv')
-
-    assert (os.path.isfile('MRP3_curated.csv'))
-
-
 def train_models(num_models=5):
     """Train multiple RF models with different seeds"""
     model_paths = []
     base_result_dir = 'result/mrp3_qbc'
 
-    for i in range(num_models):
-        seed = str(i * 42)
-        result_dir = f'{base_result_dir}_seed_{seed}'
+    # Check if there are already enough trained models
+    results_df = cm.get_filesystem_perf_results(base_result_dir,
+                                                  pred_type='regression')
+    if len(results_df) > num_models:
+        model_paths = results_df['model_path'].values[:num_models]
+    else:
+        num_needed_models = num_models-len(results_df)
 
-        params = {
-            "prediction_type": "regression",
-            "dataset_key": "./MRP3_curated.csv",
-            "id_col": "compound_id",
-            "smiles_col": "base_rdkit_smiles",
-            "response_cols": "avg_pIC50",
-            "previously_split": "False",
-            "splitter": "random",
-            "split_valid_frac": "0.15",
-            "split_test_frac": "0.15",
-            "featurizer": "computed_descriptors",
-            "descriptor_type": "rdkit_raw",
-            "model_type": "RF",
-            "seed": seed,
-            "transformers": "True",
-            "rerun": "False",
-            "result_dir": result_dir,
-            "rf_estimators": "100",
-        }
+        for i in range(num_needed_models):
+            seed = str(i * 42)
+            result_dir = f'{base_result_dir}_seed_{seed}'
 
-        ampl_param = parse.wrapper(params)
-        pl = mp.ModelPipeline(ampl_param)
-        pl.train_model()
+            params = {
+                "prediction_type": "regression",
+                "dataset_key": "../../test_datasets/MRP3_dataset.csv",
+                "id_col": "compound_id",
+                "smiles_col": "rdkit_smiles",
+                "response_cols": "pIC50",
+                "previously_split": "False",
+                "splitter": "random",
+                "split_valid_frac": "0.15",
+                "split_test_frac": "0.15",
+                "featurizer": "computed_descriptors",
+                "descriptor_type": "rdkit_raw",
+                "model_type": "RF",
+                "seed": seed,
+                "transformers": "True",
+                "result_dir": result_dir,
+                "rf_estimators": "100",
+            }
 
-        uuid = integrative_utilities.get_subdirectory(result_dir)
-        model_path = os.path.join(result_dir, uuid, f'MRP3_curated_model_{uuid}.tar.gz')
-        model_paths.append(model_path)
+            ampl_param = parse.wrapper(params)
+            pl = mp.ModelPipeline(ampl_param)
+            pl.train_model()
+
+        results_df = cm.get_filesystem_perf_results(base_result_dir,
+                                                    pred_type='regression')
+        model_paths = results_df['model_path'].values[:num_models]
 
     return model_paths
 
 
 def load_test_data():
     """Load test data and prepare input dataframes for QBC"""
-    test_df = pd.read_csv('MRP3_curated.csv')
+    test_df = pd.read_csv('../../test_datasets/MRP3_dataset.csv')
 
-    raw_df = test_df[['compound_id', 'base_rdkit_smiles', 'avg_pIC50']].copy()
-    raw_df = raw_df.rename(columns={'avg_pIC50': 'avg_pIC50_actual'})
+    raw_df = test_df[['compound_id', 'rdkit_smiles', 'pIC50']].copy()
+    raw_df = raw_df.rename(columns={'pIC50': 'pIC50_actual'})
 
     desc_path = os.path.join(
         os.path.dirname(__file__),
@@ -140,15 +118,15 @@ def test_query_by_committee_regression():
     """Test the main query_by_committee_regression function"""
     print("Testing query_by_committee_regression...")
 
-    model_paths = train_models(5)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(5)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
         dedupe='first',
         disagreement_metric='committee_std',
@@ -167,8 +145,8 @@ def test_query_by_committee_regression():
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
         return_long=True,
     )
@@ -186,23 +164,23 @@ def test_add_murcko_scaffolds():
     """Test add_murcko_scaffolds function"""
     print("Testing add_murcko_scaffolds...")
 
-    model_paths = train_models(3)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(3)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
     )
 
-    df_with_scaffold = add_murcko_scaffolds(wide_df, smiles_col='base_rdkit_smiles')
+    df_with_scaffold = add_murcko_scaffolds(wide_df, smiles_col='rdkit_smiles')
     assert 'murcko_scaffold' in df_with_scaffold.columns
     assert df_with_scaffold['murcko_scaffold'].notna().sum() > 0
 
-    df_generic = add_murcko_scaffolds(wide_df, smiles_col='base_rdkit_smiles', generic=True)
+    df_generic = add_murcko_scaffolds(wide_df, smiles_col='rdkit_smiles', generic=True)
     assert 'murcko_scaffold' in df_generic.columns
 
     print("  add_murcko_scaffolds PASSED")
@@ -212,19 +190,19 @@ def test_cluster_by_scaffold():
     """Test cluster_by_scaffold function"""
     print("Testing cluster_by_scaffold...")
 
-    model_paths = train_models(3)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(3)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
     )
 
-    wide_df = add_murcko_scaffolds(wide_df, smiles_col='base_rdkit_smiles')
+    wide_df = add_murcko_scaffolds(wide_df, smiles_col='rdkit_smiles')
     clusters = cluster_by_scaffold(wide_df, scaffold_col='murcko_scaffold', id_col='compound_id')
 
     assert isinstance(clusters, dict)
@@ -241,19 +219,19 @@ def test_scaffold_summary():
     """Test scaffold_summary function"""
     print("Testing scaffold_summary...")
 
-    model_paths = train_models(3)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(3)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
     )
 
-    wide_df = add_murcko_scaffolds(wide_df, smiles_col='base_rdkit_smiles')
+    wide_df = add_murcko_scaffolds(wide_df, smiles_col='rdkit_smiles')
     summary = scaffold_summary(wide_df, scaffold_col='murcko_scaffold', pred_col='committee_mean_pred', std_col='committee_std')
 
     assert 'murcko_scaffold' in summary.columns
@@ -269,19 +247,19 @@ def test_pick_one_per_scaffold():
     """Test pick_one_per_scaffold function"""
     print("Testing pick_one_per_scaffold...")
 
-    model_paths = train_models(3)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(3)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
     )
 
-    wide_df = add_murcko_scaffolds(wide_df, smiles_col='base_rdkit_smiles')
+    wide_df = add_murcko_scaffolds(wide_df, smiles_col='rdkit_smiles')
 
     picked = pick_one_per_scaffold(
         wide_df,
@@ -312,15 +290,15 @@ def test_scorer_most_active():
     """Test scorer_most_active function"""
     print("Testing scorer_most_active...")
 
-    model_paths = train_models(3)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(3)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
     )
 
@@ -335,15 +313,15 @@ def test_scorer_pred_minus_k_std():
     """Test scorer_pred_minus_k_std function"""
     print("Testing scorer_pred_minus_k_std...")
 
-    model_paths = train_models(3)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(3)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
     )
 
@@ -361,15 +339,15 @@ def test_select_high_pred_high_certainty():
     """Test select_high_pred_high_certainty function"""
     print("Testing select_high_pred_high_certainty...")
 
-    model_paths = train_models(3)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(3)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
     )
 
@@ -394,15 +372,15 @@ def test_select_high_pred_medium_certainty():
     """Test select_high_pred_medium_certainty function"""
     print("Testing select_high_pred_medium_certainty...")
 
-    model_paths = train_models(3)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(3)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
     )
 
@@ -427,25 +405,25 @@ def test_select_diverse_subset():
     """Test select_diverse_subset function"""
     print("Testing select_diverse_subset...")
 
-    model_paths = train_models(3)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(3)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
     )
 
-    wide_df = add_murcko_scaffolds(wide_df, smiles_col='base_rdkit_smiles')
+    wide_df = add_murcko_scaffolds(wide_df, smiles_col='rdkit_smiles')
     wide_df['selection_score'] = wide_df['committee_mean_pred']
 
     selected = select_diverse_subset(
         wide_df,
         n=10,
-        smiles_col='base_rdkit_smiles',
+        smiles_col='rdkit_smiles',
         score_col='selection_score',
         id_col='compound_id',
         max_candidates=1000,
@@ -463,15 +441,15 @@ def test_plot_qbc_overview():
     """Test plot_qbc_overview function"""
     print("Testing plot_qbc_overview...")
 
-    model_paths = train_models(3)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(3)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
     )
 
@@ -487,19 +465,19 @@ def test_plot_scaffold_prediction_uncertainty():
     """Test plot_scaffold_prediction_uncertainty function"""
     print("Testing plot_scaffold_prediction_uncertainty...")
 
-    model_paths = train_models(3)
     input_dfs, raw_df = load_test_data()
+    model_paths = train_models(3)
 
     wide_df = query_by_committee_regression(
         model_paths=model_paths,
         input_dfs=input_dfs,
         id_col='compound_id',
-        smiles_col='base_rdkit_smiles',
-        predicted_response='avg_pIC50',
+        smiles_col='rdkit_smiles',
+        predicted_response='pIC50',
         base='intersection',
     )
 
-    wide_df = add_murcko_scaffolds(wide_df, smiles_col='base_rdkit_smiles')
+    wide_df = add_murcko_scaffolds(wide_df, smiles_col='rdkit_smiles')
 
     fig = plot_scaffold_prediction_uncertainty(
         wide_df,
