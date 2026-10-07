@@ -441,9 +441,7 @@ class ModelDataset:
                 self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
-            except AssertionError:
-                raise
-            except Exception as e:  # noqa: BLE001
+            except FileNotFoundError as e:
                 self.log.debug(f"Exception when trying to load featurized data:\n{e!s}")
                 self.log.info(f"Featurized dataset not previously saved for dataset {self.dataset_name}, creating new")
         else:
