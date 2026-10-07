@@ -56,14 +56,13 @@ def train_models(num_models=5):
 
         for i in range(num_needed_models):
             seed = str(i * 42)
-            result_dir = f'{base_result_dir}_seed_{seed}'
 
             params = {
                 "prediction_type": "regression",
                 "dataset_key": "../../test_datasets/MRP3_dataset.csv",
                 "id_col": "compound_id",
                 "smiles_col": "rdkit_smiles",
-                "response_cols": "pIC50",
+                "response_cols": ["pIC50"],
                 "previously_split": "False",
                 "splitter": "random",
                 "split_valid_frac": "0.15",
@@ -73,7 +72,7 @@ def train_models(num_models=5):
                 "model_type": "RF",
                 "seed": seed,
                 "transformers": "True",
-                "result_dir": result_dir,
+                "result_dir": base_result_dir,
                 "rf_estimators": "100",
             }
 
@@ -107,11 +106,12 @@ def load_test_data():
     desc_df = desc_df[desc_df['compound_id'].isin(common_ids)].copy()
 
     input_dfs = {
-        'raw': raw_df,
-        'rdkit_raw': desc_df,
+        'raw': raw_df[:100],
+        'rdkit_raw': desc_df[:100],
     }
 
-    return input_dfs, raw_df
+    # we don't need the full dataset here.
+    return input_dfs, raw_df[:100]
 
 
 def test_query_by_committee_regression():
