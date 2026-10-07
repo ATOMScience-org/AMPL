@@ -1,22 +1,23 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from pathlib import Path
 import re
+from collections.abc import Callable
+from dataclasses import dataclass
 from functools import reduce
-from typing import Callable, Literal, List, Optional, Tuple, Union, Dict
+from pathlib import Path
+from typing import Literal
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+from rdkit import Chem, DataStructs
+from rdkit.Chem import AllChem
 
 import atomsci.ddm.pipeline.predict_from_model as pfm
 from atomsci.ddm.utils.model_file_reader import ModelFileReader
 
-from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem
 
-def _sanitize_model_key(model_path: Union[str, Path]) -> str:
+def _sanitize_model_key(model_path: str | Path) -> str:
     base_name = Path(model_path).name
     base_name = base_name[base_name.rfind("_") + 1 : base_name.rfind(".tar.gz")]
     match = re.search(r"([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})", base_name)
@@ -27,8 +28,8 @@ def _sanitize_model_key(model_path: Union[str, Path]) -> str:
 
 def _infer_response_columns(
     pred_df: pd.DataFrame,
-    response_col: Optional[str],
-) -> Tuple[str, str, Optional[str], Optional[str]]:
+    response_col: str | None,
+) -> tuple[str, str, str | None, str | None]:
     if response_col is not None:
         resp = response_col
         pred_col = f"{resp}_pred"
@@ -64,10 +65,10 @@ def _dedupe(df: pd.DataFrame, id_col: str, how: str) -> pd.DataFrame:
 
 
 def _choose_input_df_for_model(
-    model_path: Union[str, Path],
-    input_dfs: Dict[str, pd.DataFrame],
+    model_path: str | Path,
+    input_dfs: dict[str, pd.DataFrame],
     raw_df_key: str,
-) -> Tuple[pd.DataFrame, bool, str]:
+) -> tuple[pd.DataFrame, bool, str]:
     """
     Returns:
         selected_df, is_featurized, source_key
@@ -83,12 +84,12 @@ def _choose_input_df_for_model(
     return input_dfs[raw_df_key], False, raw_df_key
 
 def query_by_committee_regression(
-    model_paths: List[Union[str, Path]],
-    input_dfs: Dict[str, pd.DataFrame],
+    model_paths: list[str | Path],
+    input_dfs: dict[str, pd.DataFrame],
     id_col: str = "compound_id",
     smiles_col: str = "rdkit_smiles",
-    predicted_response: Optional[str] = None,
-    predict_fn: Optional[Callable[..., pd.DataFrame]] = None,
+    predicted_response: str | None = None,
+    predict_fn: Callable[..., pd.DataFrame] | None = None,
     base: str = "intersection",
     dedupe: str = "first",
     disagreement_metric: str = "committee_std",
@@ -96,7 +97,7 @@ def query_by_committee_regression(
     return_long: bool = False,
     raw_df_key: str = "raw",
     **predict_kwargs,
-) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
+) -> pd.DataFrame | tuple[pd.DataFrame, pd.DataFrame]:
     """
     Query-by-committee for regression using a list of saved models and multiple possible input dataframes.
 
@@ -126,10 +127,10 @@ def query_by_committee_regression(
     base_df = input_dfs[raw_df_key][[id_col, smiles_col]].copy()
     base_df = base_df.drop_duplicates(subset=[id_col], keep="first")
 
-    per_model_wide_parts: List[pd.DataFrame] = []
-    long_parts: List[pd.DataFrame] = []
-    resp_name_global: Optional[str] = None
-    actual_col_global: Optional[str] = None
+    per_model_wide_parts: list[pd.DataFrame] = []
+    long_parts: list[pd.DataFrame] = []
+    resp_name_global: str | None = None
+    actual_col_global: str | None = None
 
     # Compute intersection IDs across all model-relevant input sources
     intersection_ids = set(base_df[id_col].dropna().tolist())
@@ -315,7 +316,7 @@ def select_high_pred_high_certainty(
     df: pd.DataFrame,
     *,
     n: int = 48,
-    cols: QBCColumns = QBCColumns(),
+    cols: QBCColumns | None = None,
     id_col: str = "compound_id",
     uncertainty_mode: UncertaintyMode = "combined",
     uncertainty_col: str = "uncertainty",
@@ -340,6 +341,9 @@ def select_high_pred_high_certainty(
 
     If filters are too strict to yield n, it will expand the pool up to max_pool.
     """
+    if cols is None:
+        cols = QBCColumns()
+
     if cols.pred not in df.columns:
         raise KeyError(f"Missing required column: {cols.pred}")
     if id_col not in df.columns:
@@ -397,13 +401,13 @@ def select_high_pred_medium_certainty(
     df: pd.DataFrame,
     *,
     n: int = 48,
-    cols: QBCColumns = QBCColumns(),
+    cols: QBCColumns | None = None,
     id_col: str = "compound_id",
     uncertainty_mode: UncertaintyMode = "combined",
     uncertainty_col: str = "uncertainty",
     # “High prediction” and “medium certainty” definitions (global quantiles)
     pred_min_quantile: float = 0.95,
-    unc_band: Tuple[float, float] = (0.20, 0.60),
+    unc_band: tuple[float, float] = (0.20, 0.60),
     pool_mult: int = 500,
     max_pool: int = 200_000,
     alpha: float = 0.7,
@@ -416,6 +420,9 @@ def select_high_pred_medium_certainty(
 
     Ranking still favors higher prediction, but penalizes uncertainty less than strict mode.
     """
+    if cols is None:
+        cols = QBCColumns()
+
     lo_q, hi_q = unc_band
     if not (0.0 <= lo_q < hi_q <= 1.0):
         raise ValueError("unc_band must satisfy 0 <= lo < hi <= 1")
@@ -475,18 +482,21 @@ def select_high_pred_medium_certainty(
 def plot_qbc_overview(
     df: pd.DataFrame,
     *,
-    cols: QBCColumns = QBCColumns(),
+    cols: QBCColumns | None = None,
     uncertainty_mode: UncertaintyMode = "combined",
     uncertainty_col: str = "uncertainty",
     bins: int = 250,
-    clip_quantiles: Tuple[float, float] = (0.001, 0.999),
+    clip_quantiles: tuple[float, float] = (0.001, 0.999),
     log_counts: bool = True,
-    figsize: Tuple[int, int] = (10, 8),
+    figsize: tuple[int, int] = (10, 8),
 ) -> plt.Figure:
     """
     Function 3: scalable visualization of prediction vs uncertainty.
     Uses a 2D histogram (no scatter), suitable for 400k rows.
     """
+    if cols is None:
+        cols = QBCColumns()
+
     if cols.pred not in df.columns:
         raise KeyError(f"Missing required column: {cols.pred}")
 

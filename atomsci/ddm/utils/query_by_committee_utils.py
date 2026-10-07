@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import Callable, Dict, Optional, Tuple
 import hashlib
+from collections.abc import Callable
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-
 from rdkit import Chem
 from rdkit.Chem.Scaffolds import MurckoScaffold
 
@@ -80,7 +79,7 @@ def cluster_by_scaffold(
     id_col: str = "compound_id",
     sort_scaffolds_by_size: bool = True,
     drop_na_scaffold: bool = True,
-) -> Dict[str, pd.DataFrame]:
+) -> dict[str, pd.DataFrame]:
     """
     Return a dict mapping scaffold -> dataframe of compounds in that scaffold.
     """
@@ -234,7 +233,7 @@ def scorer_pred_minus_k_std(
     return pred - k * std
 
 
-def _scaffold_to_color(scaffold: str, cmap_name: str = "tab20") -> Tuple[float, float, float, float]:
+def _scaffold_to_color(scaffold: str, cmap_name: str = "tab20") -> tuple[float, float, float, float]:
     """
     Deterministic scaffold -> color mapping.
     """
@@ -250,11 +249,11 @@ def plot_scaffold_prediction_uncertainty(
     pred_col: str = "committee_mean_pred",
     std_col: str = "committee_std",
     scaffold_col: str = "murcko_scaffold",
-    figsize: Tuple[int, int] = (10, 8),
+    figsize: tuple[int, int] = (10, 8),
     alpha: float = 0.8,
     s: float = 20,
     max_scaffolds_in_legend: int = 25,
-    clip_quantiles: Optional[Tuple[float, float]] = (0.001, 0.999),
+    clip_quantiles: tuple[float, float] | None = (0.001, 0.999),
 ) -> plt.Figure:
     """
     Scatter plot of prediction vs uncertainty, colored by Murcko scaffold.

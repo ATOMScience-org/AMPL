@@ -14,20 +14,19 @@ Output format:
         columns: train, valid, test (configurable)
 """
 
-import os
 import json
+import os
 import tarfile
 import tempfile
-from typing import Callable, Tuple, List, Dict
+from collections.abc import Callable
 
 import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-from atomsci.ddm.utils import file_utils as futils
 import atomsci.ddm.pipeline.perf_plots as pp
 from atomsci.ddm.pipeline import predict_from_model as pfm
-
+from atomsci.ddm.utils import file_utils as futils
 
 MetricFn = Callable[[np.ndarray, np.ndarray], float]
 
@@ -117,7 +116,7 @@ def thresholded_spearmanr(
     return float(np.clip(score, 0.0, 1.0))
 
 
-def predictions_from_model_file(model_path: str) -> Tuple[pd.DataFrame, List[str], Dict]:
+def predictions_from_model_file(model_path: str) -> tuple[pd.DataFrame, list[str], dict]:
     """
     Load a regression model tarball and reproduce the training split assignment,
     then run predict_from_model_file() to produce predictions for all rows.
@@ -223,9 +222,9 @@ def predictions_from_model_file(model_path: str) -> Tuple[pd.DataFrame, List[str
 
 def evaluate_metric_per_subset_df(
     pred_df: pd.DataFrame,
-    response_cols: List[str],
+    response_cols: list[str],
     metric_fn: MetricFn,
-    subsets: Tuple[str, ...] = ("train", "valid", "test"),
+    subsets: tuple[str, ...] = ("train", "valid", "test"),
     dropna: bool = True,
 ) -> pd.DataFrame:
     """
