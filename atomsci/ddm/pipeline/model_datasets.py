@@ -415,7 +415,7 @@ class ModelDataset:
         
         if params is None:
             params = self.params
-        if params.previously_featurized:
+        if params.previously_featurized and (not isinstance(self.featurization, feat.DynamicFeaturization)):
             try:
                 self.log.debug("Attempting to load featurized dataset")
                 featurized_dset_df = self.load_featurized_data()
