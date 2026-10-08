@@ -441,9 +441,7 @@ class ModelDataset:
                 self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
-            except AssertionError:
-                raise
-            except Exception as e:  # noqa: BLE001
+            except (FileNotFoundError, NotImplementedError, MissingSmilesError) as e: 
                 self.log.debug(f"Exception when trying to load featurized data:\n{e!s}")
                 self.log.info(f"Featurized dataset not previously saved for dataset {self.dataset_name}, creating new")
         else:
@@ -1406,33 +1404,79 @@ class FileDataset(ModelDataset):
     def load_featurized_data(self):
         """Loads prefeaturized data from the filesystem. Returns a data frame,
         which is then passed to featurization.extract_prefeaturized_data() for processing.
+        Load cached features, matching dataset rows by SMILES.
+
+        Note about loading cached features:
+        The only descriptors that change randomly are ones that depend on the 3D structure 
+        (some of the MOE and Mordred descriptors; not sure if any of the rdkit descriptors do). 
+        The code that computes an approximate 3D structure is stochastic, so it can produce a 
+        different structure each time you run it. Now that we’re setting RNG seeds everywhere, 
+        this might no longer be an issue, but it’s something to watch out for.
 
         Returns:
             featurized_dset_df (pd.DataFrame): dataframe of the prefeaturized data, needs futher processing
         """
-        # First check to set if dataset already has the feature columns we need
         dset_df = self.load_full_dataset()
         if self.has_all_feature_columns(dset_df):
             self.dataset_key = self.params.dataset_key
             return dset_df
 
-        # Otherwise, generate the expected path for the featurized dataset
-        featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
+        smiles_col = self.params.smiles_col
+
+        featurized_dset_name = self.featurization.get_featurized_dset_name(
+            self.dataset_name
+        )
         dataset_dir = os.path.dirname(self.params.dataset_key)
-        data_dir = os.path.join(dataset_dir, self.featurization.get_featurized_data_subdir())
+        data_dir = os.path.join(
+            dataset_dir,
+            self.featurization.get_featurized_data_subdir(),
+        )
         featurized_dset_path = os.path.join(data_dir, featurized_dset_name)
+
+        # read_csv raises FileNotFoundError if the file does not exist.
         featurized_dset_df = pd.read_csv(featurized_dset_path)
 
-        # check if featurized dset has all the smiles from dset_df
-        dsetsmi=set(dset_df[self.params.smiles_col])
-        featsmi=set(featurized_dset_df[self.params.smiles_col])
-        if not dsetsmi-featsmi==set():
-            raise AssertionError("All of the smiles in your dataset are not represented in your featurized file. You can set previously_featurized to False and your featurized dataset located in the scaled_descriptors directory will be overwritten to include the correct data.")
-        
-        self.dataset_key = featurized_dset_path
-        featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
+        # Check that every dataset SMILES has cached features.
+        missing_smiles = (
+            dset_df.loc[
+                ~dset_df[smiles_col].isin(featurized_dset_df[smiles_col]),
+                smiles_col,
+            ]
+            .drop_duplicates()
+            .tolist()
+        )
+        if missing_smiles:
+            raise MissingSmilesError(
+                f"Featurized dataset {featurized_dset_path!r} is missing "
+                f"{len(missing_smiles)} required SMILES. "
+                f"First 10: {missing_smiles[:10]!r}"
+            )
 
-        return featurized_dset_df
+        # Keep one cached row per SMILES.
+        featurized_dset_df = featurized_dset_df.drop_duplicates(
+            subset=[smiles_col],
+            keep="first",
+        )
+
+        # Only add feature columns that are not already in the dataset.
+        # This gives dset_df precedence for all column collisions.
+        feature_cols = [
+            col
+            for col in self.featurization.get_feature_columns()
+            if col not in dset_df.columns
+        ]
+
+        merged_df = dset_df.merge(
+            featurized_dset_df[[smiles_col] + feature_cols],
+            on=smiles_col,
+            how="inner",
+            sort=False,
+            validate="many_to_one",
+        )
+
+        merged_df[self.params.id_col] = merged_df[self.params.id_col].astype(str)
+
+        return merged_df
 
     # ****************************************************************************************
 
@@ -1636,3 +1680,6 @@ class ClassificationDataException(Exception):
            Errors occur when L > num_classes or L < 0
     """
 
+class MissingSmilesError(ValueError):
+    """Used when smiles are missing from a scaled descriptor csv"""
+    pass
