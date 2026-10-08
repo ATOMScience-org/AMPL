@@ -1682,4 +1682,3 @@ class ClassificationDataException(Exception):
 
 class MissingSmilesError(ValueError):
     """Used when smiles are missing from a scaled descriptor csv"""
-    pass
