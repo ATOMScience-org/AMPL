@@ -1,110 +1,205 @@
-# test_thresholded_spearmanr.py
-#
-# Pytest unit tests targeting full coverage of:
-#   atomsci.ddm.utils.thresholded_spearmanr
-#
-# Key design points:
-# - We stub atomsci submodules that the module under test imports:
-#     atomsci.ddm.utils.file_utils.safe_extract
-#     atomsci.ddm.pipeline.perf_plots.merge_response_cols_from_original
-#     atomsci.ddm.pipeline.predict_from_model.predict_from_model_file
-# - We install these stubs into sys.modules BEFORE importing the module under test,
-#   so the import succeeds even in minimal CI environments.
-# - We then test:
-#     - thresholded_spearmanr() branches and edge cases
-#     - spearmenr_from_file() and thresholded_spearmenr_from_file() wrappers
-#     - _metric_from_file() end-to-end with filesystem and IO monkeypatched
-#
-# Run:
-#   pytest -q
+"""Tests for atomsci.ddm.utils.thresholded_spearmanr.
 
+ATOM dependencies are stubbed before loading the module under test.
+Filesystem tests use temporary datasets, split files, and model archives.
+"""
+
+import importlib.util
 import io
 import json
-import os
 import sys
+import tarfile
 import types
-import importlib
+from pathlib import Path
+from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
 import pytest
-import tarfile
 
 
 MODULE_UNDER_TEST = "atomsci.ddm.utils.thresholded_spearmanr"
+SOURCE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "utils"
+    / "thresholded_spearmanr.py"
+)
 
 
-def _install_stub_atomsci_deps(monkeypatch):
-    """
-    Install stub modules required by atomsci.ddm.utils.thresholded_spearmanr imports.
+@pytest.fixture
+def mod(monkeypatch):
+    """Load the real source module with isolated ATOM dependency stubs."""
+    package_names = (
+        "atomsci",
+        "atomsci.ddm",
+        "atomsci.ddm.utils",
+        "atomsci.ddm.pipeline",
+    )
+    dependency_names = (
+        "atomsci.ddm.utils.file_utils",
+        "atomsci.ddm.pipeline.perf_plots",
+        "atomsci.ddm.pipeline.predict_from_model",
+    )
 
-    We do NOT stub the module under test, we only stub its dependencies that may
-    be unavailable or undesired in unit tests.
-    """
-    # Ensure package hierarchy exists
-    atomsci = sys.modules.get("atomsci") or types.ModuleType("atomsci")
-    ddm = sys.modules.get("atomsci.ddm") or types.ModuleType("atomsci.ddm")
-    utils = sys.modules.get("atomsci.ddm.utils") or types.ModuleType("atomsci.ddm.utils")
-    pipeline = sys.modules.get("atomsci.ddm.pipeline") or types.ModuleType("atomsci.ddm.pipeline")
+    modules = {}
+    for name in package_names + dependency_names:
+        module = types.ModuleType(name)
+        if name in package_names:
+            module.__path__ = []
+        modules[name] = module
+        monkeypatch.setitem(sys.modules, name, module)
 
-    file_utils = types.ModuleType("atomsci.ddm.utils.file_utils")
-    perf_plots = types.ModuleType("atomsci.ddm.pipeline.perf_plots")
-    predict_from_model = types.ModuleType("atomsci.ddm.pipeline.predict_from_model")
+    # Populate parent attributes as well as sys.modules entries.
+    for name, module in modules.items():
+        parent, _, child = name.rpartition(".")
+        if parent:
+            setattr(modules[parent], child, module)
 
-    def safe_extract(_tar, path):
-        # no-op, tests control file placement/reads via monkeypatching open/read_csv/listdir
-        return None
+    def safe_extract(archive, path):
+        # Only metadata is needed from the test-generated archive.
+        member = archive.extractfile("model_metadata.json")
+        assert member is not None
+        with member:
+            (Path(path) / "model_metadata.json").write_bytes(member.read())
 
-    def merge_response_cols_from_original(df, orig_df, id_col, response_cols, **kwargs):
-        # Ensure response cols exist on df by merging from orig_df
-        if all(c in df.columns for c in response_cols):
-            return df
-        return df.merge(orig_df[[id_col] + response_cols], on=id_col, how="left")
-
-    def predict_from_model_file(
-        model_path,
-        df,
-        id_col,
-        smiles_col,
-        response_col,
-        is_featurized,
-        AD_method,
-        dont_standardize,
+    def merge_response_cols_from_original(
+        df, orig_df, *, id_col, response_cols, **kwargs
     ):
-        # Minimal pred_df contract expected by _metric_from_file:
+        missing = [col for col in response_cols if col not in df.columns]
+        if not missing:
+            return df.copy()
+        return df.merge(
+            orig_df[[id_col] + missing],
+            on=id_col,
+            how="left",
+        )
+
+    def predict_from_model_file(model_path, df, *, response_col, **kwargs):
         pred_df = df.copy()
-        if "subset" not in pred_df.columns:
-            pred_df["subset"] = "train"
-        for resp in response_col:
-            pred_df[f"{resp}_actual"] = pred_df[resp]
-            pred_df[f"{resp}_pred"] = pred_df[resp].astype(float) + 1.0
+        for response in response_col:
+            pred_df[f"{response}_actual"] = pred_df[response]
+            pred_df[f"{response}_pred"] = pred_df[response].astype(float) + 1.0
         return pred_df
 
-    file_utils.safe_extract = safe_extract
-    perf_plots.merge_response_cols_from_original = merge_response_cols_from_original
-    predict_from_model.predict_from_model_file = predict_from_model_file
+    modules["atomsci.ddm.utils.file_utils"].safe_extract = Mock(
+        side_effect=safe_extract
+    )
+    modules[
+        "atomsci.ddm.pipeline.perf_plots"
+    ].merge_response_cols_from_original = Mock(
+        side_effect=merge_response_cols_from_original
+    )
+    modules[
+        "atomsci.ddm.pipeline.predict_from_model"
+    ].predict_from_model_file = Mock(side_effect=predict_from_model_file)
 
-    monkeypatch.setitem(sys.modules, "atomsci", atomsci)
-    monkeypatch.setitem(sys.modules, "atomsci.ddm", ddm)
-    monkeypatch.setitem(sys.modules, "atomsci.ddm.utils", utils)
-    monkeypatch.setitem(sys.modules, "atomsci.ddm.pipeline", pipeline)
+    spec = importlib.util.spec_from_file_location(
+        MODULE_UNDER_TEST, SOURCE_PATH
+    )
+    assert spec is not None and spec.loader is not None
 
-    monkeypatch.setitem(sys.modules, "atomsci.ddm.utils.file_utils", file_utils)
-    monkeypatch.setitem(sys.modules, "atomsci.ddm.pipeline.perf_plots", perf_plots)
-    monkeypatch.setitem(sys.modules, "atomsci.ddm.pipeline.predict_from_model", predict_from_model)
-
-
-@pytest.fixture()
-def mod(monkeypatch):
-    _install_stub_atomsci_deps(monkeypatch)
-    if MODULE_UNDER_TEST in sys.modules:
-        del sys.modules[MODULE_UNDER_TEST]
-    return importlib.import_module(MODULE_UNDER_TEST)
+    module = importlib.util.module_from_spec(spec)
+    monkeypatch.setitem(sys.modules, MODULE_UNDER_TEST, module)
+    modules["atomsci.ddm.utils"].thresholded_spearmanr = module
+    spec.loader.exec_module(module)
+    return module
 
 
-# -----------------------
-# thresholded_spearmanr()
-# -----------------------
+def _make_model_environment(
+    monkeypatch,
+    tmp_path,
+    mod,
+    *,
+    prediction_type="regression",
+    featurizer="ecfp",
+    split_count=1,
+    subsets=("train", "train", "valid", "test", "test"),
+):
+    """Create real temporary input files for the stubbed prediction pipeline."""
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    dataset_path = data_dir / "dataset.csv"
+
+    dataset = pd.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5],
+            "smiles": ["C", "CC", "CCC", "CCCC", "CCCCC"],
+            "r1": [0.0, 1.0, 2.0, 3.0, 4.0],
+            "r2": [5.0, 6.0, 7.0, 8.0, 9.0],
+        }
+    )
+    dataset.to_csv(dataset_path, index=False)
+
+    config = {
+        "model_parameters": {
+            "prediction_type": prediction_type,
+            "featurizer": featurizer,
+        },
+        "training_dataset": {
+            "dataset_key": str(dataset_path),
+            "response_cols": ["r1", "r2"],
+            "id_col": "id",
+            "smiles_col": "smiles",
+        },
+        "splitting_parameters": {"split_uuid": "UUID123"},
+    }
+
+    if featurizer in {"descriptors", "computed_descriptors"}:
+        config["descriptor_specific"] = {"descriptor_type": "rdkit"}
+        descriptor_dir = data_dir / "scaled_descriptors"
+        descriptor_dir.mkdir()
+        descriptors = dataset[["id", "smiles"]].copy()
+        descriptors["descriptor_0"] = np.arange(len(dataset), dtype=float)
+        descriptors.to_csv(
+            descriptor_dir / "dataset_with_rdkit_descriptors.csv",
+            index=False,
+        )
+
+    # Use cmpd_id to exercise the loader's split-column rename.
+    split = pd.DataFrame(
+        {
+            "cmpd_id": dataset["id"],
+            "subset": list(subsets),
+        }
+    )
+    for index in range(split_count):
+        split.to_csv(
+            data_dir / f"split_UUID123_{index}.csv",
+            index=False,
+        )
+
+    model_path = tmp_path / "model.tar.gz"
+    metadata = json.dumps(config).encode("utf-8")
+    with tarfile.open(model_path, mode="w:gz") as archive:
+        member = tarfile.TarInfo("model_metadata.json")
+        member.size = len(metadata)
+        archive.addfile(member, io.BytesIO(metadata))
+
+    reload_dir = tmp_path / "reload"
+    reload_dir.mkdir()
+
+    # Replace only this module's tempfile reference, not global tempfile behavior.
+    monkeypatch.setattr(
+        mod,
+        "tempfile",
+        types.SimpleNamespace(
+            mkdtemp=Mock(return_value=str(reload_dir))
+        ),
+    )
+
+    return types.SimpleNamespace(
+        model_path=str(model_path),
+        config=config,
+        dataset=dataset,
+        reload_dir=reload_dir,
+        subsets=list(subsets),
+    )
+
+
+# ---------------------------------------------------------------------------
+# thresholded_spearmanr
+# ---------------------------------------------------------------------------
+
 
 def test_thresholded_spearmanr_shape_mismatch_raises(mod):
     with pytest.raises(ValueError, match="Shapes must match"):
@@ -113,284 +208,518 @@ def test_thresholded_spearmanr_shape_mismatch_raises(mod):
 
 def test_thresholded_spearmanr_bad_nan_policy_raises(mod):
     with pytest.raises(ValueError, match="nan_policy must be"):
-        mod.thresholded_spearmanr([1, 2], [1, 2], threshold=0.0, nan_policy="drop")
-
-
-def test_thresholded_spearmanr_nan_policy_raise_raises_on_nans(mod):
-    with pytest.raises(ValueError, match="NaNs present in inputs"):
         mod.thresholded_spearmanr(
-            [np.nan, 1.0], [0.0, 1.0], threshold=0.0, nan_policy="raise"
+            [1, 2], [1, 2], threshold=0.0, nan_policy="drop"
         )
 
 
-def test_thresholded_spearmanr_nan_policy_omit_all_nan_returns_nan(mod):
-    out = mod.thresholded_spearmanr([np.nan], [np.nan], threshold=0.0, nan_policy="omit")
-    assert np.isnan(out)
+@pytest.mark.parametrize(
+    "y_pred,y_true",
+    [
+        ([np.nan, 1.0], [0.0, 1.0]),
+        ([0.0, 1.0], [np.nan, 1.0]),
+    ],
+)
+def test_thresholded_spearmanr_nan_policy_raise(mod, y_pred, y_true):
+    with pytest.raises(ValueError, match="NaNs present in inputs"):
+        mod.thresholded_spearmanr(
+            y_pred, y_true, threshold=0.0, nan_policy="raise"
+        )
 
 
-def test_thresholded_spearmanr_no_predicted_actives_returns_empty_score(mod):
-    out = mod.thresholded_spearmanr(
+@pytest.mark.parametrize(
+    "y_pred,y_true",
+    [
+        ([], []),
+        ([np.nan], [np.nan]),
+    ],
+)
+def test_thresholded_spearmanr_no_usable_pairs_returns_nan(
+    mod, y_pred, y_true
+):
+    result = mod.thresholded_spearmanr(
+        y_pred, y_true, threshold=0.0, nan_policy="omit"
+    )
+    assert np.isnan(result)
+
+
+def test_thresholded_spearmanr_omits_nan_pairs(mod):
+    result = mod.thresholded_spearmanr(
+        y_pred=[1.0, np.nan, 2.0, 3.0, 100.0],
+        y_true=[1.0, 99.0, 2.0, 3.0, np.nan],
+        threshold=0.0,
+    )
+    assert result == pytest.approx(1.0)
+
+
+def test_thresholded_spearmanr_no_predicted_actives(mod):
+    result = mod.thresholded_spearmanr(
         y_pred=[-1.0, -2.0],
         y_true=[10.0, 11.0],
         threshold=0.0,
         empty_pred_active_score=0.123,
     )
-    assert out == pytest.approx(0.123)
+    assert result == pytest.approx(0.123)
 
 
-def test_thresholded_spearmanr_fp_only_rank_insufficient(mod):
-    # Predicted actives: both, but both are false positives since y_true < threshold.
-    out = mod.thresholded_spearmanr(
+def test_thresholded_spearmanr_all_false_positives(mod):
+    result = mod.thresholded_spearmanr(
         y_pred=[1.0, 2.0],
         y_true=[-1.0, -2.0],
         threshold=0.0,
-        fp_weight=1.0,
-        min_ranked=3,
     )
-    # fp_rate=1, fp_score=0, no correct actives => rank_score=0, score=0
-    assert out == pytest.approx(0.0)
+    assert result == pytest.approx(0.0)
 
 
-def test_thresholded_spearmanr_rank_term_min_ranked_sets_zero(mod):
-    # Only 2 correctly predicted actives, min_ranked=3 => rank_score=0
-    out = mod.thresholded_spearmanr(
+def test_thresholded_spearmanr_insufficient_correct_actives(mod):
+    result = mod.thresholded_spearmanr(
         y_pred=[1.0, 2.0, -1.0],
         y_true=[1.1, 2.2, -5.0],
         threshold=0.0,
-        fp_weight=0.0,   # isolate rank_score contribution
+        fp_weight=0.0,
         min_ranked=3,
     )
-    assert out == pytest.approx(0.0)
+    assert result == pytest.approx(0.0)
 
 
-def test_thresholded_spearmanr_rank_term_nan_rho_maps_to_half(monkeypatch, mod):
-    # Force spearmanr() to return NaN to hit rank_score=0.5 path.
-    def fake_spearmanr(a, b, nan_policy):
-        return (np.nan, np.nan)
+@pytest.mark.parametrize("nan_policy", ["omit", "raise"])
+def test_thresholded_spearmanr_threshold_is_inclusive(mod, nan_policy):
+    result = mod.thresholded_spearmanr(
+        y_pred=[0.0, 1.0, 2.0],
+        y_true=[0.0, 1.0, 2.0],
+        threshold=0.0,
+        min_ranked=3,
+        nan_policy=nan_policy,
+    )
+    assert result == pytest.approx(1.0)
 
-    monkeypatch.setattr(mod, "spearmanr", fake_spearmanr)
 
-    out = mod.thresholded_spearmanr(
+@pytest.mark.parametrize(
+    "y_true,expected",
+    [
+        ([1.0, 2.0, 3.0], 1.0),
+        ([3.0, 2.0, 1.0], 0.0),
+    ],
+)
+def test_thresholded_spearmanr_rank_mapping(mod, y_true, expected):
+    result = mod.thresholded_spearmanr(
+        y_pred=[1.0, 2.0, 3.0],
+        y_true=y_true,
+        threshold=0.0,
+        fp_weight=0.0,
+    )
+    assert result == pytest.approx(expected)
+
+
+def test_thresholded_spearmanr_nan_rho_maps_to_half(monkeypatch, mod):
+    monkeypatch.setattr(
+        mod, "spearmanr", Mock(return_value=(np.nan, np.nan))
+    )
+    result = mod.thresholded_spearmanr(
         y_pred=[1.0, 2.0, 3.0],
         y_true=[1.0, 2.0, 3.0],
         threshold=0.0,
-        fp_weight=0.0,  # isolate rank_score
-        min_ranked=3,
+        fp_weight=0.0,
     )
-    assert out == pytest.approx(0.5)
+    assert result == pytest.approx(0.5)
 
 
-def test_thresholded_spearmanr_happy_path_scores_in_0_1(mod):
-    # 3 predicted actives, 1 false positive, and perfect rank among correct actives
-    out = mod.thresholded_spearmanr(
+@pytest.mark.parametrize("fp_weight", [0.0, 1.0, 3.0])
+def test_thresholded_spearmanr_weighted_false_positive_score(mod, fp_weight):
+    result = mod.thresholded_spearmanr(
         y_pred=[10.0, 20.0, 30.0],
-        y_true=[10.0, 20.0, -1.0],  # last is FP
+        y_true=[10.0, 20.0, -1.0],
         threshold=0.0,
-        fp_weight=1.0,
+        fp_weight=fp_weight,
         min_ranked=2,
     )
-    # fp_rate=1/3 => fp_score=2/3
-    # correct actives are first two => rho=1 => rank_score=1
-    expected = ((2 / 3) + 1.0) / 2.0
-    assert out == pytest.approx(expected, rel=1e-6)
-    assert 0.0 <= out <= 1.0
+    # Precision is 2/3; ranking of the two correct actives is perfect.
+    expected = (fp_weight * (2.0 / 3.0) + 1.0) / (fp_weight + 1.0)
+    assert result == pytest.approx(expected)
+    assert 0.0 <= result <= 1.0
 
 
-# -------------------------
-# Wrapper function behavior
-# -------------------------
-
-def test_spearmenr_from_file_len_lt_3_returns_zero(monkeypatch, mod):
-    # Patch _metric_from_file to call metric on a tiny array (<3) to hit len<3 path
-    def fake_metric_from_file(model_path, metric):
-        return {"x_train": metric(np.array([1.0, 2.0]), np.array([2.0, 1.0]))}
-
-    monkeypatch.setattr(mod, "_metric_from_file", fake_metric_from_file)
-
-    out = mod.spearmenr_from_file("dummy.tar.gz")
-    assert out["x_train"] == 0
+# ---------------------------------------------------------------------------
+# evaluate_metric_per_subset_df
+# ---------------------------------------------------------------------------
 
 
-def test_thresholded_spearmenr_from_file_passes_params(monkeypatch, mod):
-    captured = {}
-
-    def fake_metric_from_file(model_path, metric):
-        y_pred = np.array([1.0, 2.0, 3.0])
-        y_true = np.array([1.0, 2.0, 3.0])
-        captured["val"] = metric(y_pred, y_true)
-        return {"task_train": captured["val"]}
-
-    monkeypatch.setattr(mod, "_metric_from_file", fake_metric_from_file)
-
-    out = mod.thresholded_spearmenr_from_file(
-        "dummy.tar.gz",
-        threshold=0.0,
-        fp_weight=0.0,
-        min_ranked=3,
-        empty_pred_active_score=0.9,
-        nan_policy="omit",
-    )
-    # fp_weight=0 isolates rank_score; perfect rank => 1
-    assert out["task_train"] == pytest.approx(1.0)
-
-
-# -------------------------
-# _metric_from_file end-to-end
-# -------------------------
-
-def _fake_environment(
-    monkeypatch,
-    *,
-    prediction_type: str = "regression",
-    featurizer: str = "ecfp",
-    multiple_split: bool = False,
-    no_split: bool = False,
-):
-    """
-    Monkeypatch IO and filesystem behavior used by _metric_from_file:
-      - tarfile.open context manager
-      - open(model_metadata.json)
-      - pd.read_csv for dataset and split
-      - os.listdir and path helpers for split file detection
-    """
-    # Fake tarfile.open
-    class FakeTar:
-        def __enter__(self):  # pragma: no cover
-            return self
-
-        def __exit__(self, exc_type, exc, tb):  # pragma: no cover
-            return False
-
-    monkeypatch.setattr(tarfile, "open", lambda *args, **kwargs: FakeTar())
-
-    config = {
-        "model_parameters": {"prediction_type": prediction_type, "featurizer": featurizer},
-        "training_dataset": {
-            "dataset_key": "/data/dataset.csv",
-            "response_cols": ["r1", "r2"],
-            "id_col": "id",
-            "smiles_col": "smiles",
-        },
-        "splitting_parameters": {"split_uuid": "UUID123"},
-    }
-    if featurizer in ["descriptors", "computed_descriptors"]:
-        config["descriptor_specific"] = {"descriptor_type": "rdkit"}
-
-    meta_text = json.dumps(config)
-
-    def fake_open(path, *args, **kwargs):
-        if path.endswith("model_metadata.json"):
-            return io.StringIO(meta_text)
-        raise FileNotFoundError(path)
-
-    monkeypatch.setattr("builtins.open", fake_open)
-
-    # Path helpers for split file discovery
-    monkeypatch.setattr(os.path, "realpath", lambda p: p)
-    monkeypatch.setattr(os.path, "dirname", lambda p: "/data")
-
-    if no_split:
-        matches = []
-    elif multiple_split:
-        matches = ["split_UUID123_a.csv", "split_UUID123_b.csv"]
-    else:
-        matches = ["split_UUID123.csv"]
-    monkeypatch.setattr(os, "listdir", lambda _p: matches)
-
-    dataset_df = pd.DataFrame(
+@pytest.fixture
+def pred_df():
+    return pd.DataFrame(
         {
-            "id": ["1", "2", "3", "4", "5"],
-            "smiles": ["C", "CC", "CCC", "CCCC", "CCCCC"],
-            "r1": [0.0, 1.0, 2.0, 3.0, 4.0],
-            "r2": [5.0, 6.0, 7.0, 8.0, 9.0],
-        }
-    )
-    split_df = pd.DataFrame(
-        {
-            "id": ["1", "2", "3", "4", "5"],
             "subset": ["train", "train", "valid", "test", "test"],
+            "r1_actual": [1.0, 2.0, 3.0, np.nan, 5.0],
+            "r1_pred": [2.0, 4.0, 6.0, 7.0, np.nan],
+            "r2_actual": [10.0, 20.0, 30.0, 40.0, 50.0],
+            "r2_pred": [9.0, 18.0, 27.0, 36.0, 45.0],
         }
     )
 
-    def fake_read_csv(path, *args, **kwargs):
-        if path.endswith("dataset.csv"):
-            return dataset_df.copy()
-        if "scaled_descriptors" in path:
-            # For descriptor featurizer branch: return a dataset that lacks responses
-            # so merge_response_cols_from_original must add them.
-            return dataset_df[["id", "smiles"]].copy()
-        if "split_UUID123" in path:
-            return split_df.copy()
-        return dataset_df.copy()
 
-    monkeypatch.setattr(pd, "read_csv", fake_read_csv)
+def test_evaluate_metric_per_subset_df_values_and_argument_order(mod, pred_df):
+    def signed_error(y_pred, y_true):
+        assert y_pred.dtype == np.dtype(float)
+        assert y_true.dtype == np.dtype(float)
+        if y_pred.size == 0:
+            return np.nan
+        return float(np.mean(y_pred - y_true))
 
-    return config
-
-
-def test__metric_from_file_classification_raises(monkeypatch, mod):
-    _fake_environment(monkeypatch, prediction_type="classification")
-    with pytest.raises(ValueError, match="regression models"):
-        mod._metric_from_file("dummy.tar.gz", metric_function=lambda y_pred, y_true: 0.0)
-
-
-def test__metric_from_file_no_split_file_raises(monkeypatch, mod):
-    _fake_environment(monkeypatch, no_split=True)
-    # Current implementation selects split[0] without checking, so IndexError is expected.
-    with pytest.raises(IndexError):
-        mod._metric_from_file("dummy.tar.gz", metric_function=lambda y_pred, y_true: 0.0)
+    result = mod.evaluate_metric_per_subset_df(
+        pred_df,
+        ["r1", "r2"],
+        metric_fn=signed_error,
+    )
+    expected = pd.DataFrame(
+        [
+            [1.5, 3.0, np.nan],
+            [-1.5, -3.0, -4.5],
+        ],
+        index=pd.Index(["r1", "r2"], name="response"),
+        columns=["train", "valid", "test"],
+    )
+    pd.testing.assert_frame_equal(result, expected)
 
 
-def test__metric_from_file_multiple_split_files_uses_first(monkeypatch, mod):
-    _fake_environment(monkeypatch, multiple_split=True)
+def test_evaluate_metric_per_subset_df_missing_subset_raises(mod, pred_df):
+    with pytest.raises(KeyError, match="missing required column 'subset'"):
+        mod.evaluate_metric_per_subset_df(
+            pred_df.drop(columns="subset"),
+            ["r1"],
+            metric_fn=lambda y_pred, y_true: 0.0,
+        )
+
+
+@pytest.mark.parametrize("missing_column", ["r1_actual", "r1_pred"])
+def test_evaluate_metric_per_subset_df_missing_response_column_raises(
+    mod, pred_df, missing_column
+):
+    with pytest.raises(KeyError, match="Missing expected columns"):
+        mod.evaluate_metric_per_subset_df(
+            pred_df.drop(columns=missing_column),
+            ["r1"],
+            metric_fn=lambda y_pred, y_true: 0.0,
+        )
+
+
+@pytest.mark.parametrize("dropna", [True, False])
+def test_evaluate_metric_per_subset_df_dropna(mod, pred_df, dropna):
+    metric = Mock(return_value=42.0)
+
+    result = mod.evaluate_metric_per_subset_df(
+        pred_df,
+        ["r1"],
+        metric_fn=metric,
+        subsets=("test",),
+        dropna=dropna,
+    )
+
+    metric.assert_called_once()
+    y_pred, y_true = metric.call_args.args
+    if dropna:
+        assert y_pred.size == y_true.size == 0
+    else:
+        np.testing.assert_allclose(
+            y_pred, [7.0, np.nan], equal_nan=True
+        )
+        np.testing.assert_allclose(
+            y_true, [np.nan, 5.0], equal_nan=True
+        )
+
+    assert result.loc["r1", "test"] == pytest.approx(42.0)
+
+
+def test_evaluate_metric_per_subset_df_custom_order_and_empty_subset(
+    mod, pred_df
+):
+    result = mod.evaluate_metric_per_subset_df(
+        pred_df,
+        ["r2", "r1"],
+        metric_fn=lambda y_pred, y_true: len(y_pred),
+        subsets=("test", "holdout", "train"),
+    )
+    expected = pd.DataFrame(
+        [
+            [2.0, 0.0, 2.0],
+            [0.0, 0.0, 2.0],
+        ],
+        index=pd.Index(["r2", "r1"], name="response"),
+        columns=["test", "holdout", "train"],
+    )
+    pd.testing.assert_frame_equal(result, expected)
+
+
+# ---------------------------------------------------------------------------
+# Convenience wrappers
+# ---------------------------------------------------------------------------
+
+
+def test_metric_from_file_df_loads_predictions(monkeypatch, mod, pred_df):
+    loader = Mock(return_value=(pred_df, ["r1", "r2"], {}))
+    monkeypatch.setattr(mod, "predictions_from_model_file", loader)
+
+    result = mod.metric_from_file_df(
+        "dummy.tar.gz",
+        metric_fn=lambda y_pred, y_true: 42.0,
+    )
+
+    loader.assert_called_once_with("dummy.tar.gz")
+    expected = pd.DataFrame(
+        42.0,
+        index=pd.Index(["r1", "r2"], name="response"),
+        columns=["train", "valid", "test"],
+    )
+    pd.testing.assert_frame_equal(result, expected)
+
+
+@pytest.fixture
+def metric_delegate(monkeypatch, mod):
+    output = pd.DataFrame(
+        {"train": [123.0]},
+        index=pd.Index(["task"], name="response"),
+    )
+    delegate = Mock(return_value=output)
+    monkeypatch.setattr(mod, "metric_from_file_df", delegate)
+    return delegate
+
+
+@pytest.mark.parametrize(
+    "y_pred,y_true,expected",
+    [
+        ([], [], 0.0),
+        ([1.0, 2.0], [2.0, 1.0], 0.0),
+        ([1.0, 2.0, 3.0], [1.0, 2.0, 3.0], 1.0),
+        ([1.0, 2.0, 3.0], [3.0, 2.0, 1.0], -1.0),
+    ],
+)
+def test_spearmanr_from_file_df(
+    monkeypatch, mod, metric_delegate, y_pred, y_true, expected
+):
+    spearman = Mock(wraps=mod.spearmanr)
+    monkeypatch.setattr(mod, "spearmanr", spearman)
+
+    result = mod.spearmanr_from_file_df(
+        "dummy.tar.gz", nan_policy="raise"
+    )
+
+    assert result is metric_delegate.return_value
+    metric_delegate.assert_called_once()
+    model_path, metric_fn = metric_delegate.call_args.args
+    assert model_path == "dummy.tar.gz"
+
+    score = metric_fn(
+        np.asarray(y_pred, dtype=float),
+        np.asarray(y_true, dtype=float),
+    )
+    assert score == pytest.approx(expected)
+
+    if len(y_pred) < 3:
+        spearman.assert_not_called()
+    else:
+        spearman.assert_called_once()
+        assert spearman.call_args.kwargs == {"nan_policy": "raise"}
+
+
+def test_spearmanr_from_file_df_nan_rho_returns_zero(
+    monkeypatch, mod, metric_delegate
+):
+    spearman = Mock(return_value=(np.nan, np.nan))
+    monkeypatch.setattr(mod, "spearmanr", spearman)
+
+    mod.spearmanr_from_file_df("dummy.tar.gz")
+    metric_fn = metric_delegate.call_args.args[1]
+
+    result = metric_fn(
+        np.array([1.0, 2.0, 3.0]),
+        np.array([1.0, 2.0, 3.0]),
+    )
+    assert result == pytest.approx(0.0)
+    spearman.assert_called_once()
+    assert spearman.call_args.kwargs == {"nan_policy": "omit"}
+
+
+def test_thresholded_spearmanr_from_file_df_passes_all_parameters(
+    monkeypatch, mod, metric_delegate
+):
+    metric = Mock(return_value=0.625)
+    monkeypatch.setattr(mod, "thresholded_spearmanr", metric)
+
+    parameters = {
+        "threshold": 2.5,
+        "fp_weight": 3.0,
+        "min_ranked": 4,
+        "empty_pred_active_score": 0.2,
+        "nan_policy": "raise",
+    }
+    result = mod.thresholded_spearmanr_from_file_df(
+        "dummy.tar.gz", **parameters
+    )
+
+    assert result is metric_delegate.return_value
+    metric_delegate.assert_called_once()
+    model_path, metric_fn = metric_delegate.call_args.args
+    assert model_path == "dummy.tar.gz"
+
+    y_pred = np.array([3.0, 4.0, 5.0, 6.0])
+    y_true = np.array([3.1, 4.1, 5.1, 6.1])
+    assert metric_fn(y_pred, y_true) == pytest.approx(0.625)
+
+    metric.assert_called_once()
+    kwargs = metric.call_args.kwargs.copy()
+    assert kwargs.pop("y_pred") is y_pred
+    assert kwargs.pop("y_true") is y_true
+    assert kwargs == parameters
+
+
+# ---------------------------------------------------------------------------
+# predictions_from_model_file and filesystem-backed integration
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "featurizer",
+    ["ecfp", "descriptors", "computed_descriptors"],
+)
+def test_predictions_from_model_file(
+    monkeypatch, tmp_path, mod, featurizer
+):
+    env = _make_model_environment(
+        monkeypatch, tmp_path, mod, featurizer=featurizer
+    )
+
+    result, response_cols, config = mod.predictions_from_model_file(
+        env.model_path
+    )
+
+    assert response_cols == ["r1", "r2"]
+    assert config == env.config
+    assert result["subset"].tolist() == env.subsets
+    assert result["id"].tolist() == ["1", "2", "3", "4", "5"]
+
+    for response in response_cols:
+        np.testing.assert_allclose(
+            result[f"{response}_actual"],
+            env.dataset[response],
+        )
+        np.testing.assert_allclose(
+            result[f"{response}_pred"],
+            env.dataset[response] + 1.0,
+        )
+
+    merge = mod.pp.merge_response_cols_from_original
+    merge.assert_called_once()
+    assert merge.call_args.kwargs == {
+        "id_col": "id",
+        "response_cols": ["r1", "r2"],
+        "max_missing_frac": 0.01,
+        "error_on_extra_feat_ids": False,
+        "coerce_id_to_str": True,
+        "sample_n": 20,
+    }
+
+    is_featurized = featurizer in {"descriptors", "computed_descriptors"}
+    input_df = merge.call_args.args[0]
+    if is_featurized:
+        assert "descriptor_0" in input_df.columns
+        assert not {"r1", "r2"}.intersection(input_df.columns)
+    else:
+        assert {"r1", "r2"}.issubset(input_df.columns)
+
+    predictor = mod.pfm.predict_from_model_file
+    predictor.assert_called_once()
+    assert predictor.call_args.args[0] == env.model_path
+    assert predictor.call_args.kwargs == {
+        "id_col": "id",
+        "smiles_col": "smiles",
+        "response_col": ["r1", "r2"],
+        "is_featurized": is_featurized,
+        "AD_method": None,
+        "dont_standardize": True,
+    }
+
+    mod.futils.safe_extract.assert_called_once()
+    assert mod.futils.safe_extract.call_args.kwargs == {
+        "path": str(env.reload_dir)
+    }
+    mod.tempfile.mkdtemp.assert_called_once_with()
+
+
+def test_predictions_from_model_file_classification_raises(
+    monkeypatch, tmp_path, mod
+):
+    env = _make_model_environment(
+        monkeypatch, tmp_path, mod, prediction_type="classification"
+    )
+
+    with pytest.raises(ValueError, match="only supports regression models"):
+        mod.predictions_from_model_file(env.model_path)
+
+    mod.pfm.predict_from_model_file.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "split_count,expected_exception",
+    [
+        (0, FileNotFoundError),
+        (2, FileExistsError),
+    ],
+)
+def test_predictions_from_model_file_invalid_split_count_raises(
+    monkeypatch, tmp_path, mod, split_count, expected_exception
+):
+    env = _make_model_environment(
+        monkeypatch, tmp_path, mod, split_count=split_count
+    )
+
+    with pytest.raises(expected_exception, match="UUID123"):
+        mod.predictions_from_model_file(env.model_path)
+
+    mod.pfm.predict_from_model_file.assert_not_called()
+
+
+def test_metric_from_file_df_end_to_end(monkeypatch, tmp_path, mod):
+    env = _make_model_environment(monkeypatch, tmp_path, mod)
+
+    result = mod.metric_from_file_df(
+        env.model_path,
+        metric_fn=lambda y_pred, y_true: float(
+            np.mean(np.abs(y_pred - y_true))
+        ),
+    )
+    expected = pd.DataFrame(
+        1.0,
+        index=pd.Index(["r1", "r2"], name="response"),
+        columns=["train", "valid", "test"],
+    )
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_metric_from_file_df_calls_metric_for_empty_subsets(
+    monkeypatch, tmp_path, mod
+):
+    env = _make_model_environment(
+        monkeypatch,
+        tmp_path,
+        mod,
+        subsets=("train",) * 5,
+    )
 
     def metric_fn(y_pred, y_true):
+        if y_pred.size == 0:
+            assert y_true.size == 0
+            return 42.0
         return float(np.mean(np.abs(y_pred - y_true)))
 
-    out = mod._metric_from_file("dummy.tar.gz", metric_function=metric_fn)
-    assert set(out.keys()) == {"r1_train", "r1_valid", "r1_test", "r2_train", "r2_valid", "r2_test"}
-    # Stub predictor sets pred = actual + 1 => MAE = 1
-    assert out["r1_train"] == pytest.approx(1.0)
-    assert out["r2_test"] == pytest.approx(1.0)
-
-
-def test__metric_from_file_descriptor_featurizer_branch(monkeypatch, mod):
-    # Cover featurizer in ['descriptors','computed_descriptors'] path and response merge.
-    _fake_environment(monkeypatch, featurizer="descriptors")
-
-    def metric_fn(y_pred, y_true):
-        return float(np.mean(y_pred - y_true))  # should be 1 with our stub predictor
-
-    out = mod._metric_from_file("dummy.tar.gz", metric_function=metric_fn)
-    assert out["r1_train"] == pytest.approx(1.0)
-    assert out["r2_valid"] == pytest.approx(1.0)
-
-
-def test__metric_from_file_metric_called_with_empty_subset(monkeypatch, mod):
-    _fake_environment(monkeypatch)
-
-    def fake_read_csv(path, *args, **kwargs):
-        if path.endswith("dataset.csv"):
-            return pd.DataFrame(
-                {
-                    "id": ["1", "2", "3"],
-                    "smiles": ["C", "CC", "CCC"],
-                    "r1": [0.0, 1.0, 2.0],
-                    "r2": [5.0, 6.0, 7.0],
-                }
-            )
-        if "split_UUID123" in path:
-            return pd.DataFrame({"id": ["1", "2", "3"], "subset": ["train", "train", "train"]})
-        return pd.DataFrame()
-
-    monkeypatch.setattr(pd, "read_csv", fake_read_csv)
-
-    def metric_fn(y_pred, y_true):
-        if len(y_pred) == 0:
-            return 42.0
-        return 1.0
-
-    out = mod._metric_from_file("dummy.tar.gz", metric_function=metric_fn)
-    assert out["r1_valid"] == pytest.approx(42.0)
-    assert out["r2_test"] == pytest.approx(42.0)
-    assert out["r1_train"] == pytest.approx(1.0)
+    result = mod.metric_from_file_df(
+        env.model_path,
+        metric_fn=metric_fn,
+    )
+    expected = pd.DataFrame(
+        [
+            [1.0, 42.0, 42.0],
+            [1.0, 42.0, 42.0],
+        ],
+        index=pd.Index(["r1", "r2"], name="response"),
+        columns=["train", "valid", "test"],
+    )
+    pd.testing.assert_frame_equal(result, expected)
