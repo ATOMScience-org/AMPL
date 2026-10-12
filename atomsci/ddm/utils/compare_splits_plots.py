@@ -207,7 +207,7 @@ class SplitStats:
         """
         self._require_kfold()
         if n_bins not in self._kfold_bins:
-            raise ValueError(f"n_bins must be 10 or 20.")
+            raise ValueError("n_bins must be 10 or 20.")
         bin_edges = np.linspace(0, 1, n_bins + 1)
 
         ax = sns.histplot(data = self.fold_dists, x = 'distance', hue = 'fold', palette='colorblind',

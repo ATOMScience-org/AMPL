@@ -2,7 +2,6 @@ import argparse
 import logging
 import tempfile
 from functools import partial
-from typing import List, Optional, Set, Tuple
 
 import deepchem as dc
 import numpy as np
@@ -838,9 +837,9 @@ class MultitaskScaffoldSplitter(Splitter):
 
     def train_valid_test_split(self, 
             dataset: Dataset,
-            train_dir: Optional[str] = None,
-            valid_dir: Optional[str] = None,
-            test_dir: Optional[str] = None,
+            train_dir: str | None = None,
+            valid_dir: str | None = None,
+            test_dir: str | None = None,
             frac_train: float = 0.8,
             frac_valid: float = 0.1,
             frac_test: float = 0.1,
