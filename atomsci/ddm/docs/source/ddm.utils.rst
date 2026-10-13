@@ -102,9 +102,36 @@ ddm.utils.split\_response\_dist\_plots module
    :show-inheritance:
 
 ddm.utils.struct\_utils module
-------------------------------
+-----------------------------
 
 .. automodule:: ddm.utils.struct_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+ddm.utils.thresholded\_spearmanr module
+---------------------------------------
+
+.. automodule:: ddm.utils.thresholded_spearmanr
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+ddm.utils.query\_by\_committee module
+------------------------------------
+
+.. automodule:: ddm.utils.query_by_committee
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+ddm.utils.query\_by\_committee\_utils module
+--------------------------------------------
+
+.. automodule:: ddm.utils.query_by_committee_utils
    :members:
    :undoc-members:
    :show-inheritance:
