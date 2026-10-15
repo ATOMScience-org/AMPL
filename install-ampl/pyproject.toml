@@ -2,7 +2,7 @@
 [project]
 name = "atomsci-ampl"
 description = "ATOM Modeling PipeLine"
-version = "1.8.0"
+version = "1.8.1"
 requires-python = ">=3.9,<3.12"
 
 # NOTE:
