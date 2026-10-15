@@ -76,6 +76,14 @@ ddm.utils.model\_version\_utils module
    :undoc-members:
    :show-inheritance:
 
+ddm.utils.patch\_model\_dataset\_key module
+-------------------------------------------
+
+.. automodule:: ddm.utils.patch_model_dataset_key
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ddm.utils.pubchem\_utils module
 -------------------------------
 
@@ -102,7 +110,7 @@ ddm.utils.split\_response\_dist\_plots module
    :show-inheritance:
 
 ddm.utils.struct\_utils module
------------------------------
+------------------------------
 
 .. automodule:: ddm.utils.struct_utils
    :members:
