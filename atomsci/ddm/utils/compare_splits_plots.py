@@ -81,33 +81,56 @@ class SplitStats:
         self.fold_dists = None
 
     def _init_kfold(self):
-        """Initialise attributes for a k-fold cross-validation split. For each fold, the training set is the subset of train_valid compounds assigned to
-        that fold. Nearest-neighbor Tanimoto distances are computed from the fold test set to that fold's training set.
+        """Initialise attributes for a k-fold cross-validation split. For each fold, the validation set is the subset of train_valid compounds assigned to
+        that fold, and the training set is the remaining compounds (all other folds).
         
-        Results are stored in self.fold_dists with columns ['fold', 'distance'].
+        Results are stored in self.fold_dists, self.fold_trainvalid_dists, and self.fold_fracs
         """
         split_df = self.split_df
 
-        test_ids = split_df.loc[split_df["subset"] == "test", "cmpd_id"].values
-        self.test_df = self.total_df[self.total_df[self.id_col].isin(test_ids)].copy()
+        _, self.test_df, _ = split(self.total_df, self.split_df, self.id_col)
+        self.test_y, self.test_w = mss.make_y_w(self.test_df, self.response_cols)
 
         tv_mask = split_df["subset"] == "train_valid"
         fold_values = sorted(split_df.loc[tv_mask, "fold"].unique())
         self.n_folds = len(fold_values)
 
         fold_records = []
+        fold_trainvalid_records = []
+        frac_records = []
 
         for fold_idx in fold_values:
             train_ids = split_df.loc[
+                tv_mask & (split_df["fold"] != fold_idx), "cmpd_id"].values
+            valid_ids = split_df.loc[
                 tv_mask & (split_df["fold"] == fold_idx), "cmpd_id"].values
 
-            fold_train_df = self.total_df[
+            self.train_df = self.total_df[
                 self.total_df[self.id_col].isin(train_ids)].copy()
+            self.valid_df = self.total_df[
+                self.total_df[self.id_col].isin(valid_ids)].copy()
 
-            dists = self._get_dists(self.test_df, fold_train_df)
+            dists = self._get_dists(self.test_df, self.train_df)
             fold_records.append(pd.DataFrame({"fold": fold_idx, "distance": dists}))
 
+            trainvalid_dists = self._get_dists(self.valid_df, self.train_df)
+            fold_trainvalid_records.append(pd.DataFrame({"fold": fold_idx, "distance": trainvalid_dists}))
+
+            self.train_y, self.train_w = mss.make_y_w(self.train_df, self.response_cols)
+            self.valid_y, self.valid_w = mss.make_y_w(self.valid_df, self.response_cols)
+            train_frac, valid_frac, test_frac = self._split_ratios()
+
+            for f in train_frac:
+                frac_records.append({"subset": "train", "fold": fold_idx, "frac": f})
+            for f in valid_frac:
+                frac_records.append({"subset": "valid", "fold": fold_idx, "frac": f})
+
+        for f in test_frac:
+            frac_records.append({"subset": "test", "fold": "all", "frac": f})
+        
         self.fold_dists = pd.concat(fold_records, axis=0, ignore_index=True)
+        self.fold_trainvalid_dists = pd.concat(fold_trainvalid_records, axis=0, ignore_index=True)
+        self.fold_fracs = pd.DataFrame(frac_records)
 
         self.train_df = None
         self.valid_df = None
@@ -115,9 +138,8 @@ class SplitStats:
         self.dists_tvv = None
         self.train_fracs = None
         self.valid_fracs = None
-        self.test_fracs = None
+        self.test_fracs = None #self.fold_fracs for per-fold/test fractions
         self.train_y = self.train_w = None
-        self.test_y = self.test_w = None
         self.valid_y = self.valid_w = None
 
     def _get_dists(self, df_a, df_b):
@@ -196,10 +218,11 @@ class SplitStats:
 
     _kfold_bins = (10, 20)
     def dist_hist_kfold_plot(self, n_bins = 10, ax = None):
-        """Plots overlapping histogram of nearest neighbor Tanimoto distances for each fold of a k-fold split.
+        """Creates a histogram of pairwise Tanimoto distances between training
+        and test sets
 
         Args:
-            n_bins (int): Number of bins spanning [0, 1]. Defaults to 10.
+            n_bins (int): Number of bins, defaults to 10.
             ax (matploblib Axes): Axes object to draw plot in. If None, one will be created.
 
         Returns:
@@ -214,8 +237,37 @@ class SplitStats:
                           bins = bin_edges, stat='probability', common_norm = False,
                           multiple = 'layer', fill = True, alpha = 0.3,
                           edgecolor = 'black', ax = ax)
+        ax.set_title('k-fold Train vs Test Tanimoto Distance', fontsize=14)
         ax.set_xlabel('Tanimoto distance',fontsize=13)
         ax.set_ylabel('Proportion of compounds',fontsize=13)
+        ax.legend_.set_title('Fold')
+        ax.set_xlim(0, 1)
+
+        return ax
+
+    def dist_hist_kfold_tvv_plot(self, n_bins=10, ax=None):
+        """Creates a histogram of pairwise Tanimoto distances between valid
+        and training set
+        
+        Args:
+            n_bins (int): Number of bins, defaults to 10.
+            ax (matploblib Axes): Axes object to draw plot in. If None, one will be created.
+
+        Returns:
+            ax (matploblib Axes): Axes object for plot
+        """
+        self._require_kfold()
+        if n_bins not in self._kfold_bins:
+            raise ValueError("n_bins must be 10 or 20.")
+        bin_edges = np.linspace(0, 1, n_bins + 1)
+
+        ax = sns.histplot(data = self.fold_trainvalid_dists, x = 'distance', hue = 'fold', palette='colorblind',
+                        bins = bin_edges, stat='probability', common_norm = False,
+                        multiple = 'layer', fill = True, alpha = 0.3,
+                        edgecolor = 'black', ax = ax)
+        ax.set_xlabel('Tanimoto distance',fontsize=13)
+        ax.set_ylabel('Proportion of compounds',fontsize=13)
+        ax.set_title('k-fold Train vs Valid Tanimoto Distance', fontsize=14)
         ax.legend_.set_title('Fold')
         ax.set_xlim(0, 1)
 
@@ -264,12 +316,12 @@ class SplitStats:
             dist_path (str): Optional Where to save the plot. The string '_umap_scatter' will be
                 appended to this input
         """
-        self._require_standard()
-
+        hue_col = 'fold' if self.is_kfold else 'subset'
+        
         # umap of a subset
         sub_sample_df = self.split_df.loc[np.random.permutation(self.split_df.index)[:10000]]
-        # add subset column to total_df
-        sub_total_df = sub_sample_df[['cmpd_id', 'subset']].merge(
+        # add subset/fold column to total_df
+        sub_total_df = sub_sample_df[['cmpd_id', hue_col]].merge(
             self.total_df, left_on='cmpd_id', right_on=self.id_col, how='inner')
         fp = [AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2, 1024) for s in sub_total_df[self.smiles_col]]
         fp_array = np.array(fp)
@@ -278,11 +330,11 @@ class SplitStats:
         sub_total_df['x'] = embedded[:,0]
         sub_total_df['y'] = embedded[:,1]
         pyplot.figure()
-        sns.scatterplot(x='x', y='y', hue='subset', data=sub_total_df)
+        ax = sns.scatterplot(x='x', y='y', hue=hue_col, data=sub_total_df)
+        ax.set_title('UMAP (Morgan Fingerprints)', fontsize=14)
         if len(dist_path) > 0:
             save_figure(dist_path+'_umap_scatter')
-
-        pyplot.close()
+            pyplot.close()
 
     def subset_frac_plot(self, dist_path=''):
         """Makes a box plot of the subset fractions
@@ -291,19 +343,30 @@ class SplitStats:
             dist_path (str): Optional Where to save the plot. The string '_frac_box' will be
                 appended to this input
         """
-        self._require_standard()
-        dicts = []
-        for f in self.train_fracs:
-            dicts.append({'frac':f, 'subset':'train'})
-        for f in self.test_fracs:
-            dicts.append({'frac':f, 'subset':'test'})
-        for f in self.valid_fracs:
-            dicts.append({'frac':f, 'subset':'valid'})
-
-        frac_df = pd.DataFrame.from_dict(dicts)
-
         pyplot.figure()
-        _g = sns.boxplot(x='subset', y='frac', data=frac_df)
+        if self.is_kfold:
+            g = sns.catplot(kind='bar', x='subset', y='frac', hue='fold',
+                             data=self.fold_fracs, palette='colorblind')
+            g.ax.set_title('Subset Fraction')
+        else:
+            dicts = []
+            resp_cols=self.response_cols.copy()
+            if isinstance(resp_cols, str):
+                resp_cols=resp_cols.split(',')
+            elif not isinstance(resp_cols, list):
+                raise ValueError("response_cols must be a string or a list of strings")
+            for t, f in zip(resp_cols, self.train_fracs):
+                dicts.append({'frac':f, 'subset':'train', 'task':t})
+            for t, f in zip(resp_cols, self.test_fracs):
+                dicts.append({'frac':f, 'subset':'test', 'task':t})
+            for t, f in zip(resp_cols, self.valid_fracs):
+                dicts.append({'frac':f, 'subset':'valid', 'task':t})
+
+            frac_df = pd.DataFrame.from_dict(dicts)
+            g = sns.catplot(kind='bar', x='subset', y='frac', col='task', data=frac_df, palette='colorblind')
+            g.set_titles("{col_name}")
+            g.figure.suptitle('Subset Fraction by Task', fontsize=14)
+
         if len(dist_path) > 0:
             save_figure(dist_path+'_frac_box')
 
@@ -314,18 +377,38 @@ class SplitStats:
             dist_path (str): Optional Where to save the plot. The string '_frac_box' will be
                 appended to this input
         """
-        # histogram of compound distances between training, valid, and test subsets
-        self._require_standard()
-        self.dist_hist_plot(self.dists_tvt, 'Train vs Test pairwise Tanimoto Distance',
-            dist_path=dist_path+'_tvt')
-        self.dist_hist_plot(self.dists_tvv, 'Train vs Valid pairwise Tanimoto Distance',
-            dist_path=dist_path+'_tvv')
+        if self.is_kfold:
+            # histogram of nearest-neighbor distances between test and each fold's training set
+            pyplot.figure()
+            self.dist_hist_kfold_plot()
+            if len(dist_path) > 0:
+                save_figure(dist_path + '_kfold_tvt')
+                pyplot.close()
 
-        # umap on ecfp fingerprints. visualizes clusters of training/valid/testing split
-        self.umap_plot(dist_path)
+            # histogram of nearest-neighbor distances between each fold's validation subset and that fold's training set
+            pyplot.figure()
+            self.dist_hist_kfold_tvv_plot()
+            if len(dist_path) > 0:
+                save_figure(dist_path + '_kfold_tvv')
+                pyplot.close()
 
-        # box plot of fractions
-        self.subset_frac_plot(dist_path)
+            # umap on ecfp fingerprints. visualizes clusters colored by fold
+            self.umap_plot(dist_path)
+
+            # box plot of fractions, grouped by fold
+            self.subset_frac_plot(dist_path)
+        else:
+            # histogram of compound distances between training, valid, and test subsets
+            self.dist_hist_plot(self.dists_tvt, 'Train vs Test pairwise Tanimoto Distance',
+                dist_path=dist_path+'_tvt')
+            self.dist_hist_plot(self.dists_tvv, 'Train vs Valid pairwise Tanimoto Distance',
+                dist_path=dist_path+'_tvv')
+
+            # umap on ecfp fingerprints. visualizes clusters of training/valid/testing split
+            self.umap_plot(dist_path)
+
+            # box plot of fractions
+            self.subset_frac_plot(dist_path)
 
 def split(total_df, split_df, id_col):
     """Splits a dataset into training, test and validation sets using a given split.
