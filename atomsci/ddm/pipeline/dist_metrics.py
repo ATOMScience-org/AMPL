@@ -3,10 +3,11 @@
 import itertools
 import multiprocessing
 
+import numpy as np
 from rdkit import DataStructs
 from rdkit.Chem.rdFMCS import FindMCS  # pylint: disable=no-name-in-module
 from scipy.spatial.distance import squareform  # pylint: disable=unused-import
-import numpy as np
+
 N_PROCS = multiprocessing.cpu_count()
 
 
@@ -107,7 +108,7 @@ def _mcs_single(mol, mols, n_atms):
     dists_k = []
     n_atm = float(mol.GetNumAtoms())
     n_incomp = 0  # Number of searches terminated before timeout
-    for idx in range(0, len(mols)):
+    for idx in range(len(mols)):
         # Set timeout to halt exhaustive search, which could take minutes
         result = FindMCS([mol, mols[idx]], completeRingsOnly=True,
                          ringMatchesRingOnly=True, timeout=10)
@@ -141,7 +142,7 @@ def mcs(mols1, mols2=None):
     else:
         dists, sum_incomplete = _parallel_dist_multi([mols1, mols2, n_atms1], _mcs_single)
     if sum_incomplete:
-        print('{} incomplete MCS searches'.format(sum_incomplete))
+        print(f'{sum_incomplete} incomplete MCS searches')
     return dists
 
 

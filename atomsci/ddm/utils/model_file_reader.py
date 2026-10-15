@@ -1,16 +1,21 @@
-import tarfile
-import os
-import json
 import argparse
+import io
+import json
+import os
 import sys
+import tarfile
+import uuid
+
 import numpy as np
 from bravado.exception import HTTPNotFound
 
 from atomsci.ddm.pipeline import parameter_parser as parse
+from atomsci.ddm.utils import checksum_utils as cu
 from atomsci.ddm.utils import datastore_functions as dsf
 
+
 def get_multiple_models_metadata(*args):
-    """A function that takes model tar.gz file(s) and extract the metadata (and if applicable, model metrics)
+    r"""A function that takes model tar.gz file(s) and extract the metadata (and if applicable, model metrics)
 
     Args:
         \*args: Variable length argument list of model tar.gz file(s)
@@ -27,8 +32,8 @@ def get_multiple_models_metadata(*args):
         try:
             metadata = ModelFileReader(arg).get_model_info()
             metadata_list.append(metadata)
-        except (IOError, KeyError):
-            raise IOError("Problem access the file(s) or not AMPL model tarball(s).")
+        except (OSError, KeyError):
+            raise OSError("Problem access the file(s) or not AMPL model tarball(s).")
             
     return metadata_list
     
@@ -58,7 +63,7 @@ class ModelFileReader:
         if os.path.isdir(data_file_path):
             self.metadata_path = os.path.join(self.model_path, 'model_metadata.json')
             if not os.path.exists(self.metadata_path):
-                raise IOError(f"Could not find 'model_metadata.json' from {self.metadata_path}")
+                raise OSError(f"Could not find 'model_metadata.json' from {self.metadata_path}")
             
             with open(self.metadata_path, 'r') as data_file:
                 self.metadata_dict = json.load(data_file)
@@ -71,8 +76,15 @@ class ModelFileReader:
                     raise KeyError(f"{data_file_path} is not an AMPL model tarball")
                 with tarball.extractfile(meta_info) as meta_fd:
                     self.metadata_dict = json.loads(meta_fd.read())
-                    self.pparams = parse.wrapper(self.metadata_dict)
+                    self._update_pparams()
                 
+    def _update_pparams(self):
+        """ Updates internal self.pparams if a change was made
+        Returns:
+            None
+        """
+        self.pparams = parse.wrapper(self.metadata_dict)
+
     def get_descriptor_type(self):
         """Returns:
             (str): model descriptor type
@@ -178,6 +190,14 @@ class ModelFileReader:
         """
         return self.metadata_dict.get("model_uuid")
 
+    def set_model_uuid(self):
+        """Returns:
+            None
+        """
+        self.metadata_dict["model_uuid"] = str(uuid.uuid4())
+
+        self._update_pparams()
+
     def get_version(self):
         """Returns:
             (str): model version
@@ -214,6 +234,32 @@ class ModelFileReader:
 
         """
         return self.get_training_dataset().get('dataset_key')
+
+    def set_dataset_key(self, dataset_key):
+        """Returns:
+            None
+        """
+        self.get_training_dataset()['dataset_key'] = dataset_key
+        self.set_dataset_hash(cu.create_checksum(dataset_key))
+
+        self._update_pparams()
+        # make dataset_key absolute
+        self.pparams = parse.make_dataset_key_absolute(self.pparams)
+
+    def get_dataset_hash(self):
+        """Returns:
+            (str): model dataset key hash
+
+        """
+        return self.get_training_dataset().get('dataset_hash')
+
+    def set_dataset_hash(self, dataset_hash):
+        """Returns:
+            None
+        """
+        self.get_training_dataset()['dataset_hash'] = dataset_hash
+
+        self._update_pparams()
 
     def get_split_csv(self):
         """Returns:
@@ -288,16 +334,16 @@ class ModelFileReader:
         Returns:
             a dictionary of the most important model parameters and metrics.
         """
-        model_dict = dict(
-            model_path = self.model_path,
-            model_uuid = self.pparams.model_uuid,
-            model_type = self.pparams.model_type,
-            pred_type = self.pparams.prediction_type,
-            response_cols ='; '.join(self.pparams.response_cols),
-            dataset_key = self. pparams.dataset_key,
-            splitter = self.pparams.splitter,
-            featurizer = self.pparams.featurizer,
-            )
+        model_dict = {
+            "model_path": self.model_path,
+            "model_uuid": self.pparams.model_uuid,
+            "model_type": self.pparams.model_type,
+            "pred_type": self.pparams.prediction_type,
+            "response_cols": '; '.join(self.pparams.response_cols),
+            "dataset_key": self. pparams.dataset_key,
+            "splitter": self.pparams.splitter,
+            "featurizer": self.pparams.featurizer,
+            }
         
         if self.pparams.featurizer in ['computed_descriptors', 'descriptors']:
             model_dict['features'] = self.pparams.descriptor_type
@@ -336,6 +382,25 @@ class ModelFileReader:
             model_dict['test_metric'] = np.nan
         
         return model_dict
+
+    def write_new_tar(self, new_path):
+        # get a new model_uuid since this one has changed
+        self.set_model_uuid()
+
+        with tarfile.open(self.model_path, "r:gz") as source, tarfile.open(new_path, "w:gz") as destination:
+                for member in source.getmembers():
+                    if os.path.basename(member.name) == "model_metadata.json":
+                        data = json.dumps(self.metadata_dict).encode('utf-8')
+
+                        new_member = tarfile.TarInfo(name=member.name)
+                        new_member.size = len(data)
+                        new_member.mode = member.mode
+                        new_member.mtime = member.mtime
+
+                        destination.addfile(new_member, io.BytesIO(data))
+                    else:
+                        extracted = source.extractfile(member)
+                        destination.addfile(member, extracted)
 
 #----------------
 # main

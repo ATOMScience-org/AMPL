@@ -1,17 +1,20 @@
-import pickle
 import glob
+import logging
 import os
+import pickle
+import shutil
+
+import numpy as np
 import pandas as pd
+import sklearn.utils as sku
+from deepchem.data import NumpyDataset
+
 import atomsci.ddm.pipeline.featurization as feat
 import atomsci.ddm.pipeline.parameter_parser as pp
-import atomsci.ddm.pipeline.model_datasets as model_datasets
 import atomsci.ddm.pipeline.transformations as trans
-import atomsci.ddm.utils.struct_utils as struct_utils
-from deepchem.data import NumpyDataset
-import numpy as np
-import shutil
-import sklearn.utils as sku
-import logging
+from atomsci.ddm.pipeline import model_datasets
+from atomsci.ddm.utils import struct_utils
+
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
 
@@ -86,7 +89,7 @@ def load_all_datasets(
     featurized_datasets = []
     for ds_config in transformer_dataset_key_configs:
         # Prepare params for this dataset
-        params_dict = dict()
+        params_dict = {}
         params_dict.update(ds_config)
         params_dict['featurizer'] = featurizer
         params_dict['descriptor_type'] = descriptor_type
@@ -135,7 +138,7 @@ def filter_outlier_features(dataset_key, id_col, smiles_col, response_cols, feat
         'smiles_col': smiles_col,
         'response_cols': response_cols
     }
-    params_dict = dict()
+    params_dict = {}
     params_dict.update(dataset_key_config)
     params_dict['featurizer'] = featurizer
     params_dict['descriptor_type'] = descriptor_type
@@ -224,7 +227,7 @@ def build_and_save_feature_transformers_from_csvs(
     # Save both transformers_x and params to a pickle file
     # copy processed params back into params_dict in case wrapper
     # updates them.
-    for k in params_dict.keys():
+    for k in params_dict:
         if k in params.__dict__:
             params_dict[k] = params.__dict__[k]
 

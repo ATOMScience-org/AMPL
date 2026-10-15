@@ -30,3 +30,6 @@ exclude = [
     "atomsci/ddm/docs/*",
 ]
 extend-exclude = ["*.ipynb"]
+
+[lint]
+ignore = ["N999"]

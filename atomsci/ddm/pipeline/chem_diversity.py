@@ -1,15 +1,15 @@
 """Functions to generate matrices or vectors of distances between compounds"""
 
 import sys
+
 import numpy as np
+import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from scipy.spatial.distance import pdist
-from scipy.spatial.distance import cdist
-from scipy.spatial.distance import squareform
-import pandas as pd
+from scipy.spatial.distance import cdist, pdist, squareform
 
 from atomsci.ddm.pipeline import dist_metrics
+
 
 def calc_dist_smiles(feat_type, dist_met, smiles_arr1, smiles_arr2=None, calc_type='nearest', num_nearest=1, **metric_kwargs):
     """Returns an array of distances between compounds given as SMILES strings, either between all pairs of compounds in a
@@ -223,7 +223,7 @@ def calc_summary(dist_arr, calc_type, num_nearest=1, within_dset=False):
             return np.sort(dist_mat)[:,:num_nearest].mean(axis=1)
 
     else:
-        print("calc_type %s is not valid" % calc_type)
+        print(f"calc_type {calc_type} is not valid")
         sys.exit(1)
         
 def upload_distmatrix_to_DS(

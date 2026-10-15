@@ -8,15 +8,16 @@ accessible directory on the target computer so that it can be used for AD index 
 predicting from the model.
 """
 
+import glob
+import json
 import os
 import sys
 import tarfile
 import tempfile
-import json
-import glob
 
 from atomsci.ddm.utils import checksum_utils as cu
 from atomsci.ddm.utils import file_utils as futils
+
 
 def check_data_accessibility(model_path, verbose=True):
     """Check the dataset_key parameters in one or more AMPL model tarball files
@@ -42,10 +43,10 @@ def check_data_accessibility(model_path, verbose=True):
                 meta_dict = json.loads(meta_fd.read())
                 dataset_path = meta_dict['training_dataset']['dataset_key']
                 try:
-                    dset_fp = open(dataset_path, 'r')
-                    dset_fp.close()
+                    with open(dataset_path, 'r'):
+                        pass
                     dataset_info[path] = (dataset_path, True)
-                except Exception:
+                except OSError:
                     dataset_info[path] = (dataset_path, False)
                     if verbose:
                         print(f"{os.path.basename(path)} trained on unreadable file:\n\t{dataset_path}")
@@ -77,13 +78,11 @@ def patch_model_dataset_key(model_path, new_model_path, dataset_path, require_ha
         raise
 
     # Extract the model tarball into a temporary directory
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        with open(model_path, 'rb') as tarfile_fp:
-            with tarfile.open(fileobj=tarfile_fp, mode='r:gz') as tfile:
-                tar_contents = tfile.getnames()
-                if './model_metadata.json' not in tar_contents:
-                    raise ValueError(f"{model_path} is not an AMPL model tarball")
-                futils.safe_extract(tfile, path=tmp_dir)
+    with tempfile.TemporaryDirectory() as tmp_dir, open(model_path, 'rb') as tarfile_fp, tarfile.open(fileobj=tarfile_fp, mode='r:gz') as tfile:
+        tar_contents = tfile.getnames()
+        if './model_metadata.json' not in tar_contents:
+            raise ValueError(f"{model_path} is not an AMPL model tarball")
+        futils.safe_extract(tfile, path=tmp_dir)
         meta_path = os.path.join(tmp_dir, 'model_metadata.json')
         with open(meta_path, 'r') as meta_fp:
             meta_dict = json.load(meta_fp)

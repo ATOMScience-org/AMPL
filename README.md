@@ -16,7 +16,7 @@ The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supp
 
 Check out our new tutorial series that walks through AMPL's end-to-end modeling pipeline to build a machine learning model! View them in our [docs](https://ampl.readthedocs.io/en/latest/) or as Jupyter notebooks in our [repo](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials).
 
-![Static Badge](https://img.shields.io/badge/Announcement-1.8.0-blue)
+![Static Badge](https://img.shields.io/badge/Announcement-1.8.1-blue)
 
 In addition to our written tutorials, we now provide a series of video tutorials on our YouTube channel, [ATOMScience-org](https://www.youtube.com/channel/UCOF6zZ7ltGwopYCoOGIFM-w). These videos are created to assist users in exploring and leveraging AMPL's robust capabilities. We provided a playlist for easy streamlined Learning:
 

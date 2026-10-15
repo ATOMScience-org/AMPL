@@ -84,6 +84,14 @@ utils.model\_version\_utils module
    :undoc-members:
    :show-inheritance:
 
+utils.patch\_model\_dataset\_key module
+---------------------------------------
+
+.. automodule:: utils.patch_model_dataset_key
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 utils.pubchem\_utils module
 ---------------------------
 
@@ -113,6 +121,32 @@ utils.struct\_utils module
 --------------------------
 
 .. automodule:: utils.struct_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+utils.thresholded\_spearmanr module
+-----------------------------------
+
+.. automodule:: utils.thresholded_spearmanr
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+utils.query\_by\_committee module
+---------------------------------
+
+.. automodule:: utils.query_by_committee
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+utils.query\_by\_committee\_utils module
+----------------------------------------
+
+.. automodule:: utils.query_by_committee_utils
    :members:
    :undoc-members:
    :show-inheritance:

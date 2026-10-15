@@ -1,18 +1,20 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 # Script for running example BSEP inhibition classification models against user-provided data.
 
-import sys
+import argparse
 import os
+import sys
+
 import pandas as pd
 from sklearn import metrics
-import argparse
 
 from atomsci.ddm.pipeline import predict_from_model as pfm
+
 # from atomsci.ddm.pipeline import model_pipeline as mp
 # from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline.perf_data import negative_predictive_value
+
 # from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
 
 # =====================================================================================================
@@ -21,13 +23,13 @@ def predict_activity(args):
     input_df = pd.read_csv(args.input_file, index_col=False)
     colnames = set(input_df.columns.values)
     if args.id_col not in colnames:
-        input_df['compound_id'] = ['compound_%.6d' % i for i in range(input_df.shape[0])]
+        input_df['compound_id'] = [f'compound_{i:06d}' for i in range(input_df.shape[0])]
         args.id_col = 'compound_id'
     if args.smiles_col not in colnames:
         raise ValueError('smiles_col parameter not specified or column not in input file.')
-    model_files = dict(random = 'bsep_classif_random_split.tar.gz', scaffold = 'bsep_classif_scaffold_split.tar.gz')
+    model_files = {'random': 'bsep_classif_random_split.tar.gz', 'scaffold': 'bsep_classif_scaffold_split.tar.gz'}
     if args.model_type not in model_files:
-        raise ValueError("model_type %s is not a recognizied value." % args.model_type)
+        raise ValueError(f"model_type {args.model_type} is not a recognizied value.")
     if args.external_training_data is not None:
         data_file = os.path.join(os.getcwd(), args.external_training_data)
     else:
@@ -48,13 +50,13 @@ def predict_activity(args):
     
     # Write predictions to output file
     pred_df.to_csv(args.output_file, index=False)
-    print("Wrote predictions to file %s" % args.output_file)
+    print(f"Wrote predictions to file {args.output_file}")
 
     # If measured activity values are provided, print some performance metrics
     if args.response_col is not None:
-        actual_vals = pred_df['%s_actual' % args.response_col].values
-        pred_classes = pred_df['%s_pred' % args.response_col].values
-        pred_probs = pred_df['%s_prob' % args.response_col].values
+        actual_vals = pred_df[f'{args.response_col}_actual'].values
+        pred_classes = pred_df[f'{args.response_col}_pred'].values
+        pred_probs = pred_df[f'{args.response_col}_prob'].values
         conf_matrix = metrics.confusion_matrix(actual_vals, pred_classes)
         roc_auc = metrics.roc_auc_score(actual_vals, pred_probs)
         prc_auc = metrics.average_precision_score(actual_vals, pred_probs)
@@ -65,19 +67,19 @@ def predict_activity(args):
         mcc = metrics.matthews_corrcoef(actual_vals, pred_classes)
         ncorrect = sum(actual_vals == pred_classes)
         print("Performance metrics:\n")
-        print("%d out of %d predictions correct." % (ncorrect, pred_df.shape[0]))
-        print("Accuracy: %.3f" % accuracy)
-        print("Precision: %.3f" % precision)
-        print("Recall: %.3f" % recall)
-        print("NPV: %.3f" % npv)
-        print("ROC AUC: %.3f" % roc_auc)
-        print("PRC AUC: %.3f" % prc_auc)
-        print("Matthews correlation coefficient: %.3f" % mcc)
+        print(f"{ncorrect} out of {pred_df.shape[0]} predictions correct.")
+        print(f"Accuracy: {accuracy:.3f}")
+        print(f"Precision: {precision:.3f}")
+        print(f"Recall: {recall:.3f}")
+        print(f"NPV: {npv:.3f}")
+        print(f"ROC AUC: {roc_auc:.3f}")
+        print(f"PRC AUC: {prc_auc:.3f}")
+        print(f"Matthews correlation coefficient: {mcc:.3f}")
         print("Confusion matrix:")
         print("\t\tpredicted activity")
         print("actual\nactivity\t0\t1\n")
-        print("   0\t\t%d\t%d" % (conf_matrix[0][0], conf_matrix[0][1]))
-        print("   1\t\t%d\t%d" % (conf_matrix[1][0], conf_matrix[1][1]))
+        print(f"   0\t\t{conf_matrix[0][0]}\t{conf_matrix[0][1]}")
+        print(f"   1\t\t{conf_matrix[1][0]}\t{conf_matrix[1][1]}")
 
 
 
