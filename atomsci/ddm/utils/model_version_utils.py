@@ -15,13 +15,13 @@ To check the model version
 """
 
 import argparse
-import tarfile
 import json
-import os
-from pathlib import Path
-import sys
 import logging
+import os
 import re
+import sys
+import tarfile
+from pathlib import Path
 
 logging.basicConfig()
 
@@ -31,7 +31,7 @@ logger.setLevel(logging.INFO)
 try:
     from importlib import metadata
 except ImportError:
-    import importlib_metadata as metadata # python<=3.7
+    import importlib_metadata as metadata  # python<=3.7
 
 
 # ampl versions compatible groups
@@ -61,10 +61,9 @@ def get_ampl_version_from_dir(dirname):
     for path in Path(dirname).rglob('*.tar.gz'):
         try:
             version = get_ampl_version_from_model(path.absolute())
-            versions.append('{}, {}'.format(path.absolute(), version))
-        except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
-            logger.exception("Exception message: {}".format(e))
-            pass
+            versions.append(f'{path.absolute()}, {version}')
+        except (json.decoder.JSONDecodeError, FileNotFoundError):
+            logger.exception("Failed to get AMPL version from model")
             
     return '\n'.join(versions)
 
@@ -86,7 +85,7 @@ def get_ampl_version_from_model(filename):
         with tar.extractfile(meta_info) as meta_fd:
             metadata_dict = json.loads(meta_fd.read())
             version = metadata_dict.get("model_parameters").get("ampl_version", 'probably 1.0.0')
-    logger.info('{}, {}'.format(filename, version))
+    logger.info(f'{filename}, {version}')
     return version
 
 def get_major_version(full_version):
@@ -110,39 +109,82 @@ def get_ampl_version_from_json(metadata_path):
 def validate_version(input):
     valid = re.fullmatch(version_pattern, input)
     if valid is None:
-        raise ValueError("Input {} is not valid version format.".format(input))
+        raise ValueError(f"Input {input} is not valid version format.")
     return True
 
-def check_version_compatible(input, ignore_check=False):
-    """Compare the input file's version against the running AMPL version to see if
-    they are compatible
+def check_version_compatible(input_value, ignore_check=False):
+    """Check whether an AMPL version string or model file is compatible.
+
+    The input is first validated as an AMPL version string. If validation
+    fails, the input is treated as a model file path. The file must exist
+    and contain readable AMPL model metadata.
 
     Args:
-        filename (str): file or version number
+        input_value (str or pathlib.Path): AMPL version string or model file.
+        ignore_check (bool): If True, return compatibility without raising
+            an exception when versions are incompatible.
 
     Returns:
-        True if the input model version matches the compatible AMPL version group
+        bool: True if the versions are compatible, otherwise False when
+            ``ignore_check`` is True.
 
+    Raises:
+        ValueError: If the input is neither a valid version string nor an
+            existing file, if the file cannot be read, or if the versions
+            are incompatible and ``ignore_check`` is False.
     """
-    # get the versions. only compare by the major releases
-    model_ampl_version = ""
-    # if the input is a tar file, extract it to get the version string
-    if (os.path.isfile(input)):
-        model_ampl_version = get_major_version(get_ampl_version_from_model(input).strip())
-    else:
-        # if the input is not a file. try to parse string like '1.5.0'
-        validate_version(input)
-        model_ampl_version = get_major_version(input)
+    try:
+        validate_version(str(input_value))
+        model_version = str(input_value)
 
+    except (ValueError, TypeError):
+        input_path = Path(input_value)
+
+        if not input_path.exists():
+            raise ValueError(
+                f"Input was neither a valid AMPL version string nor an "
+                f"existing file: {input_value!r}"
+            )
+
+        if not input_path.is_file():
+            raise ValueError(
+                f"Input exists but is not a file: {input_value!r}"
+            )
+
+        try:
+            model_version = get_ampl_version_from_model(input_path)
+        except (
+            OSError,
+            tarfile.TarError,
+            json.JSONDecodeError,
+            KeyError,
+            AttributeError,
+            TypeError,
+        ) as exc:
+            raise ValueError(
+                f"Unable to read a valid AMPL version from file: "
+                f"{input_value!r}"
+            ) from exc
+
+        if not model_version:
+            raise ValueError(
+                f"File does not contain an AMPL version: {input_value!r}"
+            )
+
+    model_ampl_version = get_major_version(str(model_version).strip())
     ampl_version = get_major_version(get_ampl_version())
-    logger.info('Version compatible check: {} version = "{}", AMPL version = "{}"'.format(input, model_ampl_version, ampl_version))
-    match = (comp_dict.get(ampl_version, ampl_version)==comp_dict.get(model_ampl_version, model_ampl_version))
-    
-    # raise an exception if not match and we don't want to ignore
-    if not match:
-        if not ignore_check:
-            my_error = ValueError('Version compatible check: {} version: "{}" not matching AMPL compatible version group: "{}"'.format(input, model_ampl_version, ampl_version))
-            raise my_error
+
+    match = (
+        comp_dict.get(ampl_version, ampl_version)
+        == comp_dict.get(model_ampl_version, model_ampl_version)
+    )
+
+    if not match and not ignore_check:
+        raise ValueError(
+            f"AMPL version {model_ampl_version!r} from {input_value!r} "
+            f"is not compatible with running AMPL version {ampl_version!r}"
+        )
+
     return match
 
 #----------------

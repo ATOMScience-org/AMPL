@@ -2,17 +2,19 @@
 testing, generation of predicted values and performance metrics.
 """
 
-import logging
+import collections
 import copy
+import logging
+
 import deepchem as dc
 import numpy as np
 import pandas as pd
 from deepchem.data import NumpyDataset
+
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
-from atomsci.ddm.pipeline.temporal_splitter import TemporalSplitter
 from atomsci.ddm.pipeline.MultitaskScaffoldSplit import MultitaskScaffoldSplitter
+from atomsci.ddm.pipeline.temporal_splitter import TemporalSplitter
 from atomsci.ddm.utils.many_to_one import many_to_one_df
-import collections
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
@@ -49,7 +51,7 @@ def create_splitting(params, random_state=None, seed=None):
     elif params.split_strategy == 'k_fold_cv':
         return KFoldSplitting(params, random_state=random_state, seed=seed)
     else:
-        raise Exception("Unknown split strategy %s" % params.split_strategy)
+        raise ValueError(f"Unknown split strategy {params.split_strategy}")
 
 # ****************************************************************************************
 def select_dset_by_attr_ids(dataset, attr_df):
@@ -152,13 +154,10 @@ def check_if_dupe_smiles_dataset(dataset,attr_df, smiles_col):
     dupes = [(item, count) for item, count in collections.Counter([str(e) for e in dataset.ids]).items() if count > 1]
     dupe_attr = [(item, count) for item, count in collections.Counter(attr_df[smiles_col].values.tolist()).items() if count > 1]
 
-    if not len(dupes)==0 or not len(dupe_attr)==0:
-        return True
-    else:
-        return False
+    return bool(len(dupes) != 0 or len(dupe_attr) != 0)
 # ****************************************************************************************
 
-class Splitting(object):
+class Splitting:
     """Base class for train/validation/test and k-fold dataset splitting. Wrapper for DeepChem Splitter
     classes that handle the specific splitting methods (e.g. random, scaffold, etc.).
 
@@ -235,7 +234,7 @@ class Splitting(object):
                     date_col=params.date_col,
                     base_splitter=params.base_splitter, metric=metric)
         else:
-            raise Exception("Unknown splitting method %s" % params.splitter)
+            raise ValueError(f"Unknown splitting method {params.splitter}")
 
     # ****************************************************************************************
     def get_split_prefix(self, parent=''):
@@ -317,8 +316,8 @@ class KFoldSplitting(Splitting):
 
         """
         if parent != '':
-            parent = "%s/" % parent
-        return "%s%d_fold_cv_%s" % (parent, self.num_folds, self.split)
+            parent = f"{parent}/"
+        return f"{parent}{self.num_folds}_fold_cv_{self.split}"
 
     # ****************************************************************************************
     def split_dataset(self, dataset, attr_df, smiles_col):
@@ -439,8 +438,8 @@ class TrainValidTestSplitting(Splitting):
 
         """
         if parent != '':
-            parent = "%s/" % parent
-        return "%strain_valid_test_%s" % (parent, self.split)
+            parent = f"{parent}/"
+        return f"{parent}train_valid_test_{self.split}"
 
     # ****************************************************************************************
 
@@ -482,7 +481,7 @@ class TrainValidTestSplitting(Splitting):
             Exception if there are duplicate ids or smiles strings in the dataset or the attr_df
 
         """
-        log.info("Splitting data by %s" % self.params.splitter)
+        log.info(f"Splitting data by {self.params.splitter}")
 
         # Duplicate SMILES and compound_ids are merged into single compounds
         # in DatasetManager. The first instance of each is kept. Assumes many to one 
@@ -508,14 +507,13 @@ class TrainValidTestSplitting(Splitting):
             train_frac = train_valid_frac - self.params.split_valid_frac
             log.info("Performing split for test set")
             train_valid, test, _ = self.splitter.train_valid_test_split(dataset, frac_train=train_valid_frac, 
-                                                                        frac_valid=self.params.split_test_frac,
-                                                                        frac_test=0.0, seed=self.seed)
+                                                                         frac_valid=self.params.split_test_frac,
+                                                                         frac_test=0.0, seed=self.seed)
             log.info("Performing split of training and validation sets")
             train, valid, _ = self.splitter.train_valid_test_split(train_valid, frac_train=train_frac/train_valid_frac, 
-                                                                   frac_valid=self.params.split_valid_frac/train_valid_frac,
-                                                                   frac_test=0.0, seed=self.seed)
-            log.info("Results of 3-way split: %d training, %d validation, %d test compounds" % (
-                     train.X.shape[0], valid.X.shape[0], test.X.shape[0]))
+                                                                     frac_valid=self.params.split_valid_frac/train_valid_frac,
+                                                                     frac_test=0.0, seed=self.seed)
+            log.info(f"Results of 3-way split: {train.X.shape[0]} training, {valid.X.shape[0]} validation, {test.X.shape[0]} test compounds")
         elif self.split == 'temporal':
             # TemporalSplitter requires that we pass attr_df so it can get the dates for each compound
             train_frac = 1.0 - self.params.split_valid_frac
@@ -585,8 +583,8 @@ class ProductionSplitting(Splitting):
 
         """
         if parent != '':
-            parent = "%s/" % parent
-        return "%sproduction_%s" % (parent, self.split)
+            parent = f"{parent}/"
+        return f"{parent}production_{self.split}"
 
     # ****************************************************************************************
     def split_dataset(self, dataset, attr_df, smiles_col):

@@ -1,4 +1,4 @@
-from typing import TypedDict, List, Dict
+from typing import TypedDict
 
 
 class DataObject(TypedDict):
@@ -23,10 +23,10 @@ class Collection(TypedDict):
     collectionOwnerZone: str
     collectionParentName: str
     createdAt: int
-    dataObjects: List[DataObject]
+    dataObjects: list[DataObject]
     dataObjectsTotalRecords: int
     specColType: str
-    subCollections: List[SubCollection]
+    subCollections: list[SubCollection]
     subCollectionsTotalRecords: int
 
 
@@ -41,4 +41,4 @@ class MetadataEntry(TypedDict):
 
 class CollectionResponse(TypedDict):
     collection: Collection
-    metadataEntries: Dict[str, List[MetadataEntry]]
+    metadataEntries: dict[str, list[MetadataEntry]]

@@ -10,13 +10,14 @@ setting `splitter` to 'temporal' and setting appropriate values for the `cutoff_
 parameters when you train a model.
 """
 
-from deepchem.splits.splitters import Splitter, RandomSplitter, ScaffoldSplitter
-import numpy as np
+import logging
 import tempfile
+
+import numpy as np
+from deepchem.splits.splitters import RandomSplitter, ScaffoldSplitter, Splitter
 
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
 
-import logging
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 # Set up logging
 log = logging.getLogger('ATOM')
@@ -98,7 +99,7 @@ class TemporalSplitter(Splitter):
         tv_dataset = dataset.select(train_valid_ind)
         train_ind, valid_ind, _ = self.base_splitter.split(tv_dataset, frac_train=frac_train/train_valid_frac, 
                                                            frac_valid=frac_valid/train_valid_frac, frac_test=0.0)
-        log.debug("Temporal split yields %d/%d/%d train/valid/test compounds" % (len(train_ind), len(valid_ind), len(test_ind)))
+        log.debug(f"Temporal split yields {len(train_ind)}/{len(valid_ind)}/{len(test_ind)} train/valid/test compounds")
         return train_ind, valid_ind, test_ind
 
     def train_valid_test_split(self,

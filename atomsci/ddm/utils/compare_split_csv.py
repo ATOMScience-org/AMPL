@@ -1,5 +1,7 @@
-import pandas as pd
 import argparse
+
+import pandas as pd
+
 
 def parse_args():
     """
@@ -97,10 +99,10 @@ def compare_splits(split1, split2):
                 print(ing2_notg1)
             return False
 
-        gs1 = sorted(list(g1['cmpd_id'].values))
-        gs2 = sorted(list(g2['cmpd_id'].values))
+        gs1 = sorted(g1['cmpd_id'].values)
+        gs2 = sorted(g2['cmpd_id'].values)
 
-        if not all([gs1i==gs2i for gs1i, gs2i in zip(gs1, gs2)]):
+        if not all(gs1i==gs2i for gs1i, gs2i in zip(gs1, gs2)):
             print('Sorting the list of compounds from both splits results in two different lists.')
             return False
 

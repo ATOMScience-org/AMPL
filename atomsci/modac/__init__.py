@@ -1,10 +1,13 @@
 import json
 import logging
 import os
-from typing import Callable, Any, Dict, Union, Optional
+from collections.abc import Callable
+from functools import wraps
+from typing import Any
+
 import requests
 from requests.auth import HTTPBasicAuth
-from functools import wraps
+
 from .types import Collection, CollectionResponse
 
 BASE_URL = "https://modac.cancer.gov/api"
@@ -52,7 +55,7 @@ class MoDaCClient:
         """
         Authenticates the client with the MoDaC API and retrieves an access token.
         """
-        url = "/".join((self.BASE_URL, "authenticate"))
+        url = f"{self.BASE_URL}/authenticate"
         try:
             auth_resp = requests.get(url, auth=self._login_headers())
             auth_resp.raise_for_status()
@@ -68,7 +71,7 @@ class MoDaCClient:
                 f"Authentication failed: {e.response.status_code}"
             ) from e
 
-    def _token_headers(self) -> Dict[str, str]:
+    def _token_headers(self) -> dict[str, str]:
         headers = {"Authorization": f"Bearer {self._token}"}
         return headers
 
@@ -82,12 +85,12 @@ class MoDaCClient:
             _logger.warning(
                 "Define your MODAC password by setting MODAC_PASS='my-password'\nAlternatively, you can call os.environ['MODAC_PASS'] = 'my-password'"
             )
-            raise Exception("Undefined username and/or password")
+            raise MoDaCClientError("Undefined username and/or password")
         return HTTPBasicAuth(username=username, password=password)
 
     @ensure_authenticated
     @log_action
-    def get_collection(self, path: str) -> Union[Collection, None]:
+    def get_collection(self, path: str) -> Collection | None:
         """
         Retrieves information about a specific collection from the MoDaC API.
 
@@ -95,7 +98,7 @@ class MoDaCClient:
         retrieve details about the specified collection, including data objects
         and sub-collections.
         """
-        url = "/".join((self.BASE_URL, "collection", path))
+        url = f"{self.BASE_URL}/collection/{path}"
         _logger.warning(f"Get collection. Making requests to {url}")
 
         resp = requests.get(url + "?list=true", headers=self._token_headers())
@@ -117,7 +120,7 @@ class MoDaCClient:
         This method sends a POST request to the /v2/dataObject/{file_path}/download
         endpoint to download the specified file and saves it to the local filesystem.
         """
-        url = "/".join((self.BASE_URL, "v2", "dataObject", file_path, "download"))
+        url = f"{self.BASE_URL}/v2/dataObject/{file_path}/download"
         _logger.warning(f"Making requests to {url}")
         resp = requests.post(url, headers=self._token_headers(), json={})
         resp.raise_for_status()
@@ -171,7 +174,7 @@ class MoDaCClient:
         self,
         collection_path: str,
         data_file_path: str,
-        attributes_file: Optional[Dict] = None,
+        attributes_file: dict | None = None,
     ) -> bool:
         """
         Upload a file to the MoDaC system from local filesystem.
@@ -181,7 +184,7 @@ class MoDaCClient:
         :param attributes_file: JSON-like dictionary containing metadata about the data file.
         """
         file_name = os.path.basename(data_file_path)
-        url = "/".join((self.BASE_URL, "v2", "dataObject", collection_path, file_name))
+        url = f"{self.BASE_URL}/v2/dataObject/{collection_path}/{file_name}"
 
         if attributes_file is None:
             attributes_file = {}
@@ -204,5 +207,5 @@ class MoDaCClient:
                     return True
         except requests.exceptions.RequestException as e:
             _logger.error(f"File upload failed: {e}")
-            raise e
+            raise
 

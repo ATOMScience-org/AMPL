@@ -1,16 +1,27 @@
-#!/usr/bin/env python
-
 """Contains class PerfData and its subclasses, which are objects for collecting and computing model performance metrics
 and predictions
 """
 
 
+import logging
+
 import deepchem as dc
 import numpy as np
-import logging
-from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score, precision_score, recall_score
-from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score, log_loss, balanced_accuracy_score
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.metrics import (
+    accuracy_score,
+    average_precision_score,
+    balanced_accuracy_score,
+    cohen_kappa_score,
+    confusion_matrix,
+    log_loss,
+    matthews_corrcoef,
+    mean_absolute_error,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
+    roc_auc_score,
+)
 
 log = logging.getLogger('ATOM')
 
@@ -52,10 +63,10 @@ def negative_predictive_value(y_real, y_pred):
 # ******************************************************************************************************************************
 
 # params.model_choice_score_type must be a key in one of the dictionaries below:
-regr_score_func = dict(r2 = r2_score, mae = mean_absolute_error, rmse = rms_error)
-classif_score_func = dict(roc_auc = roc_auc_score, precision = precision_score, ppv = precision_score, recall = recall_score,
-                          npv = negative_predictive_value, cross_entropy = log_loss, accuracy = accuracy_score, bal_accuracy = balanced_accuracy_score,
-                          avg_precision = average_precision_score, mcc = matthews_corrcoef, kappa = cohen_kappa_score)
+regr_score_func = {'r2': r2_score, 'mae': mean_absolute_error, 'rmse': rms_error}
+classif_score_func = {'roc_auc': roc_auc_score, 'precision': precision_score, 'ppv': precision_score, 'recall': recall_score,
+                          'npv': negative_predictive_value, 'cross_entropy': log_loss, 'accuracy': accuracy_score, 'bal_accuracy': balanced_accuracy_score,
+                          'avg_precision': average_precision_score, 'mcc': matthews_corrcoef, 'kappa': cohen_kappa_score}
 
 MAX_INVALID_FRAC_TO_FILTER = 0.01
 _ACTIVE_MAX_INVALID_FRAC_TO_FILTER = MAX_INVALID_FRAC_TO_FILTER
@@ -235,7 +246,7 @@ def _safe_classification_score(score_type, y_real, y_pred, average=None, default
     try:
         if average is None:
             return classif_score_func[score_type](y_real, y_pred)
-        return classif_score_func[score_type](y_real, y_pred, **{'average': average})
+        return classif_score_func[score_type](y_real, y_pred, average=average)
     except ValueError:
         return penalty if np.isfinite(penalty) else default
 
@@ -335,21 +346,21 @@ def create_perf_data(prediction_type, model_dataset, subset, **kwargs):
         elif split_strategy == 'k_fold_cv':
             return KFoldRegressionPerfData(model_dataset, subset, **kwargs)
         else:
-            raise ValueError('Unknown split_strategy %s' % split_strategy)
+            raise ValueError(f'Unknown split_strategy {split_strategy}')
     elif prediction_type == 'classification':
         if subset == 'full' or split_strategy == 'train_valid_test':
             return SimpleClassificationPerfData(model_dataset, subset, **kwargs)
         elif split_strategy == 'k_fold_cv':
             return KFoldClassificationPerfData(model_dataset, subset, **kwargs)
         else:
-            raise ValueError('Unknown split_strategy %s' % split_strategy)
+            raise ValueError(f'Unknown split_strategy {split_strategy}')
     elif prediction_type == "hybrid":
         return SimpleHybridPerfData(model_dataset, subset, **kwargs)
     else:
-        raise ValueError('Unknown prediction type %s' % prediction_type)
+        raise ValueError(f'Unknown prediction type {prediction_type}')
 
 # ****************************************************************************************
-class PerfData(object):
+class PerfData:
     """Class with methods for accumulating prediction data over multiple cross-validation folds
     and computing performance metrics after all folds have been run. Abstract class with
     concrete subclasses for classification and regression models.
@@ -461,7 +472,7 @@ class RegressionPerfData(PerfData):
                            over tasks.
 
         """
-        ids, pred_vals, stds = self.get_pred_values()
+        ids, pred_vals, _stds = self.get_pred_values()
         real_vals = self.get_real_values(ids=ids)
         weights = self.get_weights(ids)
         scores = []
@@ -508,7 +519,7 @@ class RegressionPerfData(PerfData):
         # and then averaging the metrics. If people start asking for SDs of MAE and RMSE scores over folds,
         # we'll change the code to compute all metrics the same way.
 
-        (ids, pred_vals, pred_stds) = self.get_pred_values()
+        (ids, pred_vals, _pred_stds) = self.get_pred_values()
         real_vals = self.get_real_values(ids)
         weights = self.get_weights(ids)
         mae_scores = []
@@ -545,7 +556,7 @@ class RegressionPerfData(PerfData):
             nzrows = np.where(weights[:,i] != 0)[0]
             task_real_vals = np.squeeze(real_vals[nzrows,i])
             task_pred_vals = np.squeeze(pred_vals[nzrows,i])
-            invalid_count, total_count, invalid_frac, _ = _invalid_stats(task_real_vals, task_pred_vals)
+            invalid_count, _total_count, invalid_frac, _ = _invalid_stats(task_real_vals, task_pred_vals)
             task_invalid_counts.append(int(invalid_count))
             task_invalid_fracs.append(float(invalid_frac))
 
@@ -642,7 +653,7 @@ class HybridPerfData(PerfData):
                            over tasks.
 
         """
-        ids, pred_vals, stds = self.get_pred_values()
+        ids, pred_vals, _stds = self.get_pred_values()
         real_vals = self.get_real_values(ids=ids)
         weights = self.get_weights(ids)
         scores = []
@@ -707,7 +718,7 @@ class HybridPerfData(PerfData):
         # and then averaging the metrics. If people start asking for SDs of MAE and RMSE scores over folds,
         # we'll change the code to compute all metrics the same way.
 
-        (ids, pred_vals, pred_stds) = self.get_pred_values()
+        (ids, pred_vals, _pred_stds) = self.get_pred_values()
         real_vals = self.get_real_values(ids=ids)
         weights = self.get_weights(ids)
         mae_scores = []
@@ -863,7 +874,7 @@ class ClassificationPerfData(PerfData):
                            over tasks.
 
         """
-        ids, pred_classes, class_probs, prob_stds = self.get_pred_values()
+        ids, pred_classes, class_probs, _prob_stds = self.get_pred_values()
         real_vals = self.get_real_values(ids=ids)
         weights = self.get_weights(ids=ids)
         scores = []
@@ -873,7 +884,7 @@ class ClassificationPerfData(PerfData):
             average_param = None
             if self.num_classes > 2:
                 if score_type in binary_class_only:
-                    raise ValueError("Model selection by %s score not allowed for multi-label classifiers." % score_type)
+                    raise ValueError(f"Model selection by {score_type} score not allowed for multi-label classifiers.")
                 if score_type in has_average_param:
                     average_param = 'macro'
                 # If more than 2 classes, task_real_vals is indicator matrix (one-hot encoded). 
@@ -920,7 +931,7 @@ class ClassificationPerfData(PerfData):
 
         """
         pred_results = {}
-        (ids, pred_classes, class_probs, prob_stds) = self.get_pred_values()
+        (ids, pred_classes, class_probs, _prob_stds) = self.get_pred_values()
 
         real_vals = self.get_real_values(ids=ids)
         weights = self.get_weights(ids)
@@ -1136,10 +1147,10 @@ class KFoldRegressionPerfData(RegressionPerfData):
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
         else:
-            raise ValueError('Unknown dataset subset type "%s"' % self.subset)
+            raise ValueError(f'Unknown dataset subset type "{self.subset}"')
         self.num_cmpds = dataset.y.shape[0]
         self.num_tasks = dataset.y.shape[1]
-        self.pred_vals = dict([(id, np.empty((0, self.num_tasks), dtype=np.float32)) for id in dataset.ids])
+        self.pred_vals = {id: np.empty((0, self.num_tasks), dtype=np.float32) for id in dataset.ids}
         self.folds = 0
         self.perf_metrics = []
         self.model_score = None
@@ -1225,7 +1236,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
         #ids = sorted(self.pred_vals.keys())
         all_ids = sorted(self.pred_vals.keys())
         # with kfold + SMOTE, not all ids have predictions 
-        ids = [id for id in all_ids if not (self.pred_vals[id].size == 0)]
+        ids = [id for id in all_ids if self.pred_vals[id].size != 0]
 
         if self.subset in ['train', 'test', 'train_valid']:
             vals = np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True).reshape((1,-1)) for id in ids])
@@ -1369,7 +1380,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
         else:
-            raise ValueError('Unknown dataset subset type "%s"' % self.subset)
+            raise ValueError(f'Unknown dataset subset type "{self.subset}"')
 
         # All currently used classifiers generate class probabilities in their predict methods;
         # if in the future we implement a classification algorithm such as kNN that doesn't support
@@ -1384,16 +1395,15 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         self.num_classes = len(set(model_dataset.dataset.y.flatten()))
         # pred vals maps compound ids to a matrix of predictions.
         # predictions will be concatentated one by one as they come in in accumulate_preds
-        self.pred_vals = dict([(id, np.empty((0, self.num_tasks, self.num_classes), dtype=np.float32)) for id in dataset.ids])
+        self.pred_vals = {id: np.empty((0, self.num_tasks, self.num_classes), dtype=np.float32) for id in dataset.ids}
 
         real_vals, self.weights = model_dataset.get_subset_responses_and_weights(self.subset)
         self.real_classes = real_vals
         # Change real_vals to one-hot encoding
         if self.num_classes > 2:
-            self.real_vals = dict([(id, 
-                                   np.concatenate([dc.metrics.to_one_hot(np.array([class_labels[j]]), self.num_classes)
-                                                   for j in range(self.num_tasks)], axis=0))
-                                   for id, class_labels in real_vals.items()])
+            self.real_vals = {id: np.concatenate([dc.metrics.to_one_hot(np.array([class_labels[j]]), self.num_classes)
+                                                   for j in range(self.num_tasks)], axis=0)
+                                   for id, class_labels in real_vals.items()}
         else:
             self.real_vals = real_vals
 
@@ -1470,7 +1480,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         """
         all_ids = sorted(self.pred_vals.keys())
         # with kfold + SMOTE, not all ids have predictions
-        ids = [id for id in all_ids if not (self.pred_vals[id].size == 0)]
+        ids = [id for id in all_ids if self.pred_vals[id].size != 0]
 
         if self.subset in ['train', 'test', 'train_valid']:
             class_probs = np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True)
@@ -1612,7 +1622,7 @@ class SimpleRegressionPerfData(RegressionPerfData):
         elif subset == 'full':
             dataset = model_dataset.dataset
         else:
-            raise ValueError('Unknown dataset subset type "%s"' % subset)
+            raise ValueError(f'Unknown dataset subset type "{subset}"')
         self.num_cmpds = dataset.y.shape[0]
         self.num_tasks = dataset.y.shape[1]
         self.weights = dataset.w
@@ -1805,7 +1815,7 @@ class SimpleClassificationPerfData(ClassificationPerfData):
         elif subset == 'full':
             dataset = model_dataset.dataset
         else:
-            raise ValueError('Unknown dataset subset type "%s"' % subset)
+            raise ValueError(f'Unknown dataset subset type "{subset}"')
 
         # All currently used classifiers generate class probabilities in their predict methods;
         # if in the future we implement a classification algorithm such as kNN that doesn't support
@@ -2034,7 +2044,7 @@ class SimpleHybridPerfData(HybridPerfData):
         elif subset == 'full':
             dataset = model_dataset.dataset
         else:
-            raise ValueError('Unknown dataset subset type "%s"' % subset)
+            raise ValueError(f'Unknown dataset subset type "{subset}"')
         self.num_cmpds = dataset.y.shape[0]
         self.num_tasks = dataset.y.shape[1]
         self.weights = dataset.w
@@ -2109,7 +2119,7 @@ class SimpleHybridPerfData(HybridPerfData):
         
         if self.is_ki:
             if self.ki_convert_ratio is None:
-                raise Exception("Ki converting ratio is missing. Cannot convert Ki into IC50")
+                raise ValueError("Ki converting ratio is missing. Cannot convert Ki into IC50")
             Ki = 10**(9-activity)
             IC50 = Ki * (1 + self.ki_convert_ratio)
         else:
@@ -2224,7 +2234,7 @@ class EpochManager:
     # ****************************************************************************************
     # class EpochManager
     def __init__(self, wrapper,
-            subsets={'train':'train',  'valid':'valid', 'test':'test'}, production=False, **kwargs):
+            subsets=None, production=False, **kwargs):
         """Initialize EpochManager
 
         Args:
@@ -2255,6 +2265,8 @@ class EpochManager:
                valid_perf_data
                test_perf_data
         """
+        if subsets is None:
+            subsets = {'train': 'train', 'valid': 'valid', 'test': 'test'}
         params = wrapper.params
         self.production = production
         self._subsets = subsets

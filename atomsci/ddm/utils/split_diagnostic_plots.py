@@ -2,17 +2,18 @@
 """
 
 import os
-import numpy as np
-import pandas as pd
 from argparse import Namespace
-from atomsci.ddm.pipeline.model_pipeline import ModelPipeline
-from atomsci.ddm.pipeline import parameter_parser as parse
-from atomsci.ddm.pipeline import perf_plots as pp
-from atomsci.ddm.utils import split_response_dist_plots as srdp
-from atomsci.ddm.utils import compare_splits_plots as csp
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
+
+from atomsci.ddm.pipeline import parameter_parser as parse
+from atomsci.ddm.pipeline import perf_plots as pp
+from atomsci.ddm.pipeline.model_pipeline import ModelPipeline
+from atomsci.ddm.utils import compare_splits_plots as csp
+from atomsci.ddm.utils import split_response_dist_plots as srdp
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------
@@ -64,7 +65,7 @@ def plot_split_diagnostics(params_or_pl, axes=None, num_rows=None, num_cols=1, m
         params.split_uuid = params_or_pl.data.split_uuid
         
     else:
-        raise ValueError("params_or_pl must be dict, Namespace or ModelPipeline")
+        raise TypeError("params_or_pl must be dict, Namespace or ModelPipeline")
     
     # Figure out how many plots we're going to generate and how to lay them out
     nresp = len(params.response_cols)
@@ -77,7 +78,7 @@ def plot_split_diagnostics(params_or_pl, axes=None, num_rows=None, num_cols=1, m
     else:
         if num_rows is None:
             num_rows = (nplots + 1) // num_cols
-        fig, axes = plt.subplots(num_rows, num_cols, figsize=(num_cols*plot_size, num_rows*plot_size), layout='constrained')
+        _fig, axes = plt.subplots(num_rows, num_cols, figsize=(num_cols*plot_size, num_rows*plot_size), layout='constrained')
         axes = axes.flatten()
     plot_num = 0
 
@@ -165,9 +166,9 @@ def plot_split_fractions(params, axes):
         ss_counts = ss_df.subset.value_counts()
         total_count = sum(ss_counts)
         ss_fracs = ss_counts / total_count
-        actual_df = pd.DataFrame(dict(counts=ss_counts, fracs=ss_fracs)).reindex(['train', 'valid', 'test'])
-        req_fracs = dict(train=1-params.split_valid_frac-params.split_test_frac, valid=params.split_valid_frac, test=params.split_test_frac)
-        req_df = pd.DataFrame(dict(fracs=req_fracs)).reindex(['train', 'valid', 'test'])
+        actual_df = pd.DataFrame({'counts': ss_counts, 'fracs': ss_fracs}).reindex(['train', 'valid', 'test'])
+        req_fracs = {'train': 1-params.split_valid_frac-params.split_test_frac, 'valid': params.split_valid_frac, 'test': params.split_test_frac}
+        req_df = pd.DataFrame({'fracs': req_fracs}).reindex(['train', 'valid', 'test'])
         req_df['counts'] = np.round(total_count * req_df.fracs).astype(int)
 
         bar_width = 0.35
