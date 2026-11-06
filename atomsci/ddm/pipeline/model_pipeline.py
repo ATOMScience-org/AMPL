@@ -111,6 +111,56 @@ def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distan
     return pred_kmean_dis_local_density
 
 # ---------------------------------------------
+def drop_nan_training_rows_for_ad(train_dset, ids=None, logger=None):
+    """Remove training rows containing NaNs before AD distance calculations.
+
+    Some descriptor-based models can have a small number of training compounds
+    whose featurized descriptor rows contain NaN values. Those rows cause
+    `pairwise_distances` to fail during applicability-domain calculations even
+    though the rest of the training matrix is usable. Excluding only the bad
+    rows preserves the AD calculation for the remaining training compounds.
+
+    Args:
+        train_dset: 2D feature matrix for the training set.
+        ids: Optional array-like of compound identifiers aligned with rows.
+        logger: Optional logger for reporting dropped rows.
+
+    Returns:
+        Tuple of `(filtered_train_dset, filtered_ids)`.
+
+    Raises:
+        ValueError: If every training row contains a NaN.
+    """
+
+    train_arr = np.asarray(train_dset)
+    if train_arr.ndim != 2:
+        return train_arr, ids
+
+    nan_row_mask = pd.isna(train_arr).any(axis=1)
+    dropped_rows = int(np.count_nonzero(nan_row_mask))
+    if dropped_rows == 0:
+        return train_arr, ids
+
+    keep_row_mask = ~nan_row_mask
+    if not np.any(keep_row_mask):
+        raise ValueError(
+            "No valid training rows remain for AD calculation after excluding "
+            "rows containing NaN features."
+        )
+
+    if logger is not None:
+        logger.warning(
+            "Excluding %d training rows with NaN features from AD calculation.",
+            dropped_rows
+        )
+
+    filtered_ids = None
+    if ids is not None:
+        filtered_ids = np.asarray(ids)[keep_row_mask]
+
+    return train_arr[keep_row_mask], filtered_ids
+
+# ---------------------------------------------
 def build_tarball_name(dataset_name, model_uuid, result_dir=''):
     """format for building model tarball names
         Creates the file name for a model tarball from dataset key and model_uuid
@@ -960,6 +1010,7 @@ class ModelPipeline:
                     # If training data is too big to compute distances in a reasonable time, use a sample of the data
                     train_data_params = copy.deepcopy(self.orig_params)
                     train_data_params.max_dataset_rows = max_train_records_for_AD
+                    train_data_params.persist_featurized_data = False
 
                     self.load_featurize_data(params=train_data_params)
                     self.run_mode = 'prediction'
@@ -981,6 +1032,14 @@ class ModelPipeline:
                             train_X = np.where(np.isnan(train_X), np.nanmean(train_X, axis=0), train_X)
                         self.featurized_train_data = train_X
 
+                    self.featurized_train_data, self.featurized_train_ids = drop_nan_training_rows_for_ad(
+                        self.featurized_train_data,
+                        ids=ids,
+                        logger=self.log
+                    )
+
+                train_ids = getattr(self, 'featurized_train_ids', None)
+
                 if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
                     self.train_pair_dis = pairwise_distances(X=self.featurized_train_data, metric=dist_metric)
                     self.train_pair_dis_metric = dist_metric
@@ -996,7 +1055,7 @@ class ModelPipeline:
                     for neigh in range(k):
                         neigh_ids = []
                         for comp in range(len(indexes)):
-                            neigh_ids.append(ids[indexes[comp][neigh]])
+                            neigh_ids.append(train_ids[indexes[comp][neigh]])
                         result_df[f'AD_NN_{neigh}'] = neigh_ids
 
             except:
