@@ -1,7 +1,12 @@
 import os
+import pandas as pd
 import glob
+import shutil
+import pytest
 
 import atomsci.ddm.utils.checksum_utils as cu
+import atomsci.ddm.utils.set_dataset_key as sdk
+import atomsci.ddm.utils.model_file_reader as mfr
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_pipeline as mp
 
@@ -80,6 +85,49 @@ def test_uses_same_training_data_not_equals_by_tars():
 
     assert cu.uses_same_training_data_by_tarballs(tar1, tar2) == False
 
+def test_set_dataset_key():
+    clean()
+    ds_key = '../../test_datasets/delaney-processed_curated_fit.csv'
+    tar1 = train_and_get_tar('jsons/reg_config_delaney_fit_RF_mordred_filtered.json',
+                             ds_key)
+
+    reader1 = mfr.ModelFileReader(tar1)
+    tar2 = 'new_tar.tar.gz'
+    new_dataset_key = 'new_dataset_key.csv'
+    shutil.copy(ds_key, new_dataset_key)
+
+    sdk.set_dataset_key(tar1, new_dataset_key, tar2)
+
+    reader2 = mfr.ModelFileReader(tar2)
+
+    assert reader2.get_dataset_key() != reader1.get_dataset_key(), \
+     f"{reader2.get_dataset_key()}, {reader1.get_dataset_key()} should be different"
+    assert reader2.get_dataset_hash() == reader1.get_dataset_hash()
+    assert reader2.get_model_uuid != reader1.get_model_uuid
+
+    with pytest.raises(AssertionError):
+        sdk.set_dataset_key(tar1, 
+            '../../test_datasets/aurka_chembl_base_smiles_union.csv',
+            tar2)
+
+    # make a quick change to the new csv
+    df = pd.read_csv(new_dataset_key)
+    # this will add a new index column
+    df.to_csv(new_dataset_key)
+
+    sdk.set_dataset_key(tar1, 
+        new_dataset_key,
+        tar2,
+        ignore_hash=True)
+
+    reader2 = mfr.ModelFileReader(tar2)
+    assert reader2.get_dataset_hash() != reader1.get_dataset_hash()
+
+    clean()
+    os.remove(tar2)
+    os.remove(new_dataset_key)
+
+
 def train_and_get_tar(input_json, ds_key_file):
 
     script_path = os.path.dirname(os.path.realpath(__file__))
@@ -101,5 +149,3 @@ if __name__ == '__main__':
     # Clean
     # -----
     clean()
-    
-    test()

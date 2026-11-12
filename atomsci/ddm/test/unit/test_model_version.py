@@ -1,6 +1,8 @@
 import os
-
+import pytest
 import inspect
+
+from pathlib import Path
 
 from atomsci.ddm.utils import model_version_utils as mu
 
@@ -46,3 +48,22 @@ def test_invalidate_version_format():
         matched = mu.check_version_compatible('1.2a')
     except ValueError:
         assert True
+
+def test_check_version_compatible_missing_file():
+    """A nonexistent file raises a descriptive ValueError."""
+    missing_file = Path("does_not_exist.tar.gz")
+
+    with pytest.raises(
+        ValueError,
+        match="neither a valid AMPL version string nor an existing file",
+    ):
+        mu.check_version_compatible(missing_file)
+
+
+def test_check_version_compatible_existing_non_ampl_file():
+    """An existing non-AMPL file raises an error when read."""
+    with pytest.raises(
+        ValueError,
+        match="Unable to read a valid AMPL version from file",
+    ):
+        mu.check_version_compatible(__file__)

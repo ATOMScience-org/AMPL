@@ -638,25 +638,25 @@ def atom_curation(targ_lst, smiles_lst, shared_inchi_keys):
     num_dropped_lst=[]
     #print(targ_lst)
     #print(smiles_lst)
-    for it in range(len(targ_lst)) :
-    	data=smiles_lst[it]
-    	data = data[data.standard_relation.str.strip() == '=']
-    	print("gene_names",data.gene_names.unique())
-    	print("standard_type",data.standard_type.unique())
-    	print("standard_relation",data.standard_relation.unique())
-    	print("before",data.shape)
-    	curated_df=curate_data.average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data, max_std, compound_id='standard_inchi_key',smiles_col='rdkit_smiles')
+    for it in range(len(targ_lst)):
+        data=smiles_lst[it]
+        data = data[data.standard_relation.str.strip() == '=']
+        print("gene_names",data.gene_names.unique())
+        print("standard_type",data.standard_type.unique())
+        print("standard_relation",data.standard_relation.unique())
+        print("before",data.shape)
+        curated_df=curate_data.average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data, max_std, compound_id='standard_inchi_key',smiles_col='rdkit_smiles')
 
-    	# (Yaru) Remove inf in curated_df
-    	curated_df = curated_df[~curated_df.isin([np.inf]).any(1)]
-    	# (Yaru) Remove nan on rdkit_smiles
-    	curated_df = curated_df.dropna(subset=['rdkit_smiles'])
+        # (Yaru) Remove inf in curated_df
+        curated_df = curated_df[~curated_df.isin([np.inf]).any(1)]
+        # (Yaru) Remove nan on rdkit_smiles
+        curated_df = curated_df.dropna(subset=['rdkit_smiles'])
 
-    	curated_lst.append(curated_df)
-    	prev_cmpd_cnt=shared_inchi_keys.nunique()
-    	num_dropped=prev_cmpd_cnt-curated_df.shape[0]
-    	num_dropped_lst.append(num_dropped)
-    	print("After",curated_df.shape, "# of dropped compounds",num_dropped)
+        curated_lst.append(curated_df)
+        prev_cmpd_cnt=shared_inchi_keys.nunique()
+        num_dropped=prev_cmpd_cnt-curated_df.shape[0]
+        num_dropped_lst.append(num_dropped)
+        print("After",curated_df.shape, "# of dropped compounds",num_dropped)
 
     return curated_lst,num_dropped_lst
 
