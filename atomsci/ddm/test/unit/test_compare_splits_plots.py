@@ -267,7 +267,8 @@ def test_parse_args(mocker):
         - The parsed arguments match the expected values.
     """
     mocker.patch('sys.argv', [
-        'compare_splits_plots.py', 'dataset.csv', 'id', 'smiles', 'split_a.csv', 'split_b.csv', 'output_dir'
+        'compare_splits_plots.py', 'dataset.csv', 'id', 'smiles', 'split_a.csv', 'split_b.csv', 'output_dir',
+        '--response_cols', 'task1', 'task2'
     ])
     args = parse_args()
         
@@ -277,3 +278,4 @@ def test_parse_args(mocker):
     assert args.split_a == 'split_a.csv'
     assert args.split_b == 'split_b.csv'
     assert args.output_dir == 'output_dir'
+    assert args.response_cols == ['task1', 'task2']
