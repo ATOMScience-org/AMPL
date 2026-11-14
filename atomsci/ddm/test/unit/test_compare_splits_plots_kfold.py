@@ -309,12 +309,38 @@ def test_save_figure_writes_png_and_svg(tmp_path):
     assert (tmp_path / 'fig.svg').exists()
 
 
-# --- __main__ entry point ---------------------------------------------------------------------
-@pytest.mark.xfail(strict=True, raises=TypeError,
-                   reason="__main__ block builds SplitStats without the required response_cols argument")
-def test_main_block_runs_make_all_plots(total_df, standard_split_df, kfold_split_df, tmp_path, monkeypatch):
-    """The command-line entry point should plot both splits. It currently fails because
-    SplitStats() is called without response_cols; remove the xfail once that is fixed."""
+# --- response_cols handling -------------------------------------------------------------------
+def test_response_cols_string_is_normalized_to_list(total_df, standard_split_df):
+    ss = SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', 'response')
+    assert ss.response_cols == ['response']
+
+
+def test_response_cols_comma_separated_string(total_df, standard_split_df):
+    total_df['response2'] = total_df['response']
+    ss = SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', 'response, response2')
+    assert ss.response_cols == ['response', 'response2']
+
+
+def test_response_cols_tuple_is_converted_to_list(total_df, standard_split_df):
+    ss = SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', ('response',))
+    assert ss.response_cols == ['response']
+
+
+@pytest.mark.parametrize('bad', [42, None, {'response'}])
+def test_response_cols_rejects_invalid_type(total_df, standard_split_df, bad):
+    with pytest.raises(ValueError, match="response_cols must be a string or a list"):
+        SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', bad)
+
+
+def test_subset_frac_plot_standard_with_string_response_cols(total_df, standard_split_df, tmp_path):
+    ss = SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', 'response')
+    prefix = str(tmp_path / 'std')
+    ss.subset_frac_plot(dist_path=prefix)
+    assert os.path.exists(prefix + '_frac_box.png')
+
+
+# --- command line entry point -----------------------------------------------------------------
+def test_main_plots_both_splits(total_df, standard_split_df, kfold_split_df, tmp_path):
     csv = tmp_path / 'data.csv'
     split_a = tmp_path / 'split_a.csv'
     split_b = tmp_path / 'split_b.csv'
@@ -324,9 +350,30 @@ def test_main_block_runs_make_all_plots(total_df, standard_split_df, kfold_split
     standard_split_df.to_csv(split_a, index=False)
     kfold_split_df.to_csv(split_b, index=False)
 
-    monkeypatch.setattr(sys, 'argv', ['compare_splits_plots.py', str(csv), 'cmpd_id', 'smiles',
-                                      str(split_a), str(split_b), str(out)])
-    runpy.run_path(csp.__file__, run_name='__main__')
+    csp.main([str(csv), 'cmpd_id', 'smiles', str(split_a), str(split_b), str(out),
+              '--response_cols', 'response'])
 
     assert (out / 'split_a_tvt_dist_hist.png').exists()
     assert (out / 'split_b_kfold_tvt.png').exists()
+
+
+def test_parse_args_requires_response_cols(capsys):
+    with pytest.raises(SystemExit):
+        csp.parse_args(['d.csv', 'id', 'smiles', 'a.csv', 'b.csv', 'out'])
+    assert '--response_cols' in capsys.readouterr().err
+
+
+def test_main_block_invokes_main(total_df, standard_split_df, kfold_split_df, tmp_path, monkeypatch):
+    csv = tmp_path / 'data.csv'
+    split_a = tmp_path / 'split_a.csv'
+    split_b = tmp_path / 'split_b.csv'
+    out = tmp_path / 'out'
+    out.mkdir()
+    total_df.to_csv(csv, index=False)
+    standard_split_df.to_csv(split_a, index=False)
+    kfold_split_df.to_csv(split_b, index=False)
+    monkeypatch.setattr(sys, 'argv', ['compare_splits_plots.py', str(csv), 'cmpd_id', 'smiles',
+                                      str(split_a), str(split_b), str(out),
+                                      '--response_cols', 'response'])
+    runpy.run_path(csp.__file__, run_name='__main__')
+    assert (out / 'split_b_kfold_tvv.png').exists()
