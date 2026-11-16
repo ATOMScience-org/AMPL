@@ -65,10 +65,20 @@ class SplitStats:
             list of str
         """
         if isinstance(response_cols, str):
-            return [c.strip() for c in response_cols.split(',')]
-        if isinstance(response_cols, (list, tuple)):
-            return list(response_cols)
-        raise ValueError("response_cols must be a string or a list of strings")
+            cols = [c.strip() for c in response_cols.split(',')]
+        elif isinstance(response_cols, (list, tuple)):
+            cols = list(response_cols)
+        else:
+            # ValueError (not TypeError) kept for consistency with the original subset_frac_plot check
+            raise ValueError("response_cols must be a string or a list of strings")  # noqa: TRY004
+
+        if not cols:
+            raise ValueError("response_cols must contain at least one column name")
+        if not all(isinstance(c, str) for c in cols):
+            raise ValueError("response_cols must be a string or a list of strings")
+        if not all(c.strip() for c in cols):
+            raise ValueError(f"response_cols contains an empty column name: {response_cols!r}")
+        return cols
 
     @staticmethod
     def _infer_split_mode(split_df):
@@ -331,17 +341,41 @@ class SplitStats:
 
         return ax
 
+    def _umap_hue_labels(self, split_df):
+        """Returns a Series of plot labels for each row of split_df.
+
+        For standard splits this is the subset name. For k-fold splits, train_valid compounds are
+        labeled by fold ("fold 0", "fold 1", ...) and the held-out test compounds, which have no
+        fold, are labeled "test" so that they are not dropped from the plot.
+        """
+        if not self.is_kfold:
+            return split_df['subset']
+
+        def label(row):
+            if row['subset'] == 'test' or pd.isna(row['fold']):
+                return 'test'
+            fold = row['fold']
+            return f"fold {int(fold)}" if float(fold).is_integer() else f"fold {fold}"
+
+        return split_df[['subset', 'fold']].apply(label, axis=1)
+
     def umap_plot(self, dist_path=''):
-        """Plots the first 10000 samples in Umap space using Morgan Fingerprints
+        """Plots the first 10000 samples in Umap space using Morgan Fingerprints.
+        Points are colored by subset for standard splits, and by fold (with the test set shown
+        as its own group) for k-fold splits.
 
         Args:
             dist_path (str): Optional Where to save the plot. The string '_umap_scatter' will be
                 appended to this input
+
+        Returns:
+            ax (matploblib Axes): Axes object for plot
         """
         hue_col = 'fold' if self.is_kfold else 'subset'
-        
+
         # umap of a subset
-        sub_sample_df = self.split_df.loc[np.random.permutation(self.split_df.index)[:10000]]
+        sub_sample_df = self.split_df.loc[np.random.permutation(self.split_df.index)[:10000]].copy()
+        sub_sample_df[hue_col] = self._umap_hue_labels(sub_sample_df)
         # add subset/fold column to total_df
         sub_total_df = sub_sample_df[['cmpd_id', hue_col]].merge(
             self.total_df, left_on='cmpd_id', right_on=self.id_col, how='inner')
@@ -358,14 +392,16 @@ class SplitStats:
             save_figure(dist_path+'_umap_scatter')
             pyplot.close()
 
+        return ax
+
     def subset_frac_plot(self, dist_path=''):
-        """Makes a box plot of the subset fractions
+        """Makes a bar plot of the subset fractions. The figure is closed after saving when
+        dist_path is given; otherwise it is left open for the caller to display.
 
         Args:
             dist_path (str): Optional Where to save the plot. The string '_frac_box' will be
                 appended to this input
         """
-        pyplot.figure()
         if self.is_kfold:
             g = sns.catplot(kind='bar', x='subset', y='frac', hue='fold',
                              data=self.fold_fracs, palette='colorblind')
@@ -386,13 +422,15 @@ class SplitStats:
 
         if len(dist_path) > 0:
             save_figure(dist_path+'_frac_box')
+            pyplot.close(g.figure)
 
     def make_all_plots(self, dist_path=''):
         """Makes a series of diagnostic plots
 
         Args:
-            dist_path (str): Optional Where to save the plot. The string '_frac_box' will be
-                appended to this input
+            dist_path (str): Optional prefix for saved plots. Each plot appends its own suffix
+                (e.g. '_umap_scatter', '_frac_box') and is saved as png and svg, then closed.
+                If empty, nothing is saved and the plots are left open for display.
         """
         if self.is_kfold:
             # histogram of nearest-neighbor distances between test and each fold's training set
@@ -416,10 +454,13 @@ class SplitStats:
             self.subset_frac_plot(dist_path)
         else:
             # histogram of compound distances between training, valid, and test subsets
+            # only add the suffix when saving; an empty dist_path means "don't save"
+            tvt_path = dist_path + '_tvt' if dist_path else ''
+            tvv_path = dist_path + '_tvv' if dist_path else ''
             self.dist_hist_plot(self.dists_tvt, 'Train vs Test pairwise Tanimoto Distance',
-                dist_path=dist_path+'_tvt')
+                dist_path=tvt_path)
             self.dist_hist_plot(self.dists_tvv, 'Train vs Valid pairwise Tanimoto Distance',
-                dist_path=dist_path+'_tvv')
+                dist_path=tvv_path)
 
             # umap on ecfp fingerprints. visualizes clusters of training/valid/testing split
             self.umap_plot(dist_path)
@@ -473,6 +514,7 @@ def parse_args(argv=None):
 def main(argv=None):
     """Command line entry point: makes diagnostic plots for two splits of the same dataset."""
     args = parse_args(argv)
+    os.makedirs(args.output_dir, exist_ok=True)
 
     df = pd.read_csv(args.csv, dtype={args.id_col:str})
 

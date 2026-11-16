@@ -230,6 +230,30 @@ def test_umap_plot_kfold_uses_fold_hue_and_saves(kfold_ss, tmp_path):
     assert os.path.exists(prefix + '_umap_scatter.svg')
 
 
+def test_umap_plot_kfold_shows_folds_and_test_set(kfold_ss):
+    """Test compounds have no fold; they must still be plotted (as their own group), not dropped."""
+    ax = kfold_ss.umap_plot()
+    legend_labels = {t.get_text() for t in ax.get_legend().get_texts()}
+    assert legend_labels == {'fold 0', 'fold 1', 'fold 2', 'test'}
+    n_points = sum(len(c.get_offsets()) for c in ax.collections)
+    assert n_points == len(kfold_ss.total_df)
+
+
+def test_umap_hue_labels_kfold(kfold_ss, kfold_split_df):
+    labels = kfold_ss._umap_hue_labels(kfold_split_df)
+    assert list(labels[:3]) == ['fold 0', 'fold 1', 'fold 2']
+    assert set(labels[12:]) == {'test'}
+
+
+def test_umap_hue_labels_kfold_non_integer_fold_and_nan_train_valid(kfold_ss):
+    df = pd.DataFrame({'subset': ['train_valid', 'train_valid', 'test'], 'fold': [1.5, np.nan, np.nan]})
+    assert list(kfold_ss._umap_hue_labels(df)) == ['fold 1.5', 'test', 'test']
+
+
+def test_umap_hue_labels_standard_is_subset(standard_ss, standard_split_df):
+    assert standard_ss._umap_hue_labels(standard_split_df).equals(standard_split_df['subset'])
+
+
 def test_umap_plot_standard_uses_subset_hue_and_saves(standard_ss, tmp_path):
     prefix = str(tmp_path / 'std')
     standard_ss.umap_plot(dist_path=prefix)
@@ -238,9 +262,9 @@ def test_umap_plot_standard_uses_subset_hue_and_saves(standard_ss, tmp_path):
 
 def test_umap_plot_without_path_leaves_figure_open(kfold_ss):
     plt.close('all')
-    kfold_ss.umap_plot()
+    ax = kfold_ss.umap_plot()
     # the figure is intentionally left open for the caller when no path is given
-    assert len(plt.get_fignums()) == 1
+    assert plt.get_fignums() == [ax.figure.number]
 
 
 def test_subset_frac_plot_kfold(kfold_ss, tmp_path):
@@ -275,6 +299,33 @@ def test_make_all_plots_standard_saves_all_figures(standard_ss, tmp_path):
     standard_ss.make_all_plots(dist_path=prefix)
     for suffix in ('_tvt_dist_hist', '_tvv_dist_hist', '_umap_scatter', '_frac_box'):
         assert os.path.exists(prefix + suffix + '.png'), suffix
+
+
+def test_make_all_plots_standard_without_path_saves_nothing(standard_ss, tmp_path, monkeypatch):
+    """An empty dist_path means "don't save" in both modes (the suffix must not make it non-empty)."""
+    monkeypatch.chdir(tmp_path)
+    standard_ss.make_all_plots()
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize('ss_fixture', ['kfold_ss', 'standard_ss'])
+def test_make_all_plots_closes_all_figures_when_saving(request, ss_fixture, tmp_path):
+    ss = request.getfixturevalue(ss_fixture)
+    plt.close('all')
+    ss.make_all_plots(dist_path=str(tmp_path / 'p'))
+    assert plt.get_fignums() == []
+
+
+@pytest.mark.parametrize('ss_fixture', ['kfold_ss', 'standard_ss'])
+def test_subset_frac_plot_closes_figure_when_saving_and_leaves_one_open_otherwise(request, ss_fixture, tmp_path):
+    ss = request.getfixturevalue(ss_fixture)
+    plt.close('all')
+    ss.subset_frac_plot(dist_path=str(tmp_path / 'p'))
+    assert plt.get_fignums() == []
+
+    ss.subset_frac_plot()
+    # exactly one figure (no stray empty figure from a preceding pyplot.figure())
+    assert len(plt.get_fignums()) == 1
 
 
 def test_make_all_plots_routes_by_split_mode(kfold_ss, standard_ss, monkeypatch):
@@ -332,6 +383,24 @@ def test_response_cols_rejects_invalid_type(total_df, standard_split_df, bad):
         SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', bad)
 
 
+@pytest.mark.parametrize('bad', ['', 'y,', ',y', 'a,,b', '  ', ['a', ''], ['a', '  ']])
+def test_response_cols_rejects_empty_names(total_df, standard_split_df, bad):
+    with pytest.raises(ValueError, match="empty column name"):
+        SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', bad)
+
+
+@pytest.mark.parametrize('bad', [['a', 1], ['a', None], [1, 2], (b'x',)])
+def test_response_cols_rejects_non_string_items(total_df, standard_split_df, bad):
+    with pytest.raises(ValueError, match="must be a string or a list of strings"):
+        SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', bad)
+
+
+@pytest.mark.parametrize('empty', [[], ()])
+def test_response_cols_rejects_empty_collection(total_df, standard_split_df, empty):
+    with pytest.raises(ValueError, match="at least one column name"):
+        SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', empty)
+
+
 def test_subset_frac_plot_standard_with_string_response_cols(total_df, standard_split_df, tmp_path):
     ss = SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', 'response')
     prefix = str(tmp_path / 'std')
@@ -344,8 +413,7 @@ def test_main_plots_both_splits(total_df, standard_split_df, kfold_split_df, tmp
     csv = tmp_path / 'data.csv'
     split_a = tmp_path / 'split_a.csv'
     split_b = tmp_path / 'split_b.csv'
-    out = tmp_path / 'out'
-    out.mkdir()
+    out = tmp_path / 'does' / 'not' / 'exist'  # main() must create it
     total_df.to_csv(csv, index=False)
     standard_split_df.to_csv(split_a, index=False)
     kfold_split_df.to_csv(split_b, index=False)
