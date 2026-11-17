@@ -88,6 +88,19 @@ def create_minimal_dataset(params, featurization, contains_responses=False):
     """
     return MinimalDataset(params, featurization, contains_responses)
 
+
+# ****************************************************************************************
+def should_persist_featurized_data(params):
+    """Return whether featurized datasets should be persisted for this run.
+
+    Prediction-time AD calculations sometimes featurize training data only as a
+    transient intermediate. In those cases we want the featurization itself,
+    but not an attempt to write cached descriptor files alongside the source
+    training dataset.
+    """
+
+    return getattr(params, 'persist_featurized_data', True)
+
 # ****************************************************************************************
 def check_task_columns(params, dset_df):
     """Check that the data frame dset_df contains all the columns listed in params.response_cols.
@@ -453,7 +466,7 @@ class ModelDataset:
             sample_only = True
         check_task_columns(params, dset_df)
         features, ids, self.vals, self.attr, w, featurized_dset_df = self.featurization.featurize_data(dset_df, params, self.contains_responses)
-        if not sample_only:
+        if not sample_only and should_persist_featurized_data(params):
             self.save_featurized_data(featurized_dset_df)
 
         self.n_features = self.featurization.get_feature_count()
@@ -1585,7 +1598,7 @@ class EmbeddingDataset:
                                                     self.input_dataset.contains_responses)
             load_success = True
 
-        if should_save:
+        if should_save and should_persist_featurized_data(params):
             self.input_dataset.save_featurized_data(featurized_dset_df)
 
         # calculate the embedding
