@@ -19,6 +19,9 @@ from matplotlib import pyplot as plt
 from atomsci.ddm.utils import compare_splits_plots as csp
 from atomsci.ddm.utils.compare_splits_plots import SplitStats, save_figure
 
+# avoid spawning a multiprocessing.Pool per distance matrix (see conftest.thread_dist_pool)
+pytestmark = pytest.mark.usefixtures('thread_dist_pool')
+
 SMILES = [
     'CCO', 'CCN', 'CCC', 'CCCl', 'CCBr', 'CCCC', 'CCCO', 'CCCN',
     'c1ccccc1', 'c1ccccc1C', 'c1ccccc1O', 'c1ccccc1N', 'CC(C)C', 'CC(C)O', 'CC(=O)O',
