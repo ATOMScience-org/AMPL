@@ -233,6 +233,30 @@ def test_umap_plot_kfold_uses_fold_hue_and_saves(kfold_ss, tmp_path):
     assert os.path.exists(prefix + '_umap_scatter.svg')
 
 
+def test_umap_plot_kfold_shows_folds_and_test_set(kfold_ss):
+    """Test compounds have no fold; they must still be plotted (as their own group), not dropped."""
+    ax = kfold_ss.umap_plot()
+    legend_labels = {t.get_text() for t in ax.get_legend().get_texts()}
+    assert legend_labels == {'fold 0', 'fold 1', 'fold 2', 'test'}
+    n_points = sum(len(c.get_offsets()) for c in ax.collections)
+    assert n_points == len(kfold_ss.total_df)
+
+
+def test_umap_hue_labels_kfold(kfold_ss, kfold_split_df):
+    labels = kfold_ss._umap_hue_labels(kfold_split_df)
+    assert list(labels[:3]) == ['fold 0', 'fold 1', 'fold 2']
+    assert set(labels[12:]) == {'test'}
+
+
+def test_umap_hue_labels_kfold_non_integer_fold_and_nan_train_valid(kfold_ss):
+    df = pd.DataFrame({'subset': ['train_valid', 'train_valid', 'test'], 'fold': [1.5, np.nan, np.nan]})
+    assert list(kfold_ss._umap_hue_labels(df)) == ['fold 1.5', 'test', 'test']
+
+
+def test_umap_hue_labels_standard_is_subset(standard_ss, standard_split_df):
+    assert standard_ss._umap_hue_labels(standard_split_df).equals(standard_split_df['subset'])
+
+
 def test_umap_plot_standard_uses_subset_hue_and_saves(standard_ss, tmp_path):
     prefix = str(tmp_path / 'std')
     standard_ss.umap_plot(dist_path=prefix)
@@ -241,9 +265,9 @@ def test_umap_plot_standard_uses_subset_hue_and_saves(standard_ss, tmp_path):
 
 def test_umap_plot_without_path_leaves_figure_open(kfold_ss):
     plt.close('all')
-    kfold_ss.umap_plot()
+    ax = kfold_ss.umap_plot()
     # the figure is intentionally left open for the caller when no path is given
-    assert len(plt.get_fignums()) == 1
+    assert plt.get_fignums() == [ax.figure.number]
 
 
 def test_subset_frac_plot_kfold(kfold_ss, tmp_path):
@@ -280,6 +304,33 @@ def test_make_all_plots_standard_saves_all_figures(standard_ss, tmp_path):
         assert os.path.exists(prefix + suffix + '.png'), suffix
 
 
+def test_make_all_plots_standard_without_path_saves_nothing(standard_ss, tmp_path, monkeypatch):
+    """An empty dist_path means "don't save" in both modes (the suffix must not make it non-empty)."""
+    monkeypatch.chdir(tmp_path)
+    standard_ss.make_all_plots()
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize('ss_fixture', ['kfold_ss', 'standard_ss'])
+def test_make_all_plots_closes_all_figures_when_saving(request, ss_fixture, tmp_path):
+    ss = request.getfixturevalue(ss_fixture)
+    plt.close('all')
+    ss.make_all_plots(dist_path=str(tmp_path / 'p'))
+    assert plt.get_fignums() == []
+
+
+@pytest.mark.parametrize('ss_fixture', ['kfold_ss', 'standard_ss'])
+def test_subset_frac_plot_closes_figure_when_saving_and_leaves_one_open_otherwise(request, ss_fixture, tmp_path):
+    ss = request.getfixturevalue(ss_fixture)
+    plt.close('all')
+    ss.subset_frac_plot(dist_path=str(tmp_path / 'p'))
+    assert plt.get_fignums() == []
+
+    ss.subset_frac_plot()
+    # exactly one figure (no stray empty figure from a preceding pyplot.figure())
+    assert len(plt.get_fignums()) == 1
+
+
 def test_make_all_plots_routes_by_split_mode(kfold_ss, standard_ss, monkeypatch):
     calls = []
     monkeypatch.setattr(SplitStats, 'umap_plot', lambda self, p='': calls.append('umap'))
@@ -312,12 +363,78 @@ def test_save_figure_writes_png_and_svg(tmp_path):
     assert (tmp_path / 'fig.svg').exists()
 
 
-# --- __main__ entry point ---------------------------------------------------------------------
-@pytest.mark.xfail(strict=True, raises=TypeError,
-                   reason="__main__ block builds SplitStats without the required response_cols argument")
-def test_main_block_runs_make_all_plots(total_df, standard_split_df, kfold_split_df, tmp_path, monkeypatch):
-    """The command-line entry point should plot both splits. It currently fails because
-    SplitStats() is called without response_cols; remove the xfail once that is fixed."""
+# --- response_cols handling -------------------------------------------------------------------
+def test_response_cols_string_is_normalized_to_list(total_df, standard_split_df):
+    ss = SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', 'response')
+    assert ss.response_cols == ['response']
+
+
+def test_response_cols_comma_separated_string(total_df, standard_split_df):
+    total_df['response2'] = total_df['response']
+    ss = SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', 'response, response2')
+    assert ss.response_cols == ['response', 'response2']
+
+
+def test_response_cols_tuple_is_converted_to_list(total_df, standard_split_df):
+    ss = SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', ('response',))
+    assert ss.response_cols == ['response']
+
+
+@pytest.mark.parametrize('bad', [42, None, {'response'}])
+def test_response_cols_rejects_invalid_type(total_df, standard_split_df, bad):
+    with pytest.raises(ValueError, match="response_cols must be a string or a list"):
+        SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', bad)
+
+
+@pytest.mark.parametrize('bad', ['', 'y,', ',y', 'a,,b', '  ', ['a', ''], ['a', '  ']])
+def test_response_cols_rejects_empty_names(total_df, standard_split_df, bad):
+    with pytest.raises(ValueError, match="empty column name"):
+        SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', bad)
+
+
+@pytest.mark.parametrize('bad', [['a', 1], ['a', None], [1, 2], (b'x',)])
+def test_response_cols_rejects_non_string_items(total_df, standard_split_df, bad):
+    with pytest.raises(ValueError, match="must be a string or a list of strings"):
+        SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', bad)
+
+
+@pytest.mark.parametrize('empty', [[], ()])
+def test_response_cols_rejects_empty_collection(total_df, standard_split_df, empty):
+    with pytest.raises(ValueError, match="at least one column name"):
+        SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', empty)
+
+
+def test_subset_frac_plot_standard_with_string_response_cols(total_df, standard_split_df, tmp_path):
+    ss = SplitStats(total_df, standard_split_df, 'smiles', 'cmpd_id', 'response')
+    prefix = str(tmp_path / 'std')
+    ss.subset_frac_plot(dist_path=prefix)
+    assert os.path.exists(prefix + '_frac_box.png')
+
+
+# --- command line entry point -----------------------------------------------------------------
+def test_main_plots_both_splits(total_df, standard_split_df, kfold_split_df, tmp_path):
+    csv = tmp_path / 'data.csv'
+    split_a = tmp_path / 'split_a.csv'
+    split_b = tmp_path / 'split_b.csv'
+    out = tmp_path / 'does' / 'not' / 'exist'  # main() must create it
+    total_df.to_csv(csv, index=False)
+    standard_split_df.to_csv(split_a, index=False)
+    kfold_split_df.to_csv(split_b, index=False)
+
+    csp.main([str(csv), 'cmpd_id', 'smiles', str(split_a), str(split_b), str(out),
+              '--response_cols', 'response'])
+
+    assert (out / 'split_a_tvt_dist_hist.png').exists()
+    assert (out / 'split_b_kfold_tvt.png').exists()
+
+
+def test_parse_args_requires_response_cols(capsys):
+    with pytest.raises(SystemExit):
+        csp.parse_args(['d.csv', 'id', 'smiles', 'a.csv', 'b.csv', 'out'])
+    assert '--response_cols' in capsys.readouterr().err
+
+
+def test_main_block_invokes_main(total_df, standard_split_df, kfold_split_df, tmp_path, monkeypatch):
     csv = tmp_path / 'data.csv'
     split_a = tmp_path / 'split_a.csv'
     split_b = tmp_path / 'split_b.csv'
@@ -326,10 +443,8 @@ def test_main_block_runs_make_all_plots(total_df, standard_split_df, kfold_split
     total_df.to_csv(csv, index=False)
     standard_split_df.to_csv(split_a, index=False)
     kfold_split_df.to_csv(split_b, index=False)
-
     monkeypatch.setattr(sys, 'argv', ['compare_splits_plots.py', str(csv), 'cmpd_id', 'smiles',
-                                      str(split_a), str(split_b), str(out)])
+                                      str(split_a), str(split_b), str(out),
+                                      '--response_cols', 'response'])
     runpy.run_path(csp.__file__, run_name='__main__')
-
-    assert (out / 'split_a_tvt_dist_hist.png').exists()
-    assert (out / 'split_b_kfold_tvt.png').exists()
+    assert (out / 'split_b_kfold_tvv.png').exists()
