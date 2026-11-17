@@ -10,6 +10,9 @@ from atomsci.ddm.utils.compare_splits_plots import SplitStats, split, parse_args
 from matplotcheck.base import PlotTester
 from contextlib import contextmanager
 
+# avoid spawning a multiprocessing.Pool per distance matrix (see conftest.thread_dist_pool)
+pytestmark = pytest.mark.usefixtures('thread_dist_pool')
+
 # --- Fixtures ---
 @pytest.fixture
 def mock_data():
