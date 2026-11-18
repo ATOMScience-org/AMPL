@@ -1728,7 +1728,8 @@ class ForestModelWrapper(ModelWrapper):
 
             best_epoch (int): Set to 0, not applicable to deepchem random forest models
 
-            train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+            train_perf_data (PerfData): For k-fold cross-validation, contains a single prediction
+                pass from the final retrained model over its combined training+validation data.
 
             valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
 
@@ -1776,20 +1777,31 @@ class ForestModelWrapper(ModelWrapper):
         self.model_choice_score = self.valid_perf_data.model_choice_score(self.params.model_choice_score_type)
 
         if num_folds > 1:
-            # For k-fold CV, retrain on the combined training and validation sets
-            fit_dataset = self.data.combined_training_data()
-            fit_dataset = self.transform_dataset(fit_dataset, fold='final')
-            self.model.fit(fit_dataset)
-
-            # Recompute test performance using a single prediction pass from the retrained model
-            test_dset_final = self.transform_dataset(self.data.test_dset, fold='final')
-            final_test_pred = self.model.predict(test_dset_final, self.transformers['final'])
-            self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'test')
-            self.test_perf_data.accumulate_preds(final_test_pred, test_dset_final.ids)
-            self.test_perf, self.test_perf_std = self.test_perf_data.compute_perf_metrics()
+            self._retrain_and_evaluate(pipeline)
         self.model_save()
         # The best model is just the single RF training run.
         self.best_epoch = 0
+
+    # ****************************************************************************************
+    def _retrain_and_evaluate(self, pipeline):
+        """Retrain on combined train+valid data and replace train/test performance.
+
+        Called only for multiple folds. Validation performance remains the CV aggregate;
+        train and test performance describe the final model that will be saved.
+        """
+        fit_dataset = self.transform_dataset(self.data.combined_training_data(), fold='final')
+        self.model.fit(fit_dataset)
+
+        final_train_pred = self.model.predict(fit_dataset, self.transformers['final'])
+        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'train')
+        self.train_perf_data.accumulate_preds(final_train_pred, fit_dataset.ids)
+        self.train_perf, self.train_perf_std = self.train_perf_data.compute_perf_metrics()
+
+        test_dset_final = self.transform_dataset(self.data.test_dset, fold='final')
+        final_test_pred = self.model.predict(test_dset_final, self.transformers['final'])
+        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'test')
+        self.test_perf_data.accumulate_preds(final_test_pred, test_dset_final.ids)
+        self.test_perf, self.test_perf_std = self.test_perf_data.compute_perf_metrics()
 
     # ****************************************************************************************
     def make_dc_model(self, model_dir):
@@ -1911,7 +1923,8 @@ class DCRFModelWrapper(ForestModelWrapper):
         Created in train:
             data (ModelDataset): contains the dataset, set in pipeline
             best_epoch (int): Set to 0, not applicable to deepchem random forest models
-            train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+            train_perf_data (PerfData): For k-fold cross-validation, contains a single prediction
+                pass from the final retrained model over its combined training+validation data.
             valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
             train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
             valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
@@ -2178,7 +2191,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
 
             best_epoch (int): Set to 0, not applicable to deepchem xgboost models
 
-            train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+            train_perf_data (PerfData): For k-fold cross-validation, contains a single prediction
+                pass from the final retrained model over its combined training+validation data.
 
             valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
 
@@ -2226,17 +2240,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
         self.model_choice_score = self.valid_perf_data.model_choice_score(self.params.model_choice_score_type)
 
         if num_folds > 1:
-            # For k-fold CV, retrain on the combined training and validation sets
-            fit_dataset = self.data.combined_training_data()
-            fit_dataset = self.transform_dataset(fit_dataset, fold='final')
-            self.model.fit(fit_dataset)
-
-            # Recompute test performance using a single prediction pass from the retrained model
-            test_dset_final = self.transform_dataset(self.data.test_dset, fold='final')
-            final_test_pred = self.model.predict(test_dset_final, self.transformers['final'])
-            self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'test')
-            self.test_perf_data.accumulate_preds(final_test_pred, test_dset_final.ids)
-            self.test_perf, self.test_perf_std = self.test_perf_data.compute_perf_metrics()
+            self._retrain_and_evaluate(pipeline)
         self.model_save()
         # The best model is just the single xgb training run.
         self.best_epoch = 0
