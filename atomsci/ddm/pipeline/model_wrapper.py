@@ -1730,6 +1730,7 @@ class ForestModelWrapper(ModelWrapper):
 
             train_perf_data (PerfData): For k-fold cross-validation, contains a single prediction
                 pass from the final retrained model over its combined training+validation data.
+                For non-k-fold cross-validation, contains performance on just the training set.
 
             valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
 
@@ -1925,6 +1926,7 @@ class DCRFModelWrapper(ForestModelWrapper):
             best_epoch (int): Set to 0, not applicable to deepchem random forest models
             train_perf_data (PerfData): For k-fold cross-validation, contains a single prediction
                 pass from the final retrained model over its combined training+validation data.
+                For non-k-fold cross-validation, contains performance on just the training set.
             valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
             train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
             valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
