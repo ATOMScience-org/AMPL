@@ -2195,6 +2195,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
 
             train_perf_data (PerfData): For k-fold cross-validation, contains a single prediction
                 pass from the final retrained model over its combined training+validation data.
+                For non-k-fold cross-validation, contains performance on just the training set.
 
             valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
 
