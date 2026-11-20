@@ -64,16 +64,31 @@ def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, 
         dis = np.sum(train_dset_pair_distance[i][kn_idxes[i]])/k
         train_kmean_dis.append(dis)
     train_dset_distribution = sp.stats.norm.fit(train_kmean_dis)
-    # pairwise distance between train and pred set
-    pred_size = len(pred_dset)
-    train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
-    train_pred_kn_idxes = get_k_nearest_index(train_pred_dis, k)
+    pred_arr = np.asarray(pred_dset)
+    pred_size = len(pred_arr)
     pred_kmean_dis_score = np.zeros(pred_size)
-    for i in range(pred_size):
-        dists = train_pred_dis[i][train_pred_kn_idxes[i]]
-        pred_km_dis = np.mean(dists)
-        train_dset_std = train_dset_distribution[1] if train_dset_distribution[1] != 0 else 1e-6
-        pred_kmean_dis_score[i] = max(1e-6, (pred_km_dis - train_dset_distribution[0]) / train_dset_std)
+    train_pred_kn_idxes = np.full((pred_size, k), -1, dtype=int)
+
+    valid_pred_mask = get_valid_pred_rows_for_ad(pred_arr)
+    if np.any(valid_pred_mask):
+        valid_pred_arr = pred_arr[valid_pred_mask]
+        train_pred_dis = pairwise_distances(X=valid_pred_arr, Y=train_dset, metric=dist_metric)
+        valid_kn_idxes = get_k_nearest_index(train_pred_dis, k)
+        valid_pred_scores = np.zeros(len(valid_pred_arr))
+        for i in range(len(valid_pred_arr)):
+            dists = train_pred_dis[i][valid_kn_idxes[i]]
+            pred_km_dis = np.mean(dists)
+            train_dset_std = train_dset_distribution[1] if train_dset_distribution[1] != 0 else 1e-6
+            valid_pred_scores[i] = max(1e-6, (pred_km_dis - train_dset_distribution[0]) / train_dset_std)
+
+        pred_kmean_dis_score[valid_pred_mask] = valid_pred_scores
+        train_pred_kn_idxes[valid_pred_mask] = valid_kn_idxes
+    else:
+        valid_pred_scores = np.array([])
+
+    invalid_pred_penalty = get_invalid_pred_ad_penalty(valid_pred_scores)
+    pred_kmean_dis_score[~valid_pred_mask] = invalid_pred_penalty
+
     return pred_kmean_dis_score, train_pred_kn_idxes
 
 # ---------------------------------------------
@@ -89,14 +104,23 @@ def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distan
     if train_dset_pair_distance is None:
         # calculate the pair-wise distance of training set
         train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
-    # pairwise distance between train and pred set
-    pred_size = len(pred_dset)
-    train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
+    pred_arr = np.asarray(pred_dset)
+    pred_size = len(pred_arr)
     pred_kmean_dis_local_density = np.zeros(pred_size)
-    kn_idxes = get_k_nearest_index(train_pred_dis, k)
+    valid_pred_mask = get_valid_pred_rows_for_ad(pred_arr)
     # use k+1 here since the nearest neighbor is itself.
     nei_indxes = get_k_nearest_index(train_dset_pair_distance, k+1)
-    for i in range(pred_size):
+    if np.any(valid_pred_mask):
+        valid_pred_arr = pred_arr[valid_pred_mask]
+        train_pred_dis = pairwise_distances(X=valid_pred_arr, Y=train_dset, metric=dist_metric)
+        kn_idxes = get_k_nearest_index(train_pred_dis, k)
+        valid_pred_scores = np.zeros(len(valid_pred_arr))
+    else:
+        train_pred_dis = None
+        kn_idxes = None
+        valid_pred_scores = np.array([])
+
+    for i in range(len(valid_pred_scores)):
         # find the index of k nearest neighbour of each prediction data
         pred_km_dis = np.mean(train_pred_dis[i][kn_idxes[i]])
         # find the neighbours of each neighbour and calculate the distance
@@ -107,7 +131,13 @@ def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distan
         ave_nei_dis = np.mean(neighbor_dis)
         if ave_nei_dis == 0:
             ave_nei_dis = 1e-6
-        pred_kmean_dis_local_density[i] = pred_km_dis / ave_nei_dis
+        valid_pred_scores[i] = pred_km_dis / ave_nei_dis
+
+    if np.any(valid_pred_mask):
+        pred_kmean_dis_local_density[valid_pred_mask] = valid_pred_scores
+
+    invalid_pred_penalty = get_invalid_pred_ad_penalty(valid_pred_scores)
+    pred_kmean_dis_local_density[~valid_pred_mask] = invalid_pred_penalty
     return pred_kmean_dis_local_density
 
 # ---------------------------------------------
@@ -159,6 +189,30 @@ def drop_nan_training_rows_for_ad(train_dset, ids=None, logger=None):
         filtered_ids = np.asarray(ids)[keep_row_mask]
 
     return train_arr[keep_row_mask], filtered_ids
+
+
+# ---------------------------------------------
+def get_valid_pred_rows_for_ad(pred_dset):
+    """Return a mask for prediction rows that are safe for AD distance calculations."""
+
+    pred_arr = np.asarray(pred_dset)
+    if pred_arr.ndim != 2:
+        return np.ones(len(pred_arr), dtype=bool)
+    return ~pd.isna(pred_arr).any(axis=1)
+
+
+# ---------------------------------------------
+def get_invalid_pred_ad_penalty(valid_pred_scores, minimum_penalty=10.0, margin=1.0):
+    """Return a finite penalty AD score for prediction rows with NaN features.
+
+    Uses a conservative fallback that is always at least `minimum_penalty`, and
+    otherwise one unit worse than the worst valid AD score in the same batch.
+    """
+
+    valid_scores = np.asarray(valid_pred_scores)
+    if valid_scores.size == 0:
+        return minimum_penalty
+    return max(minimum_penalty, float(np.nanmax(valid_scores)) + margin)
 
 # ---------------------------------------------
 def build_tarball_name(dataset_name, model_uuid, result_dir=''):
@@ -1055,7 +1109,10 @@ class ModelPipeline:
                     for neigh in range(k):
                         neigh_ids = []
                         for comp in range(len(indexes)):
-                            neigh_ids.append(train_ids[indexes[comp][neigh]])
+                            neigh_idx = indexes[comp][neigh]
+                            neigh_ids.append(
+                                None if neigh_idx < 0 else train_ids[neigh_idx]
+                            )
                         result_df[f'AD_NN_{neigh}'] = neigh_ids
 
             except:
